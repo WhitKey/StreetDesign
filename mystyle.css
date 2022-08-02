@@ -1,0 +1,157 @@
+h1{
+    color: blue;
+}
+
+.window
+{
+    border-radius: 5px;
+}
+
+#mainWindow{
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+}
+
+
+#componentList
+{
+    background-color: darkgray;
+    width: 20%;
+    min-width: 120px;
+    margin-right: 5px;
+    padding: 10px;
+    display: flex;
+    flex-flow: column;
+}
+
+#editor{
+    display: flex;
+    flex-flow: column;
+    flex-grow: 1;
+    flex-shrink: 1;
+    background-color: green;
+}
+
+#land{
+    background-color: rgb(161, 114, 43);
+    height: 100%;
+    width: 90%;
+    align-self: center;
+    justify-content: center;
+    position: relative;
+    display: flex;
+    justify-content: start;
+    flex-wrap: nowrap;
+}
+
+.unusedSection{
+    width: 100%;
+    height: 50px;
+    outline: 1px;
+}
+
+.componentListItem{
+    background-color:lightgray;
+    width: 100%;
+    height: 15%;
+    margin-bottom: 5px;
+}
+
+.draggingElement{
+    opacity: 0.5;
+    max-width: 300px;
+    max-height: 300px;
+    position: absolute;
+    pointer-events: none;
+}
+
+.roadComponent{
+    width: 50px;
+    height: 100%;
+    position:relative;
+    display:flex;
+    flex-flow:row;
+    flex-shrink: 0;
+}
+
+.roadComponent * {
+    width:100%;
+    height: 100%;
+}
+
+.roadScope{
+    width:90%;
+    align-self: center;
+}
+
+.rangeSlider{
+    background-color:rgb(253, 255, 71);
+    width: 20px;
+    height: 20px;
+    position:absolute;
+}
+
+.road{
+    background-color:hsl(0, 0%, 11%);
+    flex-shrink: 1;
+}
+
+.sidewalk{
+    background-color:rgb(145, 39, 39);
+    flex-shrink: 1;
+}
+
+.bollard{
+    background-color:rgb(143, 143, 143);
+    flex-shrink: 1;
+}
+
+.emptyRoadComponent{
+    width:0px;
+    display: block;
+    height: 100%;
+    background-color: rgba(0, 255, 255, 0.384);
+    transition-duration: 0.3s;
+    transition-property: width;
+    flex-shrink: 0;
+}
+
+.hitbox{
+    left: 0px;
+    right: 0px;
+    width: 0px;
+    height:100%;
+    opacity: 0.8;
+    position: relative;
+    transition-duration: 0.05s;
+}
+
+.hitOn .hitbox{
+    width: 10px;
+    transition-duration: 0.05s;
+    background-color: aquamarine;
+}
+.hitOn * .hitbox{
+    width: 10px;
+    transition-duration: 0.05s;
+    background-color: aquamarine;
+}
+
+.trashcan{
+    margin-top: auto;
+    background-color: red;
+}
+
+
+@media screen and (max-width: 600px) {
+    #mainWindow{
+        flex-direction: column-reverse;
+        justify-content: flex-start;
+    }
+    
+    #componentList{
+        width: auto;
+        height: 35%;
+    }
+}
