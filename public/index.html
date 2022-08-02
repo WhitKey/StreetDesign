@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html style="height: 100%;overflow: hidden;touch-action:none;">
+
+<head>
+    <title>hello</title>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="stylesheet" href="roadEditor.css">
+
+</head>
+
+<body style="background-color: rgb(206, 206, 206); height: 100%; margin:0px;overflow: hidden;user-select: none; " draggable="false" onload="OnLoad();">
+    <div id="mainWindow" draggable="false">
+        <div id="componentList" draggable="false" class="window" style="margin:2px;">
+            <div class="window componentListItem" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="road">道路</div>
+            <div class="window componentListItem" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="sidewalk">人行道</div>
+            <div class="window componentListItem" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="bollard">分隔島</div>
+            <!--
+			<div id="trashcan" class="window componentListItem trashcan" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()">垃圾桶</div>
+			-->
+        </div>
+
+        <div id="editor" class="window" style="margin:2px;">
+            <div id="trashcan" class="roadScope" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()"></div>
+            <div id="designInfo" class="unusedSection roadScope" style="background-color: white;">一些設計資訊</div>
+            <div id="stopSection" class="unusedSection roadScope" style="background-color: gray;">停等段</div>
+            <div id="intermidiateSection" class="unusedSection roadScope" style="background-color:dimgray;">漸變段</div>
+            <div id="land" class="roadScope">
+
+            </div>
+        </div>
+    </div>
+
+    <div id="data" style="display:none;">
+        <div id="hitboxTemplate" class="hitbox" onmouseenter="EnterHitbox(event);" onmouseleave="LeaveHitbox(event);"></div>
+        <div id="emptyRoadComponentTemplate" class="emptyRoadComponent"></div>
+        <div id="roadComponentTemplate" class="roadComponent" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)"></div>
+        <div id="sidewalkTemplate" class="sidewalk component"></div>
+        <div id="bollardTemplate" class="bollard component"></div>
+        <div id="roadTemplate" class="road component"></div>
+    </div>
+
+    <script src="roadEditor.js"></script>
+</body>
+
+</html>
