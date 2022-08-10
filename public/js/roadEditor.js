@@ -197,7 +197,7 @@ function ComponentDragStart(event) {
     }
 
     //if draging placed component
-    if (target.classList.contains("component")) {
+    while (!target.classList.contains("drag")) {
         target = target.parentElement;
     }
 
@@ -212,15 +212,6 @@ function ComponentDragStart(event) {
 
 
     //move drag element to the poition of the pointer/finger
-    /*
-    if (touchevent) {
-        dragElement.style.left = event.touches[0].clientX + xOffset + "px";
-        dragElement.style.top = event.touches[0].clientY + yOffset + "px";
-    } else {
-        dragElement.style.left = event.clientX + xOffset + "px";
-        dragElement.style.top = event.clientY + yOffset + "px";
-    }
-    //*/
     dragElement.classList.add("draggingElement");
     dragElement.style.position = "absolute";
 
