@@ -12,7 +12,10 @@
 </head>
 
 <body style="background-color: rgb(206, 206, 206); height: 100%; margin:0px;overflow: hidden;user-select: none; " draggable="false" onload="OnLoad();">
-    <div id="mainWindow" draggable="false">
+    <div id="mainWindow" draggable="false" class="">
+        <div id="leftSlideout">
+            
+        </div>
         <div id="sidebar" class="window">
             <div id="componentList" draggable="false" style="margin:2px;">
                 <div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="road">
@@ -42,6 +45,8 @@
                     </div>
                 </div>
             </div>
+
+            
         </div>
 
         <div id="editor" class="window" style="margin:2px;">

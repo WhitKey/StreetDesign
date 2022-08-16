@@ -1,6 +1,7 @@
 
 @import url("componentListStyle.css");
 @import url("roadComponentStyle.css");
+@import url("propertyEditorStyle.css");
 
 .window {
     border-radius: 5px;
@@ -30,6 +31,19 @@
     margin: 1px;
     margin-right: 5px;
     padding: 10px;
+}
+
+#leftSlideout{
+    width: 0px;
+    background-color: blueviolet;
+    transition-duration: 300ms;
+    position: absolute;
+    height: 100vh;
+    z-index: 10;
+}
+
+.clickOn #leftSlideout{
+    width: calc(15vw + 25px);
 }
 
 #land {
@@ -116,5 +130,18 @@
         width: auto;
         height: 35%;
         margin-right: 0px;
+    }
+
+    #leftSlideout{
+        background-color: blueviolet;
+        transition-duration: 300ms;
+        position: absolute;
+        height: 0vh;
+        width: 100vw;
+    }
+    
+    .clickOn #leftSlideout{
+        height: calc(35vh);
+        width: 100%;
     }
 }

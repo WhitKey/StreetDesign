@@ -1,5 +1,6 @@
 var landElement = document.getElementById("land");
 var editorElement = document.getElementById("editor");
+var mainWindowElement = document.getElementById("mainWindow");
 
 var roadTemplate = document.getElementById("land");
 var sidewalkTemplate = document.getElementById("land");
@@ -22,6 +23,11 @@ const componentDefaultWidth = {
     "bollard": 0.5,
 }
 
+//-------------------------
+//
+//Initialization functions
+//
+//-------------------------
 function LandInit() {
     const hitboxTemplate = document.getElementById("hitboxTemplate");
     landElement.innerHTML = "";
@@ -33,6 +39,7 @@ function OnLoad() {
     //set element
     landElement = document.getElementById("land");
     editorElement = document.getElementById("editor");
+    mainWindowElement = document.getElementById("mainWindow");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -52,6 +59,11 @@ function OnLoad() {
     LandInit();
 }
 
+//-----------------------------
+//
+//Component behavior functions
+//
+//-----------------------------
 function AddHitbox(referencePos = null) {
     const hitboxTemplate = document.getElementById("hitboxTemplate");
     const emptyRoadComponentTemplate = document.getElementById("emptyRoadComponentTemplate");
@@ -178,6 +190,12 @@ function LeaveTrashcan() {
     inHitboxId = null;
 }
 
+
+//---------------------------------------
+//
+//Component dragging processing functions
+//
+//----------------------------------------
 function ComponentDragStart(event) {
 
     //set touch event flag
@@ -314,6 +332,9 @@ function ComponentDragEnd(event) {
 
     if (draging === false) {
         console.log("click");
+        if(dragElement.classList.contains("roadComponent")){
+            PropertySettingStart(dragElement.getAttribute("target"), dragElement.getAttribute("component"));
+        }
     }
 
     //console.log("drag end");
@@ -357,4 +378,49 @@ function ComponentDragEnd(event) {
     dragElement.remove();
     dragElement = null;
 
+}
+
+//---------------------------
+//
+//Property Setting functions
+//
+//---------------------------
+function PropertySettingStart(compId, compType){
+    console.log(compId);
+    console.log(compType);
+    SetLeftSlideout(true);
+    document.body.addEventListener("mousedown", PropertySettingExitTrigger);
+    document.body.addEventListener("touchstart", PropertySettingExitTrigger);
+}
+
+function SetLeftSlideout(value){
+    if(value === true){
+        if(!mainWindowElement.classList.contains("clickOn")){
+            mainWindowElement.classList.add("clickOn");
+        }
+    }else{
+        if(mainWindowElement.classList.contains("clickOn")){
+            mainWindowElement.classList.remove("clickOn");
+        }
+    }
+}
+
+function PropertySettingExitTrigger(event){
+    var target = event.target;
+    var check = false;
+    while(target){
+        if(target.id === "leftSlideout" || target.classList.contains("propertyConfig")){
+            check = true;
+            break;
+        }
+        target = target.parentElement;
+    }
+
+    if(check){
+        console.log("click on config");
+    }else{
+        document.body.removeEventListener("mousedown", PropertySettingExitTrigger);
+        document.body.removeEventListener("touchstart", PropertySettingExitTrigger);
+        SetLeftSlideout(false);
+    }
 }
