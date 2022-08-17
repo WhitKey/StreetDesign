@@ -15,7 +15,7 @@
 
 #editor {
     display: flex;
-    height:100%;
+    height: calc(100% - 4px);
     flex-flow: column;
     flex-grow: 1;
     flex-shrink: 1;
@@ -26,7 +26,7 @@
 #sidebar{
     background-color: darkgray;
     width: 15%;
-    height:100%;
+    height: calc(100% - 22px);
     min-width: 210px;
     margin: 1px;
     margin-right: 5px;
@@ -35,15 +35,15 @@
 
 #leftSlideout{
     width: 0px;
-    background-color: blueviolet;
-    transition-duration: 300ms;
-    position: absolute;
     height: 100vh;
+    transition: width 300ms;
+    position: absolute;
     z-index: 10;
 }
 
 .clickOn #leftSlideout{
     width: calc(15vw + 25px);
+    left: 0;
 }
 
 #land {

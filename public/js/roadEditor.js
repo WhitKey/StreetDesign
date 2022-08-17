@@ -1,6 +1,7 @@
 var landElement = document.getElementById("land");
 var editorElement = document.getElementById("editor");
 var mainWindowElement = document.getElementById("mainWindow");
+var propertyEditorElement = document.getElementById("mainWindow");
 
 var roadTemplate = document.getElementById("land");
 var sidewalkTemplate = document.getElementById("land");
@@ -16,6 +17,8 @@ var componentCounter = 0;
 var inHitboxId = null;
 var touchHitbox = false;
 var draging = false;
+
+var roadRecord = [];
 
 const componentDefaultWidth = {
     "road": 3,
@@ -40,6 +43,7 @@ function OnLoad() {
     landElement = document.getElementById("land");
     editorElement = document.getElementById("editor");
     mainWindowElement = document.getElementById("mainWindow");
+    propertyEditorElement = document.getElementById("propertyEditor");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -101,6 +105,10 @@ function InsertComponent(hitboxId, move = false) {
     var component = roadComponentTemplate.cloneNode(true);
     var nextComp = null;
 
+    var oldComp = null
+    var toIndex = null;
+
+
     component.id = "comp" + componentCounter.toString();
     ++componentCounter;
 
@@ -119,6 +127,7 @@ function InsertComponent(hitboxId, move = false) {
         var target = document.getElementById(dragElement.getAttribute("target"));
         //console.log({ target });
 
+        oldComp = GetComponentRecord((Array.prototype.slice.call(landElement.children).indexOf(target)-1)/2);
         RemoveHitbox(target.children[1].id);
         component.append(...target.childNodes);
         RemoveComponent(target);
@@ -130,6 +139,15 @@ function InsertComponent(hitboxId, move = false) {
     if (nextComp !== null) {
         nextComp.setAttribute("originHitbox", component.children[1].id);
     }
+
+    
+    toIndex = (Array.prototype.slice.call(landElement.children).indexOf(component)-1)/2;
+    if(oldComp === null){
+        AddNewComponentRecord(toIndex, componentType);
+    }else{
+        AddComponentRecord(toIndex, oldComp);
+    }
+    console.log(roadRecord);
 }
 
 function RemoveComponent(target) {
@@ -140,6 +158,11 @@ function RemoveComponent(target) {
             RemoveHitbox(target.lastChild.id);
         }
     }
+    
+    var compIndex = (Array.prototype.slice.call(landElement.children).indexOf(target)-1)/2;
+    RemoveComponentRecord(compIndex);
+    console.log(roadRecord);
+
     target.remove();
 }
 
@@ -190,6 +213,53 @@ function LeaveTrashcan() {
     inHitboxId = null;
 }
 
+//----------------------------------------
+//
+//Component variabels management functions
+//
+//----------------------------------------
+function CreateComponentRecord(compType){
+    if(compType === "bollard"){
+        return {
+            "type":"bollard",
+            "width": componentDefaultWidth[compType]
+        }
+    }else if(compType === "road"){
+        return {
+            "type":"road",
+            "width": componentDefaultWidth[compType],
+            "direction": "both",
+            "exitDirection":"all"
+        }
+    }else if(compType === "sidewalk"){
+        return {
+            "type": "sidewalk",
+            "width": componentDefaultWidth[compType],
+        }
+    }else{
+        return undefined;
+    }
+}
+
+function AddNewComponentRecord(index, compType){
+    var comp = CreateComponentRecord(compType);
+    
+    if(comp === undefined)return;
+
+    roadRecord.splice(index, 0, comp);
+}
+
+function GetComponentRecord(index){
+    return roadRecord.slice(index, index + 1)[0];
+}
+
+function AddComponentRecord(index, record){
+    roadRecord.splice(index, 0, record);
+}
+
+function RemoveComponentRecord(index){
+    roadRecord.splice(index, 1);
+}
 
 //---------------------------------------
 //
@@ -386,11 +456,22 @@ function ComponentDragEnd(event) {
 //
 //---------------------------
 function PropertySettingStart(compId, compType){
-    console.log(compId);
-    console.log(compType);
+    var target = document.getElementById(compId);
+
+    if(!target.classList.contains("selected")){
+        target.classList.add("selected");
+    }
+
     SetLeftSlideout(true);
+    propertyEditorElement.setAttribute("target", compId);
+
     document.body.addEventListener("mousedown", PropertySettingExitTrigger);
     document.body.addEventListener("touchstart", PropertySettingExitTrigger);
+
+    target.removeAttribute("onmousedown");
+    target.removeAttribute("ontouchstart");
+    target.removeEventListener("mousedown", ComponentDragStart);
+    target.removeEventListener("touchstart", ComponentDragStart);
 }
 
 function SetLeftSlideout(value){
@@ -422,5 +503,10 @@ function PropertySettingExitTrigger(event){
         document.body.removeEventListener("mousedown", PropertySettingExitTrigger);
         document.body.removeEventListener("touchstart", PropertySettingExitTrigger);
         SetLeftSlideout(false);
+        var target = document.getElementById(propertyEditorElement.getAttribute("target"));
+        target.classList.remove("selected");
+
+        target.addEventListener("mousedown", ComponentDragStart);
+        target.addEventListener("touchstart", ComponentDragStart);
     }
 }

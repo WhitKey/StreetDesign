@@ -20,14 +20,24 @@
     background-color: transparent;
     left: 0;
     content: "";
-    height: 100%;
-    width: 100%;
-    opacity: .1;
-    transition-duration: 300ms;
+    height: calc(100% - 6px);
+    width: calc(100% - 6px);
+    transition: border-color 300ms;
+    border-style:  dashed;
+    border-color: transparent;
 }
 
 .roadComponent:hover::before{
-    background-color: cyan;
+    /*background-color: cyan;*/
+    border-width: 3px;
+    border-color: cyan;
+    left: 0;
+}
+
+.roadComponent.selected::before{
+    border-style:  solid;
+    border-width: 3px;
+    border-color: yellow;
     left: 0;
 }
 
