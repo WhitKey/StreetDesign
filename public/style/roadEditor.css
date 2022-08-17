@@ -133,7 +133,6 @@
     }
 
     #leftSlideout{
-        background-color: blueviolet;
         transition-duration: 300ms;
         position: absolute;
         height: 0vh;
