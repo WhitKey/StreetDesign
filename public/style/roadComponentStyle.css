@@ -20,8 +20,8 @@
     background-color: transparent;
     left: 0;
     content: "";
-    height: calc(100% - 6px);
-    width: calc(100% - 6px);
+    height: calc(100% - 0px);
+    width: calc(100% - 0px);
     border-width: 3px;
     transition: border-color 300ms;
     border-style:  dashed;

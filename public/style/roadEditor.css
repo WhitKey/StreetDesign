@@ -26,7 +26,7 @@
 #sidebar{
     background-color: darkgray;
     width: 15%;
-    height: calc(100% - 22px);
+    height: calc(100% - 3px);
     min-width: 210px;
     margin: 1px;
     margin-right: 5px;
@@ -37,12 +37,21 @@
     width: 0px;
     height: 100vh;
     transition: width 300ms;
+    background-color: #b1b1b1;
     position: absolute;
+    min-width: 0px;
     z-index: 10;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .clickOn #leftSlideout{
-    width: calc(15vw + 25px);
+    width: calc(15vw + 5px);
+    min-width: 210px;
+    transition-property: min-width, width;
+    transition-delay:  300ms , 0ms;
+    transition-duration:  0ms, 300ms;
+    padding: 10px;
     left: 0;
 }
 
@@ -133,7 +142,7 @@
     }
 
     #leftSlideout{
-        transition-duration: 300ms;
+        transition: height 300ms;
         position: absolute;
         height: 0vh;
         width: 100vw;
@@ -141,6 +150,6 @@
     
     .clickOn #leftSlideout{
         height: calc(35vh);
-        width: 100%;
+        width: calc(100% - 0px);
     }
 }

@@ -2,5 +2,43 @@
 #propertyEditor{
     width: 100%;
     height: 100%;
-    background-color: #b1b1b1;
+}
+
+#propertySettings{
+    width:100%;
+}
+
+.propertyName{
+    text-align: center;
+    margin-right: 5px;
+    text-orientation: upright;
+    writing-mode: vertical-rl;
+    font-size: 20px;
+}
+
+.propertySettingFrame{
+    display: flex;
+    width:100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: start;
+}
+
+.propertySettingFrame * {
+    text-overflow: clip;
+}
+
+.propertyCollection{
+    min-height: 100px;
+    width:100%;
+    margin-top: 5px;
+    background: lightblue;
+}
+
+@media screen and (max-width: 600px) {
+    #propertyEditor h1{
+        font-size: large;
+    }
+
 }

@@ -455,6 +455,21 @@ function ComponentDragEnd(event) {
 //Property Setting functions
 //
 //---------------------------
+
+const propertySettingFrame = `
+<div class="propertySettingFrame">
+    <h1 style="max-height:45px; overflow:hidden;flex-shrink:0;">屬性設定</h1>
+    <div id="propertySettings">
+        <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
+            <span class="input-group-text" id="basic-addon1">寬度</span>
+            <input type="number" class="form-control" placeholder="300" aria-describedby="basic-addon1">
+            <span class="input-group-text" id="basic-addon1">m</span>
+        </div>    
+        <div class="window propertyCollection"></div>
+    </div>
+</div>
+`
+
 function PropertySettingStart(compId, compType){
     var target = document.getElementById(compId);
 
@@ -468,10 +483,16 @@ function PropertySettingStart(compId, compType){
     document.body.addEventListener("mousedown", PropertySettingExitTrigger);
     document.body.addEventListener("touchstart", PropertySettingExitTrigger);
 
+    ConfigPropertySetting(compType);
+
     target.removeAttribute("onmousedown");
     target.removeAttribute("ontouchstart");
     target.removeEventListener("mousedown", ComponentDragStart);
     target.removeEventListener("touchstart", ComponentDragStart);
+}
+
+function ConfigPropertySetting(compType){
+    propertyEditorElement.innerHTML = propertySettingFrame;
 }
 
 function SetLeftSlideout(value){
@@ -505,7 +526,7 @@ function PropertySettingExitTrigger(event){
         SetLeftSlideout(false);
         var target = document.getElementById(propertyEditorElement.getAttribute("target"));
         target.classList.remove("selected");
-
+        propertyEditorElement.innerHTML = "";
         target.addEventListener("mousedown", ComponentDragStart);
         target.addEventListener("touchstart", ComponentDragStart);
     }
