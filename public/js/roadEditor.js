@@ -494,10 +494,19 @@ function ComponentDragEnd(event) {
 //---------------------------
 
 function PropertySettingChange(event, type){
-    console.log(type);
-    console.log(event);
-}
+    var propertySettingElement = document.getElementById("propertySettings");
+    var compIdx = parseInt(propertySettingElement.getAttribute("component_idx"));
+    var componentElement = document.getElementById(propertyEditorElement.getAttribute("target"));
 
+    if(type === "width"){
+        var newWidth = event.target.value;
+        var refPercent = 100.0 / landWidth; // % per meter
+
+        console.log("update width");
+        componentElement.style.width = (refPercent * parseFloat(newWidth)).toString() + "%";
+        roadRecord[compIdx].width = parseFloat(newWidth);
+    }
+}
 
 function PropertySettingStart(compId, compType){
     var target = document.getElementById(compId);
