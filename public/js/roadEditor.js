@@ -493,7 +493,8 @@ function ComponentDragEnd(event) {
 //
 //---------------------------
 
-function PropertySettingChange(event){
+function PropertySettingChange(event, type){
+    console.log(type);
     console.log(event);
 }
 
@@ -531,7 +532,7 @@ function ConfigPropertySetting(compId, compType){
         <div id="propertySettings" component_idx=${compIdx}>
             <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
                 <span class="input-group-text" id="basic-addon1">寬度</span>
-                <input onchange="PropertySettingChange(event);" type="number" class="form-control" value="${propertyRecord['width']}" min="0.1" step="0.1" aria-describedby="basic-addon1">
+                <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="0.1" step="0.1" aria-describedby="basic-addon1">
                 <span class="input-group-text" id="basic-addon1">m</span>
             </div>
             <div class="window propertyCollection"></div>
