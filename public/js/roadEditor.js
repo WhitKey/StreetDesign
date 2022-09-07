@@ -1,16 +1,25 @@
+
+
+//--------------------
+//
+//Global Variables
+//
+//--------------------
+
+//element entries
 var landElement = document.getElementById("land");
 var editorElement = document.getElementById("editor");
 var mainWindowElement = document.getElementById("mainWindow");
 var propertyEditorElement = document.getElementById("mainWindow");
 
+//road element template
 var roadTemplate = document.getElementById("land");
 var sidewalkTemplate = document.getElementById("land");
 var bollardTemplate = document.getElementById("land");
 var roadComponentTemplate = document.getElementById("land");
-
 var templateBase = {};
 
-var landWidth = 15;
+//road layout editor variable
 var dragElement = null;
 var hitboxCounter = 0;
 var componentCounter = 0;
@@ -18,13 +27,38 @@ var inHitboxId = null;
 var touchHitbox = false;
 var draging = false;
 
+//landwidth 
+var landWidth = 15;
+
+//conponent layout
 var roadRecord = [];
 
+//conponent default data
 const componentDefaultWidth = {
     "road": 3,
     "sidewalk": 1,
     "bollard": 0.5,
-}
+};
+
+const componentDefaultProperty = {
+    "bollard" : {
+        "type":"bollard",
+        "width": componentDefaultWidth['bollard']
+    },
+
+    "road" : {
+        "type":"road",
+        "width": componentDefaultWidth['road'],
+        "direction": "both",
+        "exitDirection":"all"
+    },
+
+    "sidewalk":{
+        "type": "sidewalk",
+        "width": componentDefaultWidth['sidewalk'],
+    },
+};
+
 
 //-------------------------
 //
@@ -219,6 +253,8 @@ function LeaveTrashcan() {
 //
 //----------------------------------------
 function CreateComponentRecord(compType){
+    return componentDefaultProperty[compType];
+    /*
     if(compType === "bollard"){
         return {
             "type":"bollard",
@@ -239,6 +275,7 @@ function CreateComponentRecord(compType){
     }else{
         return undefined;
     }
+    //*/
 }
 
 function AddNewComponentRecord(index, compType){
@@ -456,19 +493,10 @@ function ComponentDragEnd(event) {
 //
 //---------------------------
 
-const propertySettingFrame = `
-<div class="propertySettingFrame">
-    <h1 style="max-height:45px; overflow:hidden;flex-shrink:0;">屬性設定</h1>
-    <div id="propertySettings">
-        <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
-            <span class="input-group-text" id="basic-addon1">寬度</span>
-            <input type="number" class="form-control" placeholder="300" aria-describedby="basic-addon1">
-            <span class="input-group-text" id="basic-addon1">m</span>
-        </div>    
-        <div class="window propertyCollection"></div>
-    </div>
-</div>
-`
+function PropertySettingChange(event){
+    console.log(event);
+}
+
 
 function PropertySettingStart(compId, compType){
     var target = document.getElementById(compId);
@@ -483,7 +511,7 @@ function PropertySettingStart(compId, compType){
     document.body.addEventListener("mousedown", PropertySettingExitTrigger);
     document.body.addEventListener("touchstart", PropertySettingExitTrigger);
 
-    ConfigPropertySetting(compType);
+    ConfigPropertySetting(compId, compType);
 
     target.removeAttribute("onmousedown");
     target.removeAttribute("ontouchstart");
@@ -491,8 +519,25 @@ function PropertySettingStart(compId, compType){
     target.removeEventListener("touchstart", ComponentDragStart);
 }
 
-function ConfigPropertySetting(compType){
-    propertyEditorElement.innerHTML = propertySettingFrame;
+function ConfigPropertySetting(compId, compType){
+
+    var compIdx = (Array.prototype.slice.call(landElement.children).indexOf(document.getElementById(compId))-1)/2;
+    var propertyRecord =  GetComponentRecord(compIdx);
+
+
+    propertyEditorElement.innerHTML = `
+    <div class="propertySettingFrame">
+        <h1 style="max-height:45px; overflow:hidden;flex-shrink:0;">屬性設定</h1>
+        <div id="propertySettings" component_idx=${compIdx}>
+            <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
+                <span class="input-group-text" id="basic-addon1">寬度</span>
+                <input onchange="PropertySettingChange(event);" type="number" class="form-control" value="${propertyRecord['width']}" min="0.1" step="0.1" aria-describedby="basic-addon1">
+                <span class="input-group-text" id="basic-addon1">m</span>
+            </div>
+            <div class="window propertyCollection"></div>
+        </div>
+    </div>
+    `;
 }
 
 function SetLeftSlideout(value){
