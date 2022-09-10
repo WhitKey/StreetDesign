@@ -49,8 +49,9 @@ const componentDefaultProperty = {
     "road" : {
         "type":"road",
         "width": componentDefaultWidth['road'],
-        "direction": "both",
-        "exitDirection":"all"
+        "direction": 3,
+        "exitDirection": 7,
+        "crossability":3
     },
 
     "sidewalk":{
@@ -206,10 +207,14 @@ function EnterHitbox(event) {
         var refPercent = 100.0 / landWidth;
         var emptyComp = document.getElementById(event.srcElement.id + "c");
         if (dragElement.classList.contains("roadComponent")) {
+            var targetElement = document.getElementById(dragElement.getAttribute("target"));
+            //console.log(targetElement);
             document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
+            emptyComp.style.width = targetElement.style.width;
+        }else{
+            emptyComp.style.width = parseFloat(refPercent * parseFloat(componentDefaultWidth[dragElement.getAttribute("component")])).toString() + "%";
         }
 
-        emptyComp.style.width = parseFloat(refPercent * parseFloat(componentDefaultWidth[dragElement.getAttribute("component")])).toString() + "%";
         inHitboxId = event.target.id;
     }
 }
@@ -492,6 +497,16 @@ function ComponentDragEnd(event) {
 //Property Setting functions
 //
 //---------------------------
+
+function CreatePropertyCard(type = String, value = Number){
+    if(type === "direction"){
+
+    }else if(type === "exitDirection"){
+
+    }else if(type === "crossability"){
+        
+    }
+}
 
 function PropertySettingChange(event, type){
     var propertySettingElement = document.getElementById("propertySettings");
