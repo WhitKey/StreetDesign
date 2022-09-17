@@ -519,7 +519,7 @@ function CreatePropertyCard(type = String, value = Number){
             <h6 class="card-title" style="white-space: nowrap;">${propertyTitle}</h6>
         </div>
         <div class="card-body" style="display:flex; justify-content:space-around; overflow-x:hidden;">
-            <div class="propertyToggle enable"><img src="img/line_no_cross.svg"></div>
+            <div class="propertyToggle enable false"><img src="img/line_no_cross.svg"></div>
             <div class="propertyToggle">⥒</div>
             <div class="propertyToggle">⥒</div>
         </div>

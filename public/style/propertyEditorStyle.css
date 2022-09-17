@@ -45,13 +45,39 @@
 }
 
 .propertyToggle.enable{
-    background-color: lightskyblue;
+    background-color: white;
     opacity: 1;
+    position: relative;
     transition-duration: 300ms;
 }
 
-.propertyToggle.enable:hover{
-    background-color: lightsteelblue;
+.propertyToggle.enable::before{
+    position: absolute;
+    background-color: transparent;
+    content: "";
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    border-radius: 3px;
+    transition-duration: 300ms;
+    
+    border: solid;
+    border-width: 3px;
+    border-color: transparent;
+}
+
+.propertyToggle.enable:hover::before{
+    
+    border-color: blue;
+}
+
+.propertyToggle.enable.true{
+    background-color: lightskyblue;
+}
+
+.propertyToggle.enable.false{
+    background-color: lightcoral;
 }
 
 .propertyToggle * {
