@@ -43,7 +43,8 @@ const componentDefaultWidth = {
 const componentDefaultProperty = {
     "bollard" : {
         "type":"bollard",
-        "width": componentDefaultWidth['bollard']
+        "width": componentDefaultWidth['bollard'],
+        "layout" : [],
     },
 
     "road" : {
@@ -51,12 +52,14 @@ const componentDefaultProperty = {
         "width": componentDefaultWidth['road'],
         "direction": 3,
         "exitDirection": 7,
-        "crossability":3
+        "crossability":3,
+        "layout" : ["direction", "exitDirection", "crossability"],
     },
 
     "sidewalk":{
         "type": "sidewalk",
         "width": componentDefaultWidth['sidewalk'],
+        "layout" : [],
     },
 };
 
@@ -499,13 +502,29 @@ function ComponentDragEnd(event) {
 //---------------------------
 
 function CreatePropertyCard(type = String, value = Number){
+    var propertyTitle = "";
+    var cardInfo = "";
     if(type === "direction"){
-
+        propertyTitle = "上/下行";
     }else if(type === "exitDirection"){
-
+        propertyTitle = "出口方向";
     }else if(type === "crossability"){
-        
+        propertyTitle = "標線設置";
     }
+    
+    
+    return `
+    <div class="window card propertyCard">
+        <div class="card-header" style="overflow-x: hidden;">
+            <h6 class="card-title" style="white-space: nowrap;">${propertyTitle}</h6>
+        </div>
+        <div class="card-body" style="display:flex; justify-content:space-around; overflow-x:hidden;">
+            <div class="propertyToggle enable"><img src="img/line_no_cross.svg"></div>
+            <div class="propertyToggle">⥒</div>
+            <div class="propertyToggle">⥒</div>
+        </div>
+    </div>
+    `;
 }
 
 function PropertySettingChange(event, type){
@@ -548,18 +567,25 @@ function ConfigPropertySetting(compId, compType){
 
     var compIdx = (Array.prototype.slice.call(landElement.children).indexOf(document.getElementById(compId))-1)/2;
     var propertyRecord =  GetComponentRecord(compIdx);
+    var propertyCards = "";
+    var cardLayout = propertyRecord["layout"];
 
+    for(var i = 0; i < cardLayout.length; ++i){
+        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]]));
+    }
 
+    //set up property editor
     propertyEditorElement.innerHTML = `
     <div class="propertySettingFrame">
         <h1 style="max-height:45px; overflow:hidden;flex-shrink:0;">屬性設定</h1>
         <div id="propertySettings" component_idx=${compIdx}>
             <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
-                <span class="input-group-text" id="basic-addon1">寬度</span>
+                <span class="input-group-text" id="basic-addon1" style="white-space: nowrap;">寬度</span>
                 <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="0.1" step="0.1" aria-describedby="basic-addon1">
                 <span class="input-group-text" id="basic-addon1">m</span>
             </div>
-            <div class="window propertyCollection"></div>
+            <!--<div class="window propertyCollection"></div>-->
+            ${propertyCards}
         </div>
     </div>
     `;

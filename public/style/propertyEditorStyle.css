@@ -29,11 +29,34 @@
     text-overflow: clip;
 }
 
-.propertyCollection{
+.propertyCard{
     min-height: 100px;
     width:100%;
     margin-top: 5px;
-    background: lightblue;
+}
+
+.propertyToggle{
+    width: 50px;
+    height:50px;
+    background-color: lightgray;
+    opacity: 0.5;
+    border-radius: 3px;
+    padding:5px;
+}
+
+.propertyToggle.enable{
+    background-color: lightskyblue;
+    opacity: 1;
+    transition-duration: 300ms;
+}
+
+.propertyToggle.enable:hover{
+    background-color: lightsteelblue;
+}
+
+.propertyToggle * {
+    height: 40px;
+    width: 40px;
 }
 
 @media screen and (max-width: 600px) {
