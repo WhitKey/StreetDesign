@@ -182,8 +182,10 @@ function InsertComponent(hitboxId, move = false) {
     toIndex = (Array.prototype.slice.call(landElement.children).indexOf(component)-1)/2;
     if(oldComp === null){
         AddNewComponentRecord(toIndex, componentType);
+        console.log("add bew record");
     }else{
         AddComponentRecord(toIndex, oldComp);
+        console.log("copy old record");
     }
     console.log(roadRecord);
 }
@@ -261,7 +263,7 @@ function LeaveTrashcan() {
 //
 //----------------------------------------
 function CreateComponentRecord(compType){
-    return componentDefaultProperty[compType];
+    return JSON.parse(JSON.stringify(componentDefaultProperty[compType]));   
     /*
     if(compType === "bollard"){
         return {
@@ -500,18 +502,39 @@ function ComponentDragEnd(event) {
 //Property Setting functions
 //
 //---------------------------
-
 function CreatePropertyCard(type = String, value = Number){
     var propertyTitle = "";
-    var cardInfo = "";
+    var cardToggle = "";
+
+
     if(type === "direction"){
         propertyTitle = "上/下行";
+        let toggleValue = "";
+        let index = "";
+        
+        index = "0";
+        if(value & 0b1){
+            toggleValue = "true";
+        }else{
+            toggleValue = "false";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
+        
+        index = "1";
+        if(value & 0b10){
+            toggleValue = "true";
+        }else{
+            toggleValue = "false";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
+
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
+
     }else if(type === "crossability"){
         propertyTitle = "標線設置";
+
     }
-    
     
     return `
     <div class="window card propertyCard">
@@ -519,9 +542,7 @@ function CreatePropertyCard(type = String, value = Number){
             <h6 class="card-title" style="white-space: nowrap;">${propertyTitle}</h6>
         </div>
         <div class="card-body" style="display:flex; justify-content:space-around; overflow-x:hidden;">
-            <div class="propertyToggle enable false"><img src="img/line_no_cross.svg"></div>
-            <div class="propertyToggle">⥒</div>
-            <div class="propertyToggle">⥒</div>
+            ${cardToggle}
         </div>
     </div>
     `;
@@ -626,4 +647,37 @@ function PropertySettingExitTrigger(event){
         target.addEventListener("mousedown", ComponentDragStart);
         target.addEventListener("touchstart", ComponentDragStart);
     }
+}
+
+//-------------------------------
+//
+// Property Toggle Functions
+//
+//-------------------------------
+function PropertyToggleCallbackTest(event){
+    console.log("eventCallback");
+}
+
+function PropertyToggleTrigger(event, callback = null){
+    var recordIndex = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
+    var targetElement = event.target;
+    var oriValue = targetElement.getAttribute("value");
+    var maskIndex = parseInt(targetElement.getAttribute("index"));
+    var type = targetElement.getAttribute("type");
+
+    if(oriValue === undefined)return;
+    
+    if(oriValue === "true"){
+        targetElement.classList.remove("true");
+        targetElement.classList.add("false");
+        targetElement.setAttribute("value", "false");
+        roadRecord[recordIndex][type] &= ~(1<<maskIndex);
+    }else{
+        targetElement.classList.remove("false");
+        targetElement.classList.add("true");
+        targetElement.setAttribute("value", "true");
+        roadRecord[recordIndex][type] |= 1<<maskIndex;
+    }
+
+    if(callback !== null) callback(event);
 }
