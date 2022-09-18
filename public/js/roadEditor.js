@@ -518,7 +518,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
         
         index = "1";
         if(value & 0b10){
@@ -526,7 +526,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
 
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
