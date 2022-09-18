@@ -502,6 +502,8 @@ function ComponentDragEnd(event) {
 //Property Setting functions
 //
 //---------------------------
+
+//TODO: add disable state
 function CreatePropertyCard(type = String, value = Number){
     var propertyTitle = "";
     var cardToggle = "";
@@ -512,6 +514,7 @@ function CreatePropertyCard(type = String, value = Number){
         let toggleValue = "";
         let index = "";
         
+        //下行
         index = "0";
         if(value & 0b1){
             toggleValue = "true";
@@ -520,6 +523,7 @@ function CreatePropertyCard(type = String, value = Number){
         }
         cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
         
+        //上行
         index = "1";
         if(value & 0b10){
             toggleValue = "true";
@@ -530,10 +534,61 @@ function CreatePropertyCard(type = String, value = Number){
 
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
+        
+        //左轉
+        index = "0";
+        if(value & 0b1){
+            toggleValue = "true";
+        }else{
+            toggleValue = "false";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/left_arrow.svg" style="pointer-events: none;"></div>`;
+        
+        //直行
+        index = "1";
+        if(value & 0b10){
+            toggleValue = "true";
+        }else{
+            toggleValue = "false";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
+        
+        //右轉
+        index = "2";
+        if(value & 0b100){
+            toggleValue = "true";
+        }else{
+            toggleValue = "false";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/right_arrow.svg" style="pointer-events: none;"></div>`;
+        
 
     }else if(type === "crossability"){
         propertyTitle = "標線設置";
+        let iconPath = "";
 
+        //左側標線
+        index = "0";
+        if(value & 0b1){
+            toggleValue = "true";
+            iconPath = "img/break_line.svg";
+        }else{
+            toggleValue = "false";
+            iconPath = "img/solid_line.svg";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event, RerenderPropertyToggle);"><img src="${iconPath}" style="pointer-events: none;"></div>`;
+        
+        //右側標線
+        index = "1";
+        if(value & 0b10){
+            toggleValue = "true";
+            iconPath = "img/break_line.svg";
+        }else{
+            toggleValue = "false";
+            iconPath = "img/solid_line.svg";
+        }
+        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event, RerenderPropertyToggle);"><img src="${iconPath}" style="pointer-events: none;"></div>`;
+        
     }
     
     return `
@@ -606,7 +661,9 @@ function ConfigPropertySetting(compId, compType){
                 <span class="input-group-text" id="basic-addon1">m</span>
             </div>
             <!--<div class="window propertyCollection"></div>-->
-            ${propertyCards}
+            <div id="propertyToggles">
+                ${propertyCards}
+            </div>
         </div>
     </div>
     `;
@@ -656,6 +713,20 @@ function PropertySettingExitTrigger(event){
 //-------------------------------
 function PropertyToggleCallbackTest(event){
     console.log("eventCallback");
+}
+
+function RerenderPropertyToggle(event){
+    let toggleBlock = document.getElementById("propertyToggles");
+    let recordIdx = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
+    let propertyRecord = GetComponentRecord(recordIdx);
+    let cardLayout = propertyRecord["layout"];
+    let propertyCards = "";
+
+    for(let i = 0; i < cardLayout.length; ++i){
+        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]]));
+    }
+    
+    toggleBlock.innerHTML = propertyCards;
 }
 
 function PropertyToggleTrigger(event, callback = null){
