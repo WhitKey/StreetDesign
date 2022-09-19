@@ -521,7 +521,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
         
         //上行
         index = "1";
@@ -530,7 +530,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
 
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
@@ -542,7 +542,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/left_arrow.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/left_arrow.svg" style="pointer-events: none;"></div>`;
         
         //直行
         index = "1";
@@ -551,7 +551,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/straight_arrow.svg" style="pointer-events: none;"></div>`;
         
         //右轉
         index = "2";
@@ -560,7 +560,7 @@ function CreatePropertyCard(type = String, value = Number){
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/right_arrow.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="img/right_arrow.svg" style="pointer-events: none;"></div>`;
         
 
     }else if(type === "crossability"){
@@ -571,23 +571,19 @@ function CreatePropertyCard(type = String, value = Number){
         index = "0";
         if(value & 0b1){
             toggleValue = "true";
-            iconPath = "img/break_line.svg";
         }else{
             toggleValue = "false";
-            iconPath = "img/solid_line.svg";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event, RerenderPropertyToggle);"><img src="${iconPath}" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
         
         //右側標線
         index = "1";
         if(value & 0b10){
             toggleValue = "true";
-            iconPath = "img/break_line.svg";
         }else{
             toggleValue = "false";
-            iconPath = "img/solid_line.svg";
         }
-        cardToggle += `<div class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event, RerenderPropertyToggle);"><img src="${iconPath}" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
         
     }
     

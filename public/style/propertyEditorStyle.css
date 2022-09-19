@@ -48,7 +48,7 @@
     background-color: white;
     opacity: 1;
     position: relative;
-    transition-duration: 300ms;
+    transition-duration: 150ms;
 }
 
 .propertyToggle.enable::before{
@@ -63,7 +63,7 @@
     transition-duration: 300ms;
     
     border: solid;
-    border-width: 3px;
+    border-width: 2px;
     border-color: transparent;
 }
 
@@ -84,6 +84,19 @@
     height: 40px;
     width: 40px;
 }
+
+.propertyToggle img.togglableImg{
+    display: none;
+}
+
+.propertyToggle.true img.togglableImg.true{
+    display: block;
+}
+
+.propertyToggle.false img.togglableImg.false{
+    display: block;
+}
+
 
 @media screen and (max-width: 600px) {
     #propertyEditor h1{
