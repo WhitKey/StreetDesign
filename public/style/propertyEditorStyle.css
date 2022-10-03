@@ -97,6 +97,9 @@
     display: block;
 }
 
+.rot180{
+    rotate: 180;
+}
 
 @media screen and (max-width: 600px) {
     #propertyEditor h1{

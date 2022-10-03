@@ -45,6 +45,9 @@
 .road {
     background-color: hsl(0, 0%, 11%);
     flex-shrink: 1;
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
 }
 
 .sidewalk {
