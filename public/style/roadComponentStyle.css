@@ -42,6 +42,10 @@
     left: 0;
 }
 
+.component{
+    justify-content: space-around;
+}
+
 .road {
     background-color: hsl(0, 0%, 11%);
     flex-shrink: 1;
@@ -70,10 +74,17 @@
     flex-shrink: 0;
 }
 
-.icon *{
+.roadExitDirectionIcon *{
     height: unset;
 }
 
-.icon {
+.roadExitDirectionIcon {
+    width:50%;
+    align-self: center;
+    aspect-ratio: 1;
     height: unset;
+}
+
+.rot180{
+    transform: rotate(180deg);
 }

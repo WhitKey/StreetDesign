@@ -778,6 +778,7 @@ function RerenderPropertyToggle(event){
     }
     console.log("rerender property config");
     toggleBlock.innerHTML = propertyCards;
+    UpdateRoadExitDirectionIcon();
 }
 
 function PropertyToggleTrigger(event, callback = null){
@@ -795,13 +796,17 @@ function PropertyToggleTrigger(event, callback = null){
     }
 
     if(oriValue === "true"){
-        targetElement.classList.remove("true");
-        targetElement.classList.add("false");
-        targetElement.setAttribute("value", "false");
-        roadRecord[recordIndex][type] &= ~(1<<maskIndex);
-
-        if(type === "direction"){
-            roadRecord[recordIndex][type] |= 1<< (1-maskIndex);
+        if(type === "exitDirection" && (roadRecord[recordIndex][type] & ~(1<<maskIndex)) === 0){
+            return;
+        }else{
+            targetElement.classList.remove("true");
+            targetElement.classList.add("false");
+            targetElement.setAttribute("value", "false");
+            roadRecord[recordIndex][type] &= ~(1<<maskIndex);
+    
+            if(type === "direction"){
+                roadRecord[recordIndex][type] |= 1<< (1-maskIndex);
+            }
         }
 
     }else{
@@ -814,3 +819,38 @@ function PropertyToggleTrigger(event, callback = null){
     RerenderPropertyToggle();
     if(callback !== null) callback(event);
 }
+
+function UpdateRoadExitDirectionIcon(){
+    let uiList = landElement.getElementsByClassName("roadComponent");
+    for(let i = 0;i<uiList.length;++i){
+        if(roadRecord[i].type === "road"){
+            let iconContainer = uiList[i].getElementsByClassName("roadExitDirectionIcon")[0];
+            let direction = roadRecord[i].direction;
+            let exitDirection = roadRecord[i].exitDirection;
+            let iconSrc = "";
+
+            iconContainer.innerHTML = "";
+            
+            if (direction === 3)continue;
+            //上行
+            if (direction === 2){
+                if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
+            }//下行
+            else{
+                if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+            }
+            
+
+            if(exitDirection === 0)continue;
+            if(exitDirection === 1) iconSrc = "img/left_arrow.svg";
+            else if(exitDirection === 2) iconSrc = "img/straight_arrow.svg";
+            else if(exitDirection === 3) iconSrc = "img/straight_left_arrow.svg";
+            else if(exitDirection === 4) iconSrc = "img/right_arrow.svg";
+            else if(exitDirection === 5) iconSrc = "img/left_right_arrow.svg";
+            else if(exitDirection === 6) iconSrc = "img/straight_right_arrow.svg";
+            else if(exitDirection === 7) iconSrc = "img/three_way_arrow.svg";
+            iconContainer.innerHTML = `<img src="${iconSrc}">`;
+        }
+    }
+}
+
