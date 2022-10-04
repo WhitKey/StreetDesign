@@ -63,6 +63,8 @@ const componentDefaultProperty = {
     },
 };
 
+//left slide out variables
+let leftSlidoutOn = false;
 
 //-------------------------
 //
@@ -504,10 +506,9 @@ function ComponentDragEnd(event) {
 //---------------------------
 
 //TODO: add disable state
-function CreatePropertyCard(type = String, value = Number, compRecord){
+function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx = Number){
     var propertyTitle = "";
     var cardToggle = "";
-
 
     if(type === "direction"){
         propertyTitle = "上/下行";
@@ -534,7 +535,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord){
 
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
-        enableFlag = "";
+        let enableFlag = "";
         direction = compRecord["direction"];
         if(direction !==  3 && direction !== 0){
             enableFlag = "enable"
@@ -600,33 +601,42 @@ function CreatePropertyCard(type = String, value = Number, compRecord){
     }else if(type === "crossability"){
         propertyTitle = "標線設置";
         let iconPath = "";
+        let enableFlag = "";
+
 
         //左側標線
+        if(recordIdx !== 0&& roadRecord[recordIdx-1].type === "road"){
+            enableFlag = "enable";
+        }
         index = "0";
         if(value & 0b1){
             toggleValue = "true";
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
         
         //右側標線
+        enableFlag = ""
+        if(recordIdx < roadRecord.length - 1 && roadRecord[recordIdx + 1].type === "road"){
+            enableFlag = "enable"
+        }
         index = "1";
         if(value & 0b10){
             toggleValue = "true";
         }else{
             toggleValue = "false";
         }
-        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
+        cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="img/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="img/solid_line.svg" style="pointer-events: none;"></div>`;
         
     }
     
     return `
-    <div class="window card propertyCard">
+    <div class="window card propertyCard" PropertyToggleBlock="${type}">
         <div class="card-header" style="overflow-x: hidden;">
             <h6 class="card-title" style="white-space: nowrap;">${propertyTitle}</h6>
         </div>
-        <div class="card-body" style="display:flex; justify-content:space-around; overflow-x:hidden;">
+        <div class="card-body cardToggleCollection" style="display:flex; justify-content:space-around; overflow-x:hidden;">
             ${cardToggle}
         </div>
     </div>
@@ -648,8 +658,18 @@ function PropertySettingChange(event, type){
     }
 }
 
-function PropertySettingStart(compId, compType){
+async function PropertySettingStart(compId, compType){
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
     var target = document.getElementById(compId);
+
+    while(leftSlidoutOn){
+        console.log("slide out conflict");
+        await sleep(500);
+    }
+    leftSlidoutOn = true;
 
     if(!target.classList.contains("selected")){
         target.classList.add("selected");
@@ -677,7 +697,7 @@ function ConfigPropertySetting(compId, compType){
     var cardLayout = propertyRecord["layout"];
 
     for(var i = 0; i < cardLayout.length; ++i){
-        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord));
+        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord, compIdx));
     }
 
     //set up property editor
@@ -725,14 +745,15 @@ function PropertySettingExitTrigger(event){
     if(check){
         console.log("click on config");
     }else{
+        SetLeftSlideout(false);
+        propertyEditorElement.innerHTML = "";
         document.body.removeEventListener("mousedown", PropertySettingExitTrigger);
         document.body.removeEventListener("touchstart", PropertySettingExitTrigger);
-        SetLeftSlideout(false);
         var target = document.getElementById(propertyEditorElement.getAttribute("target"));
         target.classList.remove("selected");
-        propertyEditorElement.innerHTML = "";
         target.addEventListener("mousedown", ComponentDragStart);
         target.addEventListener("touchstart", ComponentDragStart);
+        leftSlidoutOn = false;
     }
 }
 
@@ -753,9 +774,9 @@ function RerenderPropertyToggle(event){
     let propertyCards = "";
 
     for(let i = 0; i < cardLayout.length; ++i){
-        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord));
+        propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord, recordIdx));
     }
-    console.log("rerender property config")
+    console.log("rerender property config");
     toggleBlock.innerHTML = propertyCards;
 }
 
@@ -770,6 +791,7 @@ function PropertyToggleTrigger(event, callback = null){
     
     if(!targetElement.classList.contains("enable")){
         console.log("toggle disabled");
+        return;
     }
 
     if(oriValue === "true"){
@@ -777,6 +799,11 @@ function PropertyToggleTrigger(event, callback = null){
         targetElement.classList.add("false");
         targetElement.setAttribute("value", "false");
         roadRecord[recordIndex][type] &= ~(1<<maskIndex);
+
+        if(type === "direction"){
+            roadRecord[recordIndex][type] |= 1<< (1-maskIndex);
+        }
+
     }else{
         targetElement.classList.remove("false");
         targetElement.classList.add("true");

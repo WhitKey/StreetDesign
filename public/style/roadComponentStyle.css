@@ -69,3 +69,11 @@
     transition-property: width;
     flex-shrink: 0;
 }
+
+.icon *{
+    height: unset;
+}
+
+.icon {
+    height: unset;
+}
