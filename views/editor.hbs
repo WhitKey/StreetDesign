@@ -1,0 +1,23 @@
+<div id="mainWindow" draggable="false" class="">
+    <div id="leftSlideout">
+        <div id="propertyEditor" class="">
+        </div>
+    </div>
+    <div id="sidebar" class="window">
+        {{>componentList_partial this}}
+    </div>
+
+    <div id="editor" class="window" style="margin:2px;">
+        <div id="trashcan" class="roadScope" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
+        <div id="designInfo" class="unusedSection roadScope" style="background-color: white;">一些設計資訊</div>
+        <div id="stopSection" class="unusedSection roadScope" style="background-color: gray;">儲車段</div>
+        <div id="intermidiateSection" class="unusedSection roadScope" style="background-color:dimgray;">漸變段</div>
+        <div id="land" class="roadScope">
+
+        </div>
+    </div>
+</div>
+
+<div id="data" style="display:none;">
+    {{>componentTemplate_partial componentList=componentList}}
+</div>
