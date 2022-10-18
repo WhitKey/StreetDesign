@@ -4,7 +4,7 @@
 {{#each componentList as | component |}}
     <div id="{{component.tag}}Template" class="{{component.tag}} component">
         {{#if component.isDirectional}}
-            <div class = "roadExitDirectionIcon"></div>
+            <div class = "roadExitDirectionIcon" draggable="false"></div>
         {{/if}}
     </div>
 {{/each}}

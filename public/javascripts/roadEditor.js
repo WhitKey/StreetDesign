@@ -7,31 +7,32 @@
 //--------------------
 
 //element entries
-var landElement = document.getElementById("land");
-var editorElement = document.getElementById("editor");
-var mainWindowElement = document.getElementById("mainWindow");
-var propertyEditorElement = document.getElementById("mainWindow");
+let landElement = document.getElementById("land");
+let editorElement = document.getElementById("editor");
+let mainWindowElement = document.getElementById("mainWindow");
+let propertyEditorElement = document.getElementById("mainWindow");
+let markingSpaceElement = document.getElementById("markingSpace");
 
 //road element template
-var roadTemplate = document.getElementById("land");
-var sidewalkTemplate = document.getElementById("land");
-var bollardTemplate = document.getElementById("land");
-var roadComponentTemplate = document.getElementById("land");
-var templateBase = {};
+let roadTemplate = document.getElementById("land");
+let sidewalkTemplate = document.getElementById("land");
+let bollardTemplate = document.getElementById("land");
+let roadComponentTemplate = document.getElementById("land");
+let templateBase = {};
 
 //road layout editor variable
-var dragElement = null;
-var hitboxCounter = 0;
-var componentCounter = 0;
-var inHitboxId = null;
-var touchHitbox = false;
-var draging = false;
+let dragElement = null;
+let hitboxCounter = 0;
+let componentCounter = 0;
+let inHitboxId = null;
+let touchHitbox = false;
+let draging = false;
 
 //landwidth 
-var landWidth = 15;
+let landWidth = 15;
 
 //conponent layout
-var roadRecord = [];
+let roadRecord = [];
 
 //conponent default data
 const componentDefaultWidth = {
@@ -66,6 +67,19 @@ const componentDefaultProperty = {
 //left slide out variables
 let leftSlidoutOn = false;
 
+//-----------------------
+//
+// Utility functions
+//
+//-----------------------
+function GetComponentIdx(component){
+    return (Array.prototype.slice.call(landElement.children).indexOf(component)-2)/2;
+}
+
+function M2Px(width){
+    return (width / landWidth) * landElement.clientWidth;
+}
+
 //-------------------------
 //
 //Initialization functions
@@ -73,7 +87,8 @@ let leftSlidoutOn = false;
 //-------------------------
 function LandInit() {
     const hitboxTemplate = document.getElementById("hitboxTemplate");
-    landElement.innerHTML = "";
+    landElement.innerHTML = `<svg id="markingSpace"></svg>`;
+    //landElement.innerHTML = "";
     AddHitbox();
 }
 
@@ -84,6 +99,7 @@ function OnLoad() {
     editorElement = document.getElementById("editor");
     mainWindowElement = document.getElementById("mainWindow");
     propertyEditorElement = document.getElementById("propertyEditor");
+    markingSpaceElement = document.getElementById("markingSpace");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -112,8 +128,8 @@ function AddHitbox(referencePos = null) {
     const hitboxTemplate = document.getElementById("hitboxTemplate");
     const emptyRoadComponentTemplate = document.getElementById("emptyRoadComponentTemplate");
 
-    var hitbox = hitboxTemplate.cloneNode(true);
-    var emptyComp = emptyRoadComponentTemplate.cloneNode(true);
+    let hitbox = hitboxTemplate.cloneNode(true);
+    let emptyComp = emptyRoadComponentTemplate.cloneNode(true);
 
     hitbox.id = "hb" + hitboxCounter.toString();
     emptyComp.id = hitbox.id + "c";
@@ -142,11 +158,11 @@ function InsertComponent(hitboxId, move = false) {
     const hitbox = document.getElementById(hitboxId);
     const emptyComp = document.getElementById(hitboxId + "c");
     const componentType = dragElement.getAttribute("component");
-    var component = roadComponentTemplate.cloneNode(true);
-    var nextComp = null;
+    let component = roadComponentTemplate.cloneNode(true);
+    let nextComp = null;
 
-    var oldComp = null
-    var toIndex = null;
+    let oldComp = null
+    let toIndex = null;
 
 
     component.id = "comp" + componentCounter.toString();
@@ -164,10 +180,11 @@ function InsertComponent(hitboxId, move = false) {
     if (!move) {
         component.appendChild(templateBase[componentType].cloneNode(true));
     } else {
-        var target = document.getElementById(dragElement.getAttribute("target"));
+        let target = document.getElementById(dragElement.getAttribute("target"));
         //console.log({ target });
 
-        oldComp = GetComponentRecord((Array.prototype.slice.call(landElement.children).indexOf(target)-1)/2);
+        //oldComp = GetComponentRecord((Array.prototype.slice.call(landElement.children).indexOf(target)-2)/2);
+        oldComp = GetComponentRecord(GetComponentIdx(target));
         RemoveHitbox(target.children[1].id);
         component.append(...target.childNodes);
         RemoveComponent(target);
@@ -181,7 +198,7 @@ function InsertComponent(hitboxId, move = false) {
     }
 
     
-    toIndex = (Array.prototype.slice.call(landElement.children).indexOf(component)-1)/2;
+    toIndex =GetComponentIdx(component);
     if(oldComp === null){
         AddNewComponentRecord(toIndex, componentType);
         console.log("add bew record");
@@ -201,7 +218,7 @@ function RemoveComponent(target) {
         }
     }
     
-    var compIndex = (Array.prototype.slice.call(landElement.children).indexOf(target)-1)/2;
+    let compIndex = GetComponentIdx(target);
     RemoveComponentRecord(compIndex);
     console.log(roadRecord);
 
@@ -211,10 +228,10 @@ function RemoveComponent(target) {
 function EnterHitbox(event) {
     if (landElement.hasAttribute("hitOn")) {
         //console.log("enter hitbox");
-        var refPercent = 100.0 / landWidth;
-        var emptyComp = document.getElementById(event.srcElement.id + "c");
+        let refPercent = 100.0 / landWidth;
+        let emptyComp = document.getElementById(event.srcElement.id + "c");
         if (dragElement.classList.contains("roadComponent")) {
-            var targetElement = document.getElementById(dragElement.getAttribute("target"));
+            let targetElement = document.getElementById(dragElement.getAttribute("target"));
             //console.log(targetElement);
             document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
             emptyComp.style.width = targetElement.style.width;
@@ -235,7 +252,7 @@ function LeaveHitbox(event) {
             document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
         }
 
-        var emptyComp = document.getElementById(event.srcElement.id + "c");
+        let emptyComp = document.getElementById(event.srcElement.id + "c");
         emptyComp.style.width = "0px";
     }
 }
@@ -291,7 +308,7 @@ function CreateComponentRecord(compType){
 }
 
 function AddNewComponentRecord(index, compType){
-    var comp = CreateComponentRecord(compType);
+    let comp = CreateComponentRecord(compType);
     
     if(comp === undefined)return;
 
@@ -318,14 +335,14 @@ function RemoveComponentRecord(index){
 function ComponentDragStart(event) {
 
     //set touch event flag
-    var touchevent = false;
+    let touchevent = false;
     if (event.type == "touchstart") {
         touchevent = true;
         //console.log("touch start")
     }
 
     draging = false;
-    var target = event.srcElement;
+    let target = event.srcElement;
     const xOffset = -target.clientWidth / 2;
     const yOffset = -target.clientHeight / 2;
 
@@ -373,7 +390,7 @@ function ComponentDragStart(event) {
 }
 
 function ComponentDrag(event) {
-    var touchEvent = false;
+    let touchEvent = false;
     if (event.type === "touchmove") {
         touchEvent = true;
     }
@@ -409,7 +426,7 @@ function ComponentDrag(event) {
                 }
 
                 touchHitbox = true;
-                var event = new Event("mouseenter");
+                let event = new Event("mouseenter");
                 overElement.dispatchEvent(event);
             } else if (inHitboxId !== null) {
                 if (inHitboxId === -1) {
@@ -436,7 +453,7 @@ function ComponentDrag(event) {
 
 function ComponentDragEnd(event) {
 
-    var touchEvent = false;
+    let touchEvent = false;
     if (event.type === "touchend") {
         touchEvent = true;
         touchHitbox = false;
@@ -463,15 +480,16 @@ function ComponentDragEnd(event) {
     editorElement.removeAttribute("hitOn");
 
     if (inHitboxId !== null) {
-        var emptyComp = document.getElementById(inHitboxId + "c");
+        let emptyComp = document.getElementById(inHitboxId + "c");
         if (dragElement.classList.contains("roadComponent")) {
-            var target = document.getElementById(dragElement.getAttribute("target"));
+            let target = document.getElementById(dragElement.getAttribute("target"));
             document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
             if (inHitboxId === -1) {
                 RemoveComponent(target);
                 inHitboxId = null;
                 dragElement.remove();
                 dragElement = null;
+                UpdateMarkingSpace();
                 return;
             } else {
                 if (target.children[1].id !== inHitboxId) {
@@ -496,7 +514,7 @@ function ComponentDragEnd(event) {
     }
     dragElement.remove();
     dragElement = null;
-
+    UpdateMarkingSpace();
 }
 
 //---------------------------
@@ -505,10 +523,9 @@ function ComponentDragEnd(event) {
 //
 //---------------------------
 
-//TODO: add disable state
 function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx = Number){
-    var propertyTitle = "";
-    var cardToggle = "";
+    let propertyTitle = "";
+    let cardToggle = "";
 
     if(type === "direction"){
         propertyTitle = "上/下行";
@@ -644,17 +661,21 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 }
 
 function PropertySettingChange(event, type){
-    var propertySettingElement = document.getElementById("propertySettings");
-    var compIdx = parseInt(propertySettingElement.getAttribute("component_idx"));
-    var componentElement = document.getElementById(propertyEditorElement.getAttribute("target"));
+    let propertySettingElement = document.getElementById("propertySettings");
+    let compIdx = parseInt(propertySettingElement.getAttribute("component_idx"));
+    let componentElement = document.getElementById(propertyEditorElement.getAttribute("target"));
 
     if(type === "width"){
-        var newWidth = event.target.value;
-        var refPercent = 100.0 / landWidth; // % per meter
+        let newWidth = event.target.value;
+        let refPercent = 100.0 / landWidth; // % per meter
 
         console.log("update width");
         componentElement.style.width = (refPercent * parseFloat(newWidth)).toString() + "%";
         roadRecord[compIdx].width = parseFloat(newWidth);
+    }
+
+    if(type === "crossability" || type==="width"){
+        UpdateMarkingSpace();
     }
 }
 
@@ -663,7 +684,7 @@ async function PropertySettingStart(compId, compType){
         return new Promise(resolve => setTimeout(resolve, ms));
     }
     
-    var target = document.getElementById(compId);
+    let target = document.getElementById(compId);
 
     while(leftSlidoutOn){
         console.log("slide out conflict");
@@ -691,12 +712,12 @@ async function PropertySettingStart(compId, compType){
 
 function ConfigPropertySetting(compId, compType){
 
-    var compIdx = (Array.prototype.slice.call(landElement.children).indexOf(document.getElementById(compId))-1)/2;
-    var propertyRecord =  GetComponentRecord(compIdx);
-    var propertyCards = "";
-    var cardLayout = propertyRecord["layout"];
+    let compIdx = GetComponentIdx(document.getElementById(compId));
+    let propertyRecord =  GetComponentRecord(compIdx);
+    let propertyCards = "";
+    let cardLayout = propertyRecord["layout"];
 
-    for(var i = 0; i < cardLayout.length; ++i){
+    for(let i = 0; i < cardLayout.length; ++i){
         propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord, compIdx));
     }
 
@@ -732,8 +753,8 @@ function SetLeftSlideout(value){
 }
 
 function PropertySettingExitTrigger(event){
-    var target = event.target;
-    var check = false;
+    let target = event.target;
+    let check = false;
     while(target){
         if(target.id === "leftSlideout" || target.classList.contains("propertyConfig")){
             check = true;
@@ -749,7 +770,7 @@ function PropertySettingExitTrigger(event){
         propertyEditorElement.innerHTML = "";
         document.body.removeEventListener("mousedown", PropertySettingExitTrigger);
         document.body.removeEventListener("touchstart", PropertySettingExitTrigger);
-        var target = document.getElementById(propertyEditorElement.getAttribute("target"));
+        let target = document.getElementById(propertyEditorElement.getAttribute("target"));
         target.classList.remove("selected");
         target.addEventListener("mousedown", ComponentDragStart);
         target.addEventListener("touchstart", ComponentDragStart);
@@ -779,14 +800,15 @@ function RerenderPropertyToggle(event){
     console.log("rerender property config");
     toggleBlock.innerHTML = propertyCards;
     UpdateRoadExitDirectionIcon();
+    UpdateMarkingSpace();
 }
 
 function PropertyToggleTrigger(event, callback = null){
-    var recordIndex = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
-    var targetElement = event.target;
-    var oriValue = targetElement.getAttribute("value");
-    var maskIndex = parseInt(targetElement.getAttribute("index"));
-    var type = targetElement.getAttribute("type");
+    let recordIndex = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
+    let targetElement = event.target;
+    let oriValue = targetElement.getAttribute("value");
+    let maskIndex = parseInt(targetElement.getAttribute("index"));
+    let type = targetElement.getAttribute("type");
 
     if(oriValue === undefined)return;
     
@@ -849,8 +871,90 @@ function UpdateRoadExitDirectionIcon(){
             else if(exitDirection === 5) iconSrc = "images/left_right_arrow.svg";
             else if(exitDirection === 6) iconSrc = "images/straight_right_arrow.svg";
             else if(exitDirection === 7) iconSrc = "images/three_way_arrow.svg";
-            iconContainer.innerHTML = `<img src="${iconSrc}">`;
+            iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
         }
     }
 }
+
+//-------------------------------------
+//
+//Marking space functions
+//
+//-------------------------------------
+function ClearMarkingSpace(){
+    document.getElementById("markingSpace").innerHTML = "";
+    console.log("clear marking");
+}
+
+function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
+    let y = landElement.clientHeight;
+    let rtn = "";
+    let xInc= 0;
+    let dashedLength = M2Px(1);
+    
+    console.log(type);
+    if(type.length === 2){
+        if((type[0] !== 0) && (type[1]!==0)){
+            type = [type[0]];
+        }
+    }
+    xInc = markingWidth / 2 + x - (((2 * type.length) - 1) / 2 * markingWidth) + offsetIndex * (((2 * type.length) - 1) / 2 * markingWidth);
+
+    for(let i = 0;i<type.length;++i){
+        if(type[i] === 0){//solid line
+            rtn += `<path d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}"/>`
+        }else{// dashed line
+            rtn += `<path d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}" stroke-dasharray="${dashedLength}"/>`
+        }
+
+        xInc += 2 * markingWidth;
+    }
+    return rtn;
+}
+
+function UpdateMarkingSpace(){
+    let widthSum = 0;
+    let markingFlag = 0;
+    let leftD = "";
+    let rightD = "";
+
+    ClearMarkingSpace();
+
+    for(let i = 0;i< roadRecord.length;++i){
+        if(roadRecord[i].type === "road"){
+            leftD = "";
+            rightD = "";
+            markingFlag = 0;
+
+            //left marking
+            if(i === 0 || roadRecord[i-1].type !== "road"){
+                leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  M2Px(0.15), 1);
+            }
+            
+            //right marking
+            if(i === roadRecord.length - 1){
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadRecord[i].width), [0],  M2Px(0.15), -1);
+            }else if(roadRecord[i + 1].type === "road"){
+                let color = "white";
+                if(roadRecord[i].direction !== roadRecord[i + 1].direction){
+                    color = "yellow";
+                }
+                rightD = CreateVerticalMarking(color, M2Px(widthSum + roadRecord[i].width), [roadRecord[i].crossability&0b10, roadRecord[i + 1].crossability&0b1],  M2Px(0.1));
+            }else{
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadRecord[i].width), [0],  M2Px(0.15), -1);
+            }
+            if(leftD !== ""){
+                document.getElementById("markingSpace").innerHTML += leftD;
+            }
+            if(rightD !== ""){
+                document.getElementById("markingSpace").innerHTML += rightD;
+
+            }
+        }
+        widthSum += roadRecord[i].width;
+    }
+    console.log("updating marking space");
+}
+
+
 
