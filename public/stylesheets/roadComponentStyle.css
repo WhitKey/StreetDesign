@@ -83,6 +83,7 @@
     align-self: center;
     aspect-ratio: 1;
     height: unset;
+    max-width: 120px;
 }
 
 .rot180{
