@@ -93,8 +93,17 @@
     pointer-events: none;
 }
 
+.clickOn #markingSpace .marking{
+    transition-duration: 200ms;
+}
+
 .hitOn #markingSpace{
     display: none;
+}
+
+.clickOn #markingSpace .marking{
+    opacity: 0.4;
+
 }
 
 .unusedSection {

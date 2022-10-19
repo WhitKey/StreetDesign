@@ -940,9 +940,9 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
 
     for(let i = 0;i<type.length;++i){
         if(type[i] === 0){//solid line
-            rtn += `<path d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}"/>`
+            rtn += `<path class="marking" d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}"/>`
         }else{// dashed line
-            rtn += `<path d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}" stroke-dasharray="${dashedLength}"/>`
+            rtn += `<path class="marking" d="M ${xInc} 0 L ${xInc} ${y}" stroke="${color}" stroke-width="${markingWidth}" stroke-dasharray="${dashedLength}"/>`
         }
 
         xInc += 2 * markingWidth;
