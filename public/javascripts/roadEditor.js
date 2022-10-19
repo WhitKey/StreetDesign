@@ -94,6 +94,9 @@ function LandInit() {
 
 function OnLoad() {
     console.log("load");
+    //initalize land
+    LandInit();
+
     //set element
     landElement = document.getElementById("land");
     editorElement = document.getElementById("editor");
@@ -115,8 +118,6 @@ function OnLoad() {
     roadComponentTemplate = document.getElementById("roadComponentTemplate").cloneNode(true);
     roadComponentTemplate.removeAttribute("id");
 
-    //initalize land
-    LandInit();
 }
 
 //-----------------------------
@@ -882,7 +883,7 @@ function UpdateRoadExitDirectionIcon(){
 //
 //-------------------------------------
 function ClearMarkingSpace(){
-    document.getElementById("markingSpace").innerHTML = "";
+    markingSpaceElement.innerHTML = "";
     console.log("clear marking");
 }
 
@@ -891,8 +892,7 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
     let rtn = "";
     let xInc= 0;
     let dashedLength = M2Px(1);
-    
-    console.log(type);
+
     if(type.length === 2){
         if((type[0] !== 0) && (type[1]!==0)){
             type = [type[0]];
@@ -912,13 +912,58 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
     return rtn;
 }
 
+function CreateRulerMarking(x, record, isLast = false, isFirst = false){
+    let y = landElement.clientHeight * (6 / 7);
+    let fontsize = 10;
+    let textY = y - fontsize - 2;
+    let arrowHeadLength = 5;
+    let arrowHeadWidth = 3;
+    let lineWidth = 1;
+    let rtn = "";
+    let lineLength = 0;
+    let color = "magenta";
+    let width = M2Px(record.width);
+    let divLineX =  x ;
+
+    if(width > arrowHeadLength * 2){
+        lineLength = width - arrowHeadLength * 2; 
+    }else{
+        lineLength = 0;
+        arrowHeadwidth = arrowHeadWidth * (width / 2) / arrowHeadLength;
+        arrowHeadLength = width / 2;
+    }
+
+    if(isFirst){
+        divLineX = x + lineWidth / 2;
+    }
+
+    //create line
+    if(lineLength > 0){
+        rtn += `<line x1="${x + arrowHeadLength}" y1="${y}" x2="${width + x - arrowHeadLength}" y2="${y}" stroke = "${color}" stroke-width="${lineWidth}"/>`;
+    }
+
+    //craete arrow
+    arrowHeadWidth /= 2;
+    rtn += `<polygon points="${x + 1} ${y}, ${x + arrowHeadLength} ${y - arrowHeadWidth}, ${x + arrowHeadLength} ${y + arrowHeadWidth}" stroke="${color}" fill="${color}"/>`;
+    rtn += `<polygon points="${width + x - 1} ${y}, ${width + x - arrowHeadLength} ${y - arrowHeadWidth}, ${width + x - arrowHeadLength} ${y + arrowHeadWidth}" stroke ="${color}" fill="${color}"/>`;
+    rtn += `<line x1="${divLineX}" y1="${y - 10}" x2="${divLineX}" y2="${y+ 10}" stroke-width="${lineWidth}" stroke ="${color}" />`;
+    
+    if(isLast){
+        rtn += `<line x1="${width + x - lineWidth / 2}" y1="${y - 10}" x2="${width + x - lineWidth / 2}" y2="${y+ 10}" stroke-width="${lineWidth}" stroke ="${color}" />`;
+    }
+
+    //craete text
+    rtn += `<text x="${x + width / 2}" y="${textY}" fill="${color}" font-size="${fontsize}" text-anchor="middle">${record.width} m</text>`
+
+    return rtn;
+}
+
 function UpdateMarkingSpace(){
     let widthSum = 0;
     let markingFlag = 0;
     let leftD = "";
     let rightD = "";
-
-    ClearMarkingSpace();
+    let newMarking = "";
 
     for(let i = 0;i< roadRecord.length;++i){
         if(roadRecord[i].type === "road"){
@@ -944,17 +989,27 @@ function UpdateMarkingSpace(){
                 rightD = CreateVerticalMarking("white", M2Px(widthSum + roadRecord[i].width), [0],  M2Px(0.15), -1);
             }
             if(leftD !== ""){
-                document.getElementById("markingSpace").innerHTML += leftD;
+                newMarking += leftD;
             }
             if(rightD !== ""){
-                document.getElementById("markingSpace").innerHTML += rightD;
-
+                newMarking += rightD;
             }
         }
+        newMarking += CreateRulerMarking(M2Px(widthSum), roadRecord[i], i==roadRecord.length-1, i == 0);
         widthSum += roadRecord[i].width;
     }
+
+    markingSpaceElement.innerHTML = newMarking;
     console.log("updating marking space");
+
 }
 
-
-
+function ResizeMarkingSpace(timeWindow){
+    if(ResizeMarkingSpace.timeout === undefined){
+        ResizeMarkingSpace.timeout = null;
+    }
+    if(ResizeMarkingSpace.timeout){
+        clearTimeout(ResizeMarkingSpace.timeout); 
+    }
+    ResizeMarkingSpace.timeout = setTimeout(UpdateMarkingSpace, timeWindow);
+}

@@ -26,6 +26,7 @@
     font-size: 20px;
     flex: 1;
     text-align: center;
+    min-width:fit-content;
 }
 
 .componentListItemIcon{
