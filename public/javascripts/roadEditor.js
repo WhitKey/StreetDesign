@@ -32,7 +32,7 @@ let draging = false;
 let landWidth = 15;
 
 //conponent layout
-let roadRecord = [];
+let roadSegmentRecord = [];
 
 //conponent default data
 const componentDefaultWidth = {
@@ -80,13 +80,25 @@ function M2Px(width){
     return (width / landWidth) * landElement.clientWidth;
 }
 
+function M2Percent(width){
+    return `${100 * (width / landWidth)}%`;
+}
+
 //-------------------------
 //
 //Initialization functions
 //
 //-------------------------
 function LandInit() {
+    dragElement = null;
+    hitboxCounter = 0;
+    componentCounter = 0;
+    inHitboxId = null;
+    touchHitbox = false;
+    draging = false;
+    roadSegmentRecord = [];
     landElement.innerHTML = `<svg id="markingSpace"></svg>`;
+    markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
 }
 
@@ -117,6 +129,42 @@ function OnLoad() {
     roadComponentTemplate.removeAttribute("id");
 
 }
+
+function ImportRoadSegmentRecordJSON(json){
+    LandInit();
+    
+    //construct html
+    for(let i = 0;i< json.length;++i){
+        let componentType = json[i].type;
+        let component = roadComponentTemplate.cloneNode(true);
+        let emptyComp = document.getElementById(`hb${i}c`);
+
+
+        //set up new component
+        component.id = "comp" + componentCounter.toString();
+        component.style.width = M2Percent(json[i].width);
+        console.log(component);
+        component.setAttribute("component", componentType);
+        component.appendChild(templateBase[componentType].cloneNode(true));
+        ++componentCounter;
+
+        //insert component into land 
+        landElement.insertBefore(component, emptyComp.nextSibling);
+        AddHitbox(component);
+    }
+    
+    //overwrite roadSegmentRecord
+    roadSegmentRecord = json;
+
+    //update marking and icon
+    UpdateMarkingSpace();
+    UpdateRoadExitDirectionIcon();
+}
+
+function ExportRoadSegmentRecordJSON(){
+    return JSON.parse(JSON.stringify(roadSegmentRecord));
+}
+
 
 //-----------------------------
 //
@@ -157,7 +205,7 @@ function InsertComponent(hitboxId, move = false) {
     const emptyComp = document.getElementById(hitboxId + "c");
     const componentType = dragElement.getAttribute("component");
     let component = roadComponentTemplate.cloneNode(true);
-    let nextComp = null;
+    //let nextComp = null;
 
     let oldComp = null
     let toIndex = null;
@@ -169,10 +217,10 @@ function InsertComponent(hitboxId, move = false) {
     component.style.width = emptyComp.style.width;
     component.setAttribute("component", componentType);
 
-    nextComp = emptyComp.nextSibling;
-    if (!nextComp.classList.contains("roadComponent")) {
-        nextComp = null;
-    }
+    //nextComp = emptyComp.nextSibling;
+    //if (!nextComp.classList.contains("roadComponent")) {
+    //    nextComp = null;
+    //}
 
     if (!move) {
         component.appendChild(templateBase[componentType].cloneNode(true));
@@ -189,7 +237,7 @@ function InsertComponent(hitboxId, move = false) {
     AddHitbox(component);
 
     
-    toIndex =GetComponentIdx(component);
+    toIndex = GetComponentIdx(component);
     if(oldComp === null){
         AddNewComponentRecord(toIndex, componentType);
         console.log("add new record");
@@ -197,7 +245,7 @@ function InsertComponent(hitboxId, move = false) {
         AddComponentRecord(toIndex, oldComp);
         console.log("copy old record");
     }
-    console.log(roadRecord);
+    console.log(roadSegmentRecord);
 }
 
 function RemoveComponent(target) {
@@ -211,7 +259,7 @@ function RemoveComponent(target) {
     
     let compIndex = GetComponentIdx(target);
     RemoveComponentRecord(compIndex);
-    console.log(roadRecord);
+    console.log(roadSegmentRecord);
 
     target.remove();
 }
@@ -303,19 +351,19 @@ function AddNewComponentRecord(index, compType){
     
     if(comp === undefined)return;
 
-    roadRecord.splice(index, 0, comp);
+    roadSegmentRecord.splice(index, 0, comp);
 }
 
 function GetComponentRecord(index){
-    return roadRecord.slice(index, index + 1)[0];
+    return roadSegmentRecord.slice(index, index + 1)[0];
 }
 
 function AddComponentRecord(index, record){
-    roadRecord.splice(index, 0, record);
+    roadSegmentRecord.splice(index, 0, record);
 }
 
 function RemoveComponentRecord(index){
-    roadRecord.splice(index, 1);
+    roadSegmentRecord.splice(index, 1);
 }
 
 //---------------------------------------
@@ -613,7 +661,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 
 
         //左側標線
-        if(recordIdx !== 0&& roadRecord[recordIdx-1].type === "road"){
+        if(recordIdx !== 0&& roadSegmentRecord[recordIdx-1].type === "road"){
             enableFlag = "enable";
         }
         index = "0";
@@ -626,7 +674,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
         
         //右側標線
         enableFlag = ""
-        if(recordIdx < roadRecord.length - 1 && roadRecord[recordIdx + 1].type === "road"){
+        if(recordIdx < roadSegmentRecord.length - 1 && roadSegmentRecord[recordIdx + 1].type === "road"){
             enableFlag = "enable"
         }
         index = "1";
@@ -662,7 +710,7 @@ function PropertySettingChange(event, type){
 
         console.log("update width");
         componentElement.style.width = (refPercent * parseFloat(newWidth)).toString() + "%";
-        roadRecord[compIdx].width = parseFloat(newWidth);
+        roadSegmentRecord[compIdx].width = parseFloat(newWidth);
     }
 
     if(type === "crossability" || type==="width"){
@@ -809,16 +857,16 @@ function PropertyToggleTrigger(event, callback = null){
     }
 
     if(oriValue === "true"){
-        if(type === "exitDirection" && (roadRecord[recordIndex][type] & ~(1<<maskIndex)) === 0){
+        if(type === "exitDirection" && (roadSegmentRecord[recordIndex][type] & ~(1<<maskIndex)) === 0){
             return;
         }else{
             targetElement.classList.remove("true");
             targetElement.classList.add("false");
             targetElement.setAttribute("value", "false");
-            roadRecord[recordIndex][type] &= ~(1<<maskIndex);
+            roadSegmentRecord[recordIndex][type] &= ~(1<<maskIndex);
     
             if(type === "direction"){
-                roadRecord[recordIndex][type] |= 1<< (1-maskIndex);
+                roadSegmentRecord[recordIndex][type] |= 1<< (1-maskIndex);
             }
         }
 
@@ -826,7 +874,7 @@ function PropertyToggleTrigger(event, callback = null){
         targetElement.classList.remove("false");
         targetElement.classList.add("true");
         targetElement.setAttribute("value", "true");
-        roadRecord[recordIndex][type] |= 1<<maskIndex;
+        roadSegmentRecord[recordIndex][type] |= 1<<maskIndex;
     }
 
     RerenderPropertyToggle();
@@ -836,10 +884,10 @@ function PropertyToggleTrigger(event, callback = null){
 function UpdateRoadExitDirectionIcon(){
     let uiList = landElement.getElementsByClassName("roadComponent");
     for(let i = 0;i<uiList.length;++i){
-        if(roadRecord[i].type === "road"){
+        if(roadSegmentRecord[i].type === "road"){
             let iconContainer = uiList[i].getElementsByClassName("roadExitDirectionIcon")[0];
-            let direction = roadRecord[i].direction;
-            let exitDirection = roadRecord[i].exitDirection;
+            let direction = roadSegmentRecord[i].direction;
+            let exitDirection = roadSegmentRecord[i].exitDirection;
             let iconSrc = "";
 
             iconContainer.innerHTML = "";
@@ -955,28 +1003,28 @@ function UpdateMarkingSpace(){
     let rightD = "";
     let newMarking = "";
 
-    for(let i = 0;i< roadRecord.length;++i){
-        if(roadRecord[i].type === "road"){
+    for(let i = 0;i< roadSegmentRecord.length;++i){
+        if(roadSegmentRecord[i].type === "road"){
             leftD = "";
             rightD = "";
             markingFlag = 0;
 
             //left marking
-            if(i === 0 || roadRecord[i-1].type !== "road"){
+            if(i === 0 || roadSegmentRecord[i-1].type !== "road"){
                 leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  M2Px(0.15), 1);
             }
             
             //right marking
-            if(i === roadRecord.length - 1){
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadRecord[i].width), [0],  M2Px(0.15), -1);
-            }else if(roadRecord[i + 1].type === "road"){
+            if(i === roadSegmentRecord.length - 1){
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadSegmentRecord[i].width), [0],  M2Px(0.15), -1);
+            }else if(roadSegmentRecord[i + 1].type === "road"){
                 let color = "white";
-                if(roadRecord[i].direction !== roadRecord[i + 1].direction){
+                if(roadSegmentRecord[i].direction !== roadSegmentRecord[i + 1].direction){
                     color = "yellow";
                 }
-                rightD = CreateVerticalMarking(color, M2Px(widthSum + roadRecord[i].width), [roadRecord[i].crossability&0b10, roadRecord[i + 1].crossability&0b1],  M2Px(0.1));
+                rightD = CreateVerticalMarking(color, M2Px(widthSum + roadSegmentRecord[i].width), [roadSegmentRecord[i].crossability&0b10, roadSegmentRecord[i + 1].crossability&0b1],  M2Px(0.1));
             }else{
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadRecord[i].width), [0],  M2Px(0.15), -1);
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadSegmentRecord[i].width), [0],  M2Px(0.15), -1);
             }
             if(leftD !== ""){
                 newMarking += leftD;
@@ -985,8 +1033,8 @@ function UpdateMarkingSpace(){
                 newMarking += rightD;
             }
         }
-        newMarking += CreateRulerMarking(M2Px(widthSum), roadRecord[i], i==roadRecord.length-1, i == 0);
-        widthSum += roadRecord[i].width;
+        newMarking += CreateRulerMarking(M2Px(widthSum), roadSegmentRecord[i], i==roadSegmentRecord.length-1, i == 0);
+        widthSum += roadSegmentRecord[i].width;
     }
 
     markingSpaceElement.innerHTML = newMarking;
