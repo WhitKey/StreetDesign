@@ -12,6 +12,8 @@ let editorElement = document.getElementById("editor");
 let mainWindowElement = document.getElementById("mainWindow");
 let propertyEditorElement = document.getElementById("mainWindow");
 let markingSpaceElement = document.getElementById("markingSpace");
+let redoButtonElement = document.getElementById("redoButton");
+let undoButtonElement = document.getElementById("undoButton");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -33,6 +35,11 @@ let landWidth = 15;
 
 //conponent layout
 let roadSegmentRecord = [];
+let undoStack = [];
+let redoStack = [];
+let maxStackStep = 50;
+let tempVariables = {};
+
 
 //conponent default data
 const componentDefaultWidth = {
@@ -97,6 +104,9 @@ function LandInit() {
     touchHitbox = false;
     draging = false;
     roadSegmentRecord = [];
+    redoStack = [];
+    undoStack = [];
+    maxStackStep = 50;
     landElement.innerHTML = `<svg id="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
@@ -113,6 +123,8 @@ function OnLoad() {
     mainWindowElement = document.getElementById("mainWindow");
     propertyEditorElement = document.getElementById("propertyEditor");
     markingSpaceElement = document.getElementById("markingSpace");
+    redoButtonElement = document.getElementById("redoButton");
+    undoButtonElement = document.getElementById("undoButton");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -131,7 +143,7 @@ function OnLoad() {
 }
 
 function ImportRoadSegmentRecordJSON(json){
-    LandInit();
+    ClearRoadSegmentRecord();
     
     //construct html
     for(let i = 0;i< json.length;++i){
@@ -210,7 +222,7 @@ function InsertComponent(hitboxId, move = false) {
     let oldComp = null
     let toIndex = null;
 
-
+    tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
     component.id = "comp" + componentCounter.toString();
     ++componentCounter;
 
@@ -230,7 +242,7 @@ function InsertComponent(hitboxId, move = false) {
         oldComp = GetComponentRecord(GetComponentIdx(target));
         RemoveHitbox(target.children[1].id);
         component.append(...target.childNodes);
-        RemoveComponent(target);
+        RemoveComponent(target, true);
     }
 
     landElement.insertBefore(component, emptyComp.nextSibling);
@@ -246,11 +258,13 @@ function InsertComponent(hitboxId, move = false) {
         console.log("copy old record");
     }
     console.log(roadSegmentRecord);
+    PushUndoStack(tempVariables.state);
 }
 
-function RemoveComponent(target) {
+function RemoveComponent(target, move = false) {
     //console.log("remove component");
     //console.log({target});
+    tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
     if (target.lastChild !== null) {
         if (target.lastChild.classList.contains("hitbox")) {
             RemoveHitbox(target.lastChild.id);
@@ -262,6 +276,9 @@ function RemoveComponent(target) {
     console.log(roadSegmentRecord);
 
     target.remove();
+    if(!move){
+        PushUndoStack(tempVariables.state);
+    }
 }
 
 function EnterHitbox(event) {
@@ -364,6 +381,19 @@ function AddComponentRecord(index, record){
 
 function RemoveComponentRecord(index){
     roadSegmentRecord.splice(index, 1);
+}
+
+function ClearRoadSegmentRecord(){
+    dragElement = null;
+    hitboxCounter = 0;
+    componentCounter = 0;
+    inHitboxId = null;
+    touchHitbox = false;
+    draging = false;
+    roadSegmentRecord = [];
+    landElement.innerHTML = `<svg id="markingSpace"></svg>`;
+    markingSpaceElement = document.getElementById("markingSpace");
+    AddHitbox();
 }
 
 //---------------------------------------
@@ -716,9 +746,13 @@ function PropertySettingChange(event, type){
     if(type === "crossability" || type==="width"){
         UpdateMarkingSpace();
     }
+    console.log("aaaaa");
+    tempVariables.propertySettingChangeFlag = true;
 }
 
 async function PropertySettingStart(compId, compType){
+    tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
@@ -814,7 +848,13 @@ function PropertySettingExitTrigger(event){
         target.addEventListener("mousedown", ComponentDragStart);
         target.addEventListener("touchstart", ComponentDragStart);
         leftSlidoutOn = false;
+        if(tempVariables.propertySettingChangeFlag === true){
+            console.log("Asdadasd");
+            PushUndoStack(tempVariables.state);
+        }
+        tempVariables.propertySettingChangeFlag = undefined;
     }
+
 }
 
 //-------------------------------
@@ -879,6 +919,7 @@ function PropertyToggleTrigger(event, callback = null){
 
     RerenderPropertyToggle();
     if(callback !== null) callback(event);
+    tempVariables.propertySettingChangeFlag = true;
 }
 
 function UpdateRoadExitDirectionIcon(){
@@ -1051,3 +1092,79 @@ function ResizeMarkingSpace(timeWindow){
     }
     ResizeMarkingSpace.timeout = setTimeout(UpdateMarkingSpace, timeWindow);
 }
+
+//-----------------------------
+//
+// stack functions
+//
+//-----------------------------
+function OnRedo(){
+    new Promise(
+        (res,rej)=>{PushUndoStack(roadSegmentRecord, false);res();}
+    ).then(
+        ()=>{ImportRoadSegmentRecordJSON(redoStack.pop());}
+    ).then(
+        ()=>{
+            if(redoButtonElement.classList.contains("active") && redoStack.length === 0){
+                redoButtonElement.classList.remove("active");
+                redoButtonElement.removeEventListener("click", OnRedo);
+            }
+        }
+    );
+    console.log("redo");
+}
+
+function OnUndo(){
+    new Promise(
+        (res, rej)=>{PushRedoStack(roadSegmentRecord);res();}
+    ).then(
+        ()=>{
+            ImportRoadSegmentRecordJSON(undoStack.pop());
+        }
+    ).then(
+        () => {
+            if(undoButtonElement.classList.contains("active") && undoStack.length === 0){
+                undoButtonElement.classList.remove("active");
+                undoButtonElement.removeEventListener("click", OnUndo);
+            }
+        }
+    );
+    console.log("undo");
+    
+}
+
+function PushUndoStack(state, clearRedo = true){
+    if(clearRedo){
+        redoStack = [];
+        if(redoButtonElement.classList.contains("active") && redoStack.length === 0){
+            redoButtonElement.classList.remove("active");
+            redoButtonElement.removeEventListener("click", OnRedo);
+        }
+    }
+
+    if (undoStack.length >= maxStackStep){
+        undoStack.splice(0, 1);
+        console.log("pop undo stacka");
+    }
+    
+    undoStack.push(JSON.parse(JSON.stringify(state)));
+
+    if(!undoButtonElement.classList.contains("active")){
+        undoButtonElement.classList.add("active");
+        undoButtonElement.addEventListener("click", OnUndo);
+    }
+    console.log("push undo stack");
+}
+
+function PushRedoStack(state){
+    if (redoStack.length >= maxStackStep){
+        redoStack.splice(0, 1);
+    }
+    redoStack.push(JSON.parse(JSON.stringify(state)));
+    if(!redoButtonElement.classList.contains("active")){
+        redoButtonElement.classList.add("active");
+        redoButtonElement.addEventListener("click", OnRedo);
+    }
+    console.log("push redo stack");
+}
+

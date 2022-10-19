@@ -4,6 +4,12 @@
         </div>
     </div>
     <div id="sidebar" class="window">
+        <div style="margin-left:2px;margin-right:2px;margin-bottom:5px;">
+            <div class ="window" style="width:100%; height: 30px; background-color:white;display:flex;padding:5px;">
+                <div class="window utilButton" id="undoButton"><i class="fa-solid fa-rotate-left"></i></div>
+                <div class="window utilButton" id="redoButton"><i class="fa-solid fa-rotate-right"></i></div>
+            </div>
+        </div>
         {{>componentList_partial this}}
     </div>
 
