@@ -143,7 +143,7 @@ function ImportRoadSegmentRecordJSON(json){
         //set up new component
         component.id = "comp" + componentCounter.toString();
         component.style.width = M2Percent(json[i].width);
-        console.log(component);
+        //console.log(component);
         component.setAttribute("component", componentType);
         component.appendChild(templateBase[componentType].cloneNode(true));
         ++componentCounter;
