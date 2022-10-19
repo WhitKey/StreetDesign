@@ -86,9 +86,7 @@ function M2Px(width){
 //
 //-------------------------
 function LandInit() {
-    const hitboxTemplate = document.getElementById("hitboxTemplate");
     landElement.innerHTML = `<svg id="markingSpace"></svg>`;
-    //landElement.innerHTML = "";
     AddHitbox();
 }
 
@@ -156,7 +154,6 @@ function RemoveHitbox(hitboxId) {
 }
 
 function InsertComponent(hitboxId, move = false) {
-    const hitbox = document.getElementById(hitboxId);
     const emptyComp = document.getElementById(hitboxId + "c");
     const componentType = dragElement.getAttribute("component");
     let component = roadComponentTemplate.cloneNode(true);
@@ -171,7 +168,6 @@ function InsertComponent(hitboxId, move = false) {
 
     component.style.width = emptyComp.style.width;
     component.setAttribute("component", componentType);
-    component.setAttribute("originHitbox", hitboxId);
 
     nextComp = emptyComp.nextSibling;
     if (!nextComp.classList.contains("roadComponent")) {
@@ -182,9 +178,7 @@ function InsertComponent(hitboxId, move = false) {
         component.appendChild(templateBase[componentType].cloneNode(true));
     } else {
         let target = document.getElementById(dragElement.getAttribute("target"));
-        //console.log({ target });
 
-        //oldComp = GetComponentRecord((Array.prototype.slice.call(landElement.children).indexOf(target)-2)/2);
         oldComp = GetComponentRecord(GetComponentIdx(target));
         RemoveHitbox(target.children[1].id);
         component.append(...target.childNodes);
@@ -194,15 +188,11 @@ function InsertComponent(hitboxId, move = false) {
     landElement.insertBefore(component, emptyComp.nextSibling);
     AddHitbox(component);
 
-    if (nextComp !== null) {
-        nextComp.setAttribute("originHitbox", component.children[1].id);
-    }
-
     
     toIndex =GetComponentIdx(component);
     if(oldComp === null){
         AddNewComponentRecord(toIndex, componentType);
-        console.log("add bew record");
+        console.log("add new record");
     }else{
         AddComponentRecord(toIndex, oldComp);
         console.log("copy old record");
@@ -339,7 +329,6 @@ function ComponentDragStart(event) {
     let touchevent = false;
     if (event.type == "touchstart") {
         touchevent = true;
-        //console.log("touch start")
     }
 
     draging = false;
@@ -384,7 +373,7 @@ function ComponentDragStart(event) {
         document.body.addEventListener("touchmove", ComponentDrag);
         document.body.addEventListener("touchend", ComponentDragEnd);
     } else {
-        document.body.addEventListener("mousemove", ComponentDrag);
+        setTimeout(()=>{document.body.addEventListener("mousemove", ComponentDrag);}, 10);
         document.body.addEventListener("mouseup", ComponentDragEnd);
     }
 
@@ -490,7 +479,7 @@ function ComponentDragEnd(event) {
                 inHitboxId = null;
                 dragElement.remove();
                 dragElement = null;
-                UpdateMarkingSpace();
+                setTimeout(UpdateMarkingSpace, 100);
                 return;
             } else {
                 if (target.children[1].id !== inHitboxId) {
@@ -512,10 +501,11 @@ function ComponentDragEnd(event) {
         setTimeout(() => {
             emptyComp.style.display = "block";
         }, 300);
+        UpdateMarkingSpace();
     }
     dragElement.remove();
     dragElement = null;
-    UpdateMarkingSpace();
+    //setTimeout(UpdateMarkingSpace, 100);
 }
 
 //---------------------------
