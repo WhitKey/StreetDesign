@@ -112,7 +112,7 @@ function LandInit() {
     AddHitbox();
 }
 
-function OnLoad() {
+window.OnLoad = function() {
     console.log("load");
     //initalize land
     LandInit();
@@ -281,7 +281,7 @@ function RemoveComponent(target, move = false) {
     }
 }
 
-function EnterHitbox(event) {
+window.EnterHitbox = function(event) {
     if (landElement.hasAttribute("hitOn")) {
         //console.log("enter hitbox");
         let refPercent = 100.0 / landWidth;
@@ -299,7 +299,7 @@ function EnterHitbox(event) {
     }
 }
 
-function LeaveHitbox(event) {
+window.LeaveHitbox = function(event) {
     if (landElement.hasAttribute("hitOn")) {
         inHitboxId = null;
         //console.log("leave hitbox");
@@ -313,7 +313,7 @@ function LeaveHitbox(event) {
     }
 }
 
-function EnterTrashcan() {
+window.EnterTrashcan = function() {
     //console.log("enter trash can");
     if (dragElement === null) return;
     if (dragElement.classList.contains("roadComponent")) {
@@ -322,7 +322,7 @@ function EnterTrashcan() {
     inHitboxId = -1;
 }
 
-function LeaveTrashcan() {
+window.LeaveTrashcan = function() {
     //console.log("leave trash can");
     if (dragElement === null) return;
 
@@ -401,7 +401,7 @@ function ClearRoadSegmentRecord(){
 //Component dragging processing functions
 //
 //----------------------------------------
-function ComponentDragStart(event) {
+window.ComponentDragStart = function(event) {
 
     //set touch event flag
     let touchevent = false;
@@ -457,7 +457,7 @@ function ComponentDragStart(event) {
 
 }
 
-function ComponentDrag(event) {
+window.ComponentDrag =  function(event) {
     let touchEvent = false;
     if (event.type === "touchmove") {
         touchEvent = true;
@@ -519,7 +519,7 @@ function ComponentDrag(event) {
 
 }
 
-function ComponentDragEnd(event) {
+window.ComponentDragEnd = function(event) {
 
     let touchEvent = false;
     if (event.type === "touchend") {
@@ -595,6 +595,8 @@ function ComponentDragEnd(event) {
 function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx = Number){
     let propertyTitle = "";
     let cardToggle = "";
+    let index = "";
+    let toggleValue = "";
 
     if(type === "direction"){
         propertyTitle = "上/下行";
@@ -622,7 +624,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
     }else if(type === "exitDirection"){
         propertyTitle = "出口方向";
         let enableFlag = "";
-        direction = compRecord["direction"];
+        let direction = compRecord["direction"];
         if(direction !==  3 && direction !== 0){
             enableFlag = "enable"
         }
@@ -729,7 +731,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
     `;
 }
 
-function PropertySettingChange(event, type){
+window.PropertySettingChange = function(event, type){
     let propertySettingElement = document.getElementById("propertySettings");
     let compIdx = parseInt(propertySettingElement.getAttribute("component_idx"));
     let componentElement = document.getElementById(propertyEditorElement.getAttribute("target"));
@@ -825,7 +827,7 @@ function SetLeftSlideout(value){
     }
 }
 
-function PropertySettingExitTrigger(event){
+window.PropertySettingExitTrigger = function(event){
     let target = event.target;
     let check = false;
     while(target){
@@ -862,11 +864,11 @@ function PropertySettingExitTrigger(event){
 // Property Toggle Functions
 //
 //-------------------------------
-function PropertyToggleCallbackTest(event){
+window.PropertyToggleCallbackTest = function(event){
     console.log("eventCallback");
 }
 
-function RerenderPropertyToggle(event){
+window.RerenderPropertyToggle = function(event){
     let toggleBlock = document.getElementById("propertyToggles");
     let recordIdx = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
     let propertyRecord = GetComponentRecord(recordIdx);
@@ -882,7 +884,7 @@ function RerenderPropertyToggle(event){
     UpdateMarkingSpace();
 }
 
-function PropertyToggleTrigger(event, callback = null){
+window.PropertyToggleTrigger = function(event, callback = null){
     let recordIndex = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
     let targetElement = event.target;
     let oriValue = targetElement.getAttribute("value");
@@ -1083,7 +1085,7 @@ function UpdateMarkingSpace(){
 
 }
 
-function ResizeMarkingSpace(timeWindow){
+window.ResizeMarkingSpace = function(timeWindow){
     if(ResizeMarkingSpace.timeout === undefined){
         ResizeMarkingSpace.timeout = null;
     }
@@ -1098,7 +1100,7 @@ function ResizeMarkingSpace(timeWindow){
 // stack functions
 //
 //-----------------------------
-function OnRedo(){
+window.OnRedo = function(){
     new Promise(
         (res,rej)=>{PushUndoStack(roadSegmentRecord, false);res();}
     ).then(
@@ -1114,7 +1116,7 @@ function OnRedo(){
     console.log("redo");
 }
 
-function OnUndo(){
+window.OnUndo = function(){
     new Promise(
         (res, rej)=>{PushRedoStack(roadSegmentRecord);res();}
     ).then(
