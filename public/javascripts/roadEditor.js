@@ -71,6 +71,8 @@ const componentDefaultProperty = {
     },
 };
 
+let currentSection = ""
+
 //left slide out variables
 let leftSlidoutOn = false;
 
@@ -139,6 +141,29 @@ window.OnLoad = function() {
     //setting road component template
     roadComponentTemplate = document.getElementById("roadComponentTemplate").cloneNode(true);
     roadComponentTemplate.removeAttribute("id");
+
+    //load previous work
+    let tempStorage = localStorage.getItem("tempStorage");
+    currentSection = editorElement.getAttribute("currentSection");
+
+    let temp = {
+        landWidth: landWidth,
+        tempVersion: "0",
+    }
+
+    if(tempStorage !== null){
+        tempStorage = JSON.parse(tempStorage);
+        if(landWidth !== tempStorage.landWidth || temp.tempVersion !== tempStorage.tempVersion){
+            localStorage.setItem("tempStorage", JSON.stringify(temp));
+        }else{
+            if(tempStorage[currentSection]){
+                ImportRoadSegmentRecordJSON(tempStorage[currentSection]);
+            }
+        }
+    }else{
+        localStorage.setItem("tempStorage", JSON.stringify(temp));
+    }
+
 
 }
 
@@ -775,7 +800,7 @@ async function PropertySettingStart(compId, compType){
     propertyEditorElement.setAttribute("target", compId);
 
     document.body.addEventListener("mousedown", PropertySettingExitTrigger);
-    document.body.addEventListener("touchstart", PropertySettingExitTrigger);
+    document.body.addEventListener("touchstart", PropertySettingExitTrigger, {passive: true});
 
     ConfigPropertySetting(compId, compType);
 
@@ -848,7 +873,7 @@ window.PropertySettingExitTrigger = function(event){
         let target = document.getElementById(propertyEditorElement.getAttribute("target"));
         target.classList.remove("selected");
         target.addEventListener("mousedown", ComponentDragStart);
-        target.addEventListener("touchstart", ComponentDragStart);
+        target.addEventListener("touchstart", ComponentDragStart, {passive: true});
         leftSlidoutOn = false;
         if(tempVariables.propertySettingChangeFlag === true){
             console.log("Asdadasd");
@@ -1097,7 +1122,7 @@ window.ResizeMarkingSpace = function(timeWindow){
 
 //-----------------------------
 //
-// stack functions
+// utility button functions
 //
 //-----------------------------
 window.OnRedo = function(){
@@ -1107,12 +1132,14 @@ window.OnRedo = function(){
         ()=>{ImportRoadSegmentRecordJSON(redoStack.pop());}
     ).then(
         ()=>{
+            SaveTempStorage();
             if(redoButtonElement.classList.contains("active") && redoStack.length === 0){
                 redoButtonElement.classList.remove("active");
                 redoButtonElement.removeEventListener("click", OnRedo);
             }
         }
     );
+    
     console.log("redo");
 }
 
@@ -1125,6 +1152,7 @@ window.OnUndo = function(){
         }
     ).then(
         () => {
+            SaveTempStorage();
             if(undoButtonElement.classList.contains("active") && undoStack.length === 0){
                 undoButtonElement.classList.remove("active");
                 undoButtonElement.removeEventListener("click", OnUndo);
@@ -1142,11 +1170,13 @@ function PushUndoStack(state, clearRedo = true){
             redoButtonElement.classList.remove("active");
             redoButtonElement.removeEventListener("click", OnRedo);
         }
+        
+        SaveTempStorage();
     }
 
     if (undoStack.length >= maxStackStep){
         undoStack.splice(0, 1);
-        console.log("pop undo stacka");
+        console.log("pop undo stack a");
     }
     
     undoStack.push(JSON.parse(JSON.stringify(state)));
@@ -1168,5 +1198,19 @@ function PushRedoStack(state){
         redoButtonElement.addEventListener("click", OnRedo);
     }
     console.log("push redo stack");
+}
+
+function SaveTempStorage(){
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    tempStorage[currentSection] = roadSegmentRecord;
+    localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+}
+
+window.OnClearLand = function(){
+    if(roadSegmentRecord.length === 0)return;
+    tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+    ClearRoadSegmentRecord();
+    PushUndoStack(tempVariables.state);
+    UpdateMarkingSpace();
 }
 
