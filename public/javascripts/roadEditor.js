@@ -14,6 +14,7 @@ let propertyEditorElement = document.getElementById("mainWindow");
 let markingSpaceElement = document.getElementById("markingSpace");
 let redoButtonElement = document.getElementById("redoButton");
 let undoButtonElement = document.getElementById("undoButton");
+let nextButtonElement = document.getElementById("nextButton");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -44,7 +45,7 @@ let tempVariables = {};
 //conponent default data
 const componentDefaultWidth = {
     "road": 3,
-    "sidewalk": 1,
+    "sidewalk": 1.5,
     "bollard": 0.5,
 };
 
@@ -127,6 +128,7 @@ window.OnLoad = function() {
     markingSpaceElement = document.getElementById("markingSpace");
     redoButtonElement = document.getElementById("redoButton");
     undoButtonElement = document.getElementById("undoButton");
+    nextButtonElement = document.getElementById("nextButton");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -164,7 +166,7 @@ window.OnLoad = function() {
         localStorage.setItem("tempStorage", JSON.stringify(temp));
     }
 
-
+    StageVerify();
 }
 
 function ImportRoadSegmentRecordJSON(json){
@@ -760,10 +762,16 @@ window.PropertySettingChange = function(event, type){
     let propertySettingElement = document.getElementById("propertySettings");
     let compIdx = parseInt(propertySettingElement.getAttribute("component_idx"));
     let componentElement = document.getElementById(propertyEditorElement.getAttribute("target"));
+    let compType = componentElement.getAttribute("component");
 
     if(type === "width"){
         let newWidth = event.target.value;
         let refPercent = 100.0 / landWidth; // % per meter
+        
+        if(newWidth < componentDefaultWidth[compType]){
+            event.target.value = componentDefaultWidth[compType];
+            return
+        }
 
         console.log("update width");
         componentElement.style.width = (refPercent * parseFloat(newWidth)).toString() + "%";
@@ -773,7 +781,7 @@ window.PropertySettingChange = function(event, type){
     if(type === "crossability" || type==="width"){
         UpdateMarkingSpace();
     }
-    console.log("aaaaa");
+
     tempVariables.propertySettingChangeFlag = true;
 }
 
@@ -828,7 +836,7 @@ function ConfigPropertySetting(compId, compType){
         <div id="propertySettings" component_idx=${compIdx}>
             <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
                 <span class="input-group-text" id="basic-addon1" style="white-space: nowrap;">寬度</span>
-                <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="0.1" step="0.1" aria-describedby="basic-addon1">
+                <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="${componentDefaultWidth[compType]}" step="0.1" aria-describedby="basic-addon1">
                 <span class="input-group-text" id="basic-addon1">m</span>
             </div>
             <!--<div class="window propertyCollection"></div>-->
@@ -1204,6 +1212,8 @@ function SaveTempStorage(){
     let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
     tempStorage[currentSection] = roadSegmentRecord;
     localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+
+    StageVerify();
 }
 
 window.OnClearLand = function(){
@@ -1213,4 +1223,44 @@ window.OnClearLand = function(){
     PushUndoStack(tempVariables.state);
     UpdateMarkingSpace();
 }
+
+//------------------------------
+//
+// Validation functions
+//
+//------------------------------
+function StageVerify(){
+    let widthSum = 0;
+    let chkFlag = true;
+    
+    //check width sum
+    roadSegmentRecord.forEach(record => {
+        console.log(record);
+        widthSum+=record.width;
+    });
+
+    if(widthSum !== landWidth){
+        chkFlag = false;
+    }
+
+
+    //check process
+    if(chkFlag){
+        if(!nextButtonElement.classList.contains("active")){
+            nextButtonElement.classList.add("active");
+        }
+    }else{
+        if(nextButtonElement.classList.contains("active")){
+            nextButtonElement.classList.remove("active");
+        }
+    }
+
+
+}
+
+
+
+
+
+
 
