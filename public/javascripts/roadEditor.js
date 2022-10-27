@@ -41,6 +41,8 @@ let redoStack = [];
 let maxStackStep = 50;
 let tempVariables = {};
 
+//stage indecator
+let currentStage = 0
 
 //conponent default data
 const componentDefaultWidth = {
@@ -72,7 +74,19 @@ const componentDefaultProperty = {
     },
 };
 
-let currentSection = ""
+const DesignStage = [
+    "road",
+    "stop",
+    "intermidate"
+];
+
+const TempStorageTemplate = {
+    landWidth: 0,
+    stage: 0,
+    tempVersion: "1",
+}
+
+//let currentSection = ""
 
 //left slide out variables
 let leftSlidoutOn = false;
@@ -110,22 +124,22 @@ function LandInit() {
     redoStack = [];
     undoStack = [];
     maxStackStep = 50;
+
+    landElement = document.createElement("div");
+    document.getElementById(`${DesignStage[currentStage]}Section`).appendChild(landElement);
+    landElement.setAttribute("id", "land");
     landElement.innerHTML = `<svg id="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
 }
 
-window.OnLoad = function() {
-    console.log("load");
-    //initalize land
-    LandInit();
-
+function InitElementVariables(){
     //set element
-    landElement = document.getElementById("land");
+    //landElement = document.getElementById("land");
     editorElement = document.getElementById("editor");
     mainWindowElement = document.getElementById("mainWindow");
     propertyEditorElement = document.getElementById("propertyEditor");
-    markingSpaceElement = document.getElementById("markingSpace");
+    //markingSpaceElement = document.getElementById("markingSpace");
     redoButtonElement = document.getElementById("redoButton");
     undoButtonElement = document.getElementById("undoButton");
     nextButtonElement = document.getElementById("nextButton");
@@ -144,29 +158,62 @@ window.OnLoad = function() {
     roadComponentTemplate = document.getElementById("roadComponentTemplate").cloneNode(true);
     roadComponentTemplate.removeAttribute("id");
 
+}
+
+function LoadPrevSession(){
+    let temp = TempStorageTemplate;
+    temp.landWidth = landWidth;
+
     //load previous work
     let tempStorage = localStorage.getItem("tempStorage");
-    currentSection = editorElement.getAttribute("currentSection");
-
-    let temp = {
-        landWidth: landWidth,
-        tempVersion: "0",
-    }
-
+    //currentSection = editorElement.getAttribute("currentSection");
     if(tempStorage !== null){
         tempStorage = JSON.parse(tempStorage);
         if(landWidth !== tempStorage.landWidth || temp.tempVersion !== tempStorage.tempVersion){
             localStorage.setItem("tempStorage", JSON.stringify(temp));
         }else{
-            if(tempStorage[currentSection]){
-                ImportRoadSegmentRecordJSON(tempStorage[currentSection]);
+            currentStage = tempStorage.stage;
+            if(tempStorage[DesignStage[currentStage]]){
+                return tempStorage[DesignStage[currentStage]];
             }
         }
     }else{
         localStorage.setItem("tempStorage", JSON.stringify(temp));
     }
+    return null;
+}
+
+function RebuildUnusedSection(){
+    let storage = JSON.parse(localStorage.getItem("tempStorage"));
+    if(storage === null) return;
+    DesignStage.forEach(stage => {
+        if(storage[stage] && stage !== DesignStage[currentStage]){
+            document.getElementById(`${stage}Section`).innerHTML = MakeRoadSegmentHTML(storage[stage]);
+        }
+    });
+}
+
+window.OnLoad = function() {
+    let prevRecord;
+    let targetSection;
+    console.log("load");
+    //initalize land
+
+    prevRecord = LoadPrevSession();
+    
+    LandInit();
+    InitElementVariables();
+
+    RebuildUnusedSection();
+    targetSection = document.getElementById(`${DesignStage[currentStage]}Section`);
+    targetSection.classList.remove("unusedSection");
+    targetSection.classList.add("usingSection");
 
     StageVerify();
+
+    if(prevRecord !== null){
+        ImportRoadSegmentRecordJSON(prevRecord);
+    }
 }
 
 function ImportRoadSegmentRecordJSON(json){
@@ -182,7 +229,6 @@ function ImportRoadSegmentRecordJSON(json){
         //set up new component
         component.id = "comp" + componentCounter.toString();
         component.style.width = M2Percent(json[i].width);
-        //console.log(component);
         component.setAttribute("component", componentType);
         component.appendChild(templateBase[componentType].cloneNode(true));
         ++componentCounter;
@@ -198,6 +244,7 @@ function ImportRoadSegmentRecordJSON(json){
     //update marking and icon
     UpdateMarkingSpace();
     UpdateRoadExitDirectionIcon();
+    StageVerify();
 }
 
 function ExportRoadSegmentRecordJSON(){
@@ -1210,7 +1257,10 @@ function PushRedoStack(state){
 
 function SaveTempStorage(){
     let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
-    tempStorage[currentSection] = roadSegmentRecord;
+    
+    tempStorage[DesignStage[currentStage]] = roadSegmentRecord;
+    tempStorage.stage = currentStage;
+
     localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
 
     StageVerify();
@@ -1235,7 +1285,6 @@ function StageVerify(){
     
     //check width sum
     roadSegmentRecord.forEach(record => {
-        console.log(record);
         widthSum+=record.width;
     });
 
@@ -1254,10 +1303,101 @@ function StageVerify(){
             nextButtonElement.classList.remove("active");
         }
     }
-
-
+    return chkFlag;
 }
 
+//-----------------------------
+//
+// Switch stage function
+//
+//-----------------------------
+function MakeRoadSegmentHTML(record){
+    let el= document.createElement("div");
+    for(let i = 0;i<record.length;++i){
+        let compType = record[i].type;
+        let component = roadComponentTemplate.cloneNode(true);
+
+
+        //set up new component
+        component.style.width = M2Percent(record[i].width);
+        component.setAttribute("component", compType);
+        component.appendChild(templateBase[compType].cloneNode(true));
+        el.appendChild(component);
+
+        //remove unused attrubute
+        component.removeAttribute("ontouchstart");
+        component.removeAttribute("onmousedown");
+        component.classList.remove("drag");
+
+        //rebuild road exit direction icon
+        if(compType === "road"){
+            let iconContainer = component.getElementsByClassName("roadExitDirectionIcon")[0];
+            let direction = record[i].direction;
+            let exitDirection = record[i].exitDirection;
+            let iconSrc = "";
+
+            iconContainer.innerHTML = "";
+            
+            if (direction === 3)continue;
+            //上行
+            if (direction === 2){
+                if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
+            }//下行
+            else{
+                if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+            }
+            
+
+            if(exitDirection === 0)continue;
+            if(exitDirection === 1) iconSrc = "images/left_arrow.svg";
+            else if(exitDirection === 2) iconSrc = "images/straight_arrow.svg";
+            else if(exitDirection === 3) iconSrc = "images/straight_left_arrow.svg";
+            else if(exitDirection === 4) iconSrc = "images/right_arrow.svg";
+            else if(exitDirection === 5) iconSrc = "images/left_right_arrow.svg";
+            else if(exitDirection === 6) iconSrc = "images/straight_right_arrow.svg";
+            else if(exitDirection === 7) iconSrc = "images/three_way_arrow.svg";
+            iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
+        }
+
+    }
+    return el.innerHTML;
+}
+
+function SwitchEditorRoadSegment(targetStage){
+    let fromSection = document.getElementById(`${DesignStage[currentStage-1]}Section`);
+    let toSection = document.getElementById(`${targetStage}Section`);
+    let segmentHTML = MakeRoadSegmentHTML(roadSegmentRecord);
+
+    fromSection.classList.remove("usingSection");
+    fromSection.classList.add("unusedSection");
+    fromSection.innerHTML = segmentHTML;
+
+    toSection.classList.remove("unusedSection");
+    toSection.classList.add("usingSection");
+    toSection.innerHTML = "";
+}
+
+window.OnSwitchNextSegment = function(){
+    let prevRecord = null;
+    if(!StageVerify())return;
+
+    if(currentStage === 1){
+        //TODO: switch to present page
+        return;
+    }
+    currentStage += 1;
+    SwitchEditorRoadSegment( DesignStage[currentStage]);
+    
+    
+    LandInit();
+    StageVerify();
+
+    prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
+    if(prevRecord){
+        ImportRoadSegmentRecordJSON(prevRecord);
+    }
+    SaveTempStorage();
+}
 
 
 

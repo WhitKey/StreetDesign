@@ -57,10 +57,16 @@
     left: 0;
 }
 
+#designInfo{
+    border-width: 3px;
+    border-bottom: solid;
+    border-color: gray;
+}
+
 #land {
     background-color: rgb(161, 114, 43);
     height: 100%;
-    width: 90%;
+    width: 100%;
     align-self: center;
     position: relative;
     display: flex;
@@ -70,6 +76,7 @@
 }
 
 #trashcan {
+    position: absolute;
     height: 0px;
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
@@ -78,10 +85,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: -1;
 }
 
 .hitOn #trashcan {
     height: 150px;
+    z-index: 1;
 }
 
 #markingSpace{
@@ -109,13 +118,20 @@
 .unusedSection {
     width: 100%;
     height: 50px;
-    outline: 1px;
-    transition: 0.1s;
+    display:flex;
+    background-color: rgb(161, 114, 43);
 }
 
+.usingSection {
+    width: 100%;
+    flex-grow: 1;
+}
+
+/*
 .hitOn .unusedSection {
     height: 0px;
 }
+*/
 
 .draggingElement {
     opacity: 0.5;
