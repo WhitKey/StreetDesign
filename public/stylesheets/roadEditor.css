@@ -145,6 +145,7 @@
 .roadScope {
     width: 90%;
     align-self: center;
+    transition-duration: 300ms;
 }
 
 .hitbox {

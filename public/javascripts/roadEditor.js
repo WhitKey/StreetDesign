@@ -205,6 +205,7 @@ window.OnLoad = function() {
     InitElementVariables();
 
     RebuildUnusedSection();
+    
     targetSection = document.getElementById(`${DesignStage[currentStage]}Section`);
     targetSection.classList.remove("unusedSection");
     targetSection.classList.add("usingSection");
@@ -212,11 +213,24 @@ window.OnLoad = function() {
     StageVerify();
 
     if(prevRecord !== null){
-        ImportRoadSegmentRecordJSON(prevRecord);
+        //prevRecord = JSON.stringify(prevRecord)
+        //setTimeout(() =>{ImportRoadSegmentRecordJSON(JSON.parse(prevRecord));}, 300);
+        ImportRoadSegmentRecordJSON(prevRecord, false);
+        markingSpaceElement.style.opacity = "0";
+        markingSpaceElement.style.transitionDuration = "500ms";
+        setTimeout(()=>{
+            UpdateMarkingSpace();
+            markingSpaceElement.style.opacity = "1";
+            setTimeout(()=>{
+                markingSpaceElement.style.removeProperty("opacity");
+                markingSpaceElement.style.removeProperty("transition-duration");
+            }, 550);
+            
+        }, 300);
     }
 }
 
-function ImportRoadSegmentRecordJSON(json){
+function ImportRoadSegmentRecordJSON(json, updateMarking = true){
     ClearRoadSegmentRecord();
     
     //construct html
@@ -242,7 +256,9 @@ function ImportRoadSegmentRecordJSON(json){
     roadSegmentRecord = json;
 
     //update marking and icon
-    UpdateMarkingSpace();
+    if(updateMarking){
+        UpdateMarkingSpace();
+    }
     UpdateRoadExitDirectionIcon();
     StageVerify();
 }
@@ -1394,7 +1410,19 @@ window.OnSwitchNextSegment = function(){
 
     prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
     if(prevRecord){
-        ImportRoadSegmentRecordJSON(prevRecord);
+        ImportRoadSegmentRecordJSON(prevRecord, false);
+        
+        markingSpaceElement.style.opacity = "0";
+        markingSpaceElement.style.transitionDuration = "500ms";
+        setTimeout(()=>{
+            UpdateMarkingSpace();
+            markingSpaceElement.style.opacity = "1";
+            setTimeout(()=>{
+                markingSpaceElement.style.removeProperty("opacity");
+                markingSpaceElement.style.removeProperty("transition-duration");
+            }, 550);
+            
+        }, 300);
     }
     SaveTempStorage();
 }
