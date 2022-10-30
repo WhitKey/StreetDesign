@@ -215,7 +215,7 @@ window.OnLoad = function() {
     targetSection.classList.add("usingSection");
 
     StageVerify();
-
+    UpdatePrevButtonVis();
     if(prevRecord !== null){
         //prevRecord = JSON.stringify(prevRecord)
         //setTimeout(() =>{ImportRoadSegmentRecordJSON(JSON.parse(prevRecord));}, 300);
@@ -1029,7 +1029,7 @@ function UpdateRoadExitDirectionIcon(){
     let uiList = landElement.getElementsByClassName("roadComponent");
     for(let i = 0;i<uiList.length;++i){
         if(roadSegmentRecord[i].type === "road"){
-            let iconContainer = uiList[i].getElementsByClassName("roadExitDirectionIcon")[0];
+            let iconContainer = uiList[i].getElementsByClassName("roadComponentIcon")[0];
             let direction = roadSegmentRecord[i].direction;
             let exitDirection = roadSegmentRecord[i].exitDirection;
             let iconSrc = "";
@@ -1352,7 +1352,7 @@ function MakeRoadSegmentHTML(record){
 
         //rebuild road exit direction icon
         if(compType === "road"){
-            let iconContainer = component.getElementsByClassName("roadExitDirectionIcon")[0];
+            let iconContainer = component.getElementsByClassName("roadComponentIcon")[0];
             let direction = record[i].direction;
             let exitDirection = record[i].exitDirection;
             let iconSrc = "";
