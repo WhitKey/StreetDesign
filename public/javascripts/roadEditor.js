@@ -15,6 +15,7 @@ let markingSpaceElement = document.getElementById("markingSpace");
 let redoButtonElement = document.getElementById("redoButton");
 let undoButtonElement = document.getElementById("undoButton");
 let nextButtonElement = document.getElementById("nextButton");
+let prevButtonElement = document.getElementById("prevButton");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -140,9 +141,12 @@ function InitElementVariables(){
     mainWindowElement = document.getElementById("mainWindow");
     propertyEditorElement = document.getElementById("propertyEditor");
     //markingSpaceElement = document.getElementById("markingSpace");
+
+    //button elements
     redoButtonElement = document.getElementById("redoButton");
     undoButtonElement = document.getElementById("undoButton");
     nextButtonElement = document.getElementById("nextButton");
+    prevButtonElement = document.getElementById("prevButton");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -227,6 +231,7 @@ window.OnLoad = function() {
             }, 550);
             
         }, 300);
+        UpdatePrevButtonVis();
     }
 }
 
@@ -1324,7 +1329,7 @@ function StageVerify(){
 
 //-----------------------------
 //
-// Switch stage function
+// stage controlling function
 //
 //-----------------------------
 function MakeRoadSegmentHTML(record){
@@ -1379,9 +1384,11 @@ function MakeRoadSegmentHTML(record){
     return el.innerHTML;
 }
 
-function SwitchEditorRoadSegment(targetStage){
-    let fromSection = document.getElementById(`${DesignStage[currentStage-1]}Section`);
-    let toSection = document.getElementById(`${targetStage}Section`);
+function SwitchEditorRoadSegment(fromStage, toStage){
+    UpdatePrevButtonVis();
+    
+    let fromSection = document.getElementById(`${DesignStage[fromStage]}Section`);
+    let toSection = document.getElementById(`${DesignStage[toStage]}Section`);
     let segmentHTML = MakeRoadSegmentHTML(roadSegmentRecord);
 
     fromSection.classList.remove("usingSection");
@@ -1391,18 +1398,38 @@ function SwitchEditorRoadSegment(targetStage){
     toSection.classList.remove("unusedSection");
     toSection.classList.add("usingSection");
     toSection.innerHTML = "";
+
 }
 
-window.OnSwitchNextSegment = function(){
-    let prevRecord = null;
-    if(!StageVerify())return;
+function UpdatePrevButtonVis(){
+    if(currentStage === 0){
+        prevButtonElement.style.visibility = "hidden";
+    }else{
+        prevButtonElement.style.removeProperty("visibility");
+    }
+}
 
-    if(currentStage === 1){
+// switch to next segment when is next is true, switch to previous if false
+window.OnSwitchSegment = function(isNext = true){
+    let prevRecord = null;
+    let oriStage = currentStage;
+
+    if(!StageVerify() && isNext)return;
+
+    if(currentStage === 1 && isNext){
         //TODO: switch to present page
         return;
     }
-    currentStage += 1;
-    SwitchEditorRoadSegment( DesignStage[currentStage]);
+
+
+    if(isNext){
+        currentStage += 1;
+    }else{
+        if(currentStage === 0)return;
+        currentStage -= 1;
+    }
+
+    SwitchEditorRoadSegment(oriStage, currentStage);
     
     
     LandInit();

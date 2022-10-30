@@ -220,12 +220,10 @@
     background-color:lightgray;
 }
 
-#nextButton{
-    position:absolute;
+.stageCntlButton{
     height: 30px;
     width: 70px;
-    right: 5px;
-    bottom: 10px;
+    position:absolute;
     border-width: 3px;
     color: cyan;
     border: solid;
@@ -236,13 +234,24 @@
     opacity: 0.3;
     z-index: 2;
     border-radius: 5px;
-    transition-duration: 300ms;
+    transition: background-color 300ms;
 }
 
-#nextButton.active {
+.stageCntlButton.active {
     opacity: 1;
 }
 
-#nextButton.active:hover {
+.stageCntlButton.active:hover {
     background-color: darkturquoise;
 }
+
+#nextButton{
+    right: 5px;
+    bottom: 10px;
+}
+
+#prevButton{
+    left: 5px;
+    bottom: 10px;
+}
+
