@@ -1119,8 +1119,6 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0, da
         dashedLength = dashLineOverride;
     }
 
-    console.log(dashLineOverride);
-
     if(type.length === 2){
         if((type[0] !== 0) && (type[1]!==0)){
             type = [type[0]];
