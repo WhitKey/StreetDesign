@@ -1287,6 +1287,19 @@ function SaveTempStorage(){
     StageVerify();
 }
 
+function ClearStack(){
+    redoStack = [];
+    undoStack = [];
+    if(redoButtonElement.classList.contains("active")){
+        redoButtonElement.classList.remove("active");
+        redoButtonElement.removeEventListener("click", OnRedo);
+    }
+    if(undoButtonElement.classList.contains("active")){
+        undoButtonElement.classList.remove("active");
+        undoButtonElement.removeEventListener("click", OnUndo);
+    }
+}
+
 window.OnClearLand = function(){
     if(roadSegmentRecord.length === 0)return;
     tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
@@ -1451,6 +1464,8 @@ window.OnSwitchSegment = function(isNext = true){
             
         }, 300);
     }
+
+    ClearStack();
     SaveTempStorage();
 }
 
