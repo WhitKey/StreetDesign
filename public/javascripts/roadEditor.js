@@ -78,7 +78,7 @@ const componentDefaultProperty = {
 const DesignStage = [
     "road",
     "stop",
-    "intermidate"
+    "intermidiate"
 ];
 
 const TempStorageTemplate = {
@@ -202,6 +202,20 @@ window.OnLoad = function() {
     let targetSection;
     console.log("load");
     //initalize land
+
+    //initialize temp variavbles
+    tempVariables['road'] = {
+        'redo':'[]',
+        'undo':'[]' 
+    }
+    tempVariables['intermidiate'] = {
+        'redo':'[]',
+        'undo':'[]' 
+    }
+    tempVariables['stop'] = {
+        'redo':'[]',
+        'undo':'[]' 
+    }
 
     prevRecord = LoadPrevSession();
     
@@ -1287,17 +1301,30 @@ function SaveTempStorage(){
     StageVerify();
 }
 
-function ClearStack(){
-    redoStack = [];
-    undoStack = [];
-    if(redoButtonElement.classList.contains("active")){
-        redoButtonElement.classList.remove("active");
-        redoButtonElement.removeEventListener("click", OnRedo);
+function RestoreSectionStack(){
+    redoStack = JSON.parse(tempVariables[DesignStage[currentStage]]['redo']);
+    undoStack = JSON.parse(tempVariables[DesignStage[currentStage]]['undo']);
+    
+    if(redoStack.length === 0){
+        if(redoButtonElement.classList.contains('active')){
+            redoButtonElement.classList.remove('active');
+        }
+    }else{
+        if(!redoButtonElement.classList.contains('active')){
+            redoButtonElement.classList.add('active');
+        }
     }
-    if(undoButtonElement.classList.contains("active")){
-        undoButtonElement.classList.remove("active");
-        undoButtonElement.removeEventListener("click", OnUndo);
+    
+    if(undoStack.length === 0){
+        if(undoButtonElement.classList.contains('active')){
+            undoButtonElement.classList.remove('active');
+        }
+    }else{
+        if(!undoButtonElement.classList.contains('active')){
+            undoButtonElement.classList.add('active');
+        }
     }
+
 }
 
 window.OnClearLand = function(){
@@ -1404,6 +1431,7 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     let toSection = document.getElementById(`${DesignStage[toStage]}Section`);
     let segmentHTML = MakeRoadSegmentHTML(roadSegmentRecord);
 
+    //switching editor section 
     fromSection.classList.remove("usingSection");
     fromSection.classList.add("unusedSection");
     fromSection.innerHTML = segmentHTML;
@@ -1411,6 +1439,10 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     toSection.classList.remove("unusedSection");
     toSection.classList.add("usingSection");
     toSection.innerHTML = "";
+
+    //store old undo / redo stack
+    tempVariables[DesignStage[fromStage]]['redo'] = JSON.stringify(redoStack);
+    tempVariables[DesignStage[fromStage]]['undo'] = JSON.stringify(undoStack);
 
 }
 
@@ -1429,7 +1461,7 @@ window.OnSwitchSegment = function(isNext = true){
 
     if(!StageVerify() && isNext)return;
 
-    if(currentStage === 1 && isNext){
+    if(currentStage === 2 && isNext){
         //TODO: switch to present page
         return;
     }
@@ -1444,8 +1476,12 @@ window.OnSwitchSegment = function(isNext = true){
 
     SwitchEditorRoadSegment(oriStage, currentStage);
     
-    
-    LandInit();
+    if(currentStage === 2 && isNext){
+        //TODO: switch to intermidiate section
+        LandInit();
+    }else{
+        LandInit();
+    }
     StageVerify();
 
     prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
@@ -1464,9 +1500,11 @@ window.OnSwitchSegment = function(isNext = true){
             
         }, 300);
     }
+    console.log(tempVariables);
 
-    ClearStack();
+    RestoreSectionStack();
     SaveTempStorage();
+
 }
 
 
