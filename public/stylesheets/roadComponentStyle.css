@@ -88,6 +88,12 @@
     max-width: 120px;
 }
 
+.unusedSection * * .roadComponentIcon{
+    opacity: 0.3;
+}
+
 .rot180{
     transform: rotate(180deg);
 }
+
+

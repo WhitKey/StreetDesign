@@ -132,7 +132,7 @@ function LandInit() {
     landElement = document.createElement("div");
     document.getElementById(`${DesignStage[currentStage]}Section`).appendChild(landElement);
     landElement.setAttribute("id", "land");
-    landElement.innerHTML = `<svg id="markingSpace"></svg>`;
+    landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
 }
@@ -198,6 +198,8 @@ function RebuildUnusedSection(){
             document.getElementById(`${stage}Section`).innerHTML = MakeRoadSegmentHTML(storage[stage]);
         }
     });
+
+    UnusedMarkingSpaceInit();
 }
 
 window.OnLoad = function() {
@@ -289,6 +291,27 @@ function ExportRoadSegmentRecordJSON(){
     return JSON.parse(JSON.stringify(roadSegmentRecord));
 }
 
+function UnusedMarkingSpaceInit(){
+    let sectionElement;
+    let sectionSvgElement;
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+
+    for(let i = 0; i < 2;++i){
+        if(i === currentStage)continue;
+        let newMarking = "";
+        sectionElement = document.getElementById(`${DesignStage[i]}Section`);
+
+        if(tempStorage[DesignStage[i]]){
+            newMarking = CreateNewMarking(tempStorage[DesignStage[i]], sectionElement.clientHeight - 10, 20);
+        }
+
+        sectionSvgElement = sectionElement.getElementsByClassName("markingSpace");
+        for(let j = 0;j<sectionSvgElement.length;++j){
+            sectionSvgElement[j].remove();
+        }
+        sectionElement.innerHTML +=   `<svg class="markingSpace">${newMarking}</svg>`;
+    }
+}
 
 //-----------------------------
 //
@@ -503,7 +526,7 @@ function ClearRoadSegmentRecord(){
     touchHitbox = false;
     draging = false;
     roadSegmentRecord = [];
-    landElement.innerHTML = `<svg id="markingSpace"></svg>`;
+    landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
 }
@@ -1086,11 +1109,17 @@ function ClearMarkingSpace(){
     console.log("clear marking");
 }
 
-function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
+function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0, dashLineOverride = -1){
     let y = landElement.clientHeight;
     let rtn = "";
     let xInc= 0;
     let dashedLength = M2Px(1);
+
+    if(dashLineOverride !== -1){
+        dashedLength = dashLineOverride;
+    }
+
+    console.log(dashLineOverride);
 
     if(type.length === 2){
         if((type[0] !== 0) && (type[1]!==0)){
@@ -1111,8 +1140,7 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0){
     return rtn;
 }
 
-function CreateRulerMarking(x, record, isLast = false, isFirst = false){
-    let y = landElement.clientHeight * (6 / 7);
+function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
     let fontsize = 10;
     let textY = y - fontsize - 2;
     let arrowHeadLength = 5;
@@ -1157,7 +1185,52 @@ function CreateRulerMarking(x, record, isLast = false, isFirst = false){
     return rtn;
 }
 
+function CreateNewMarking(record, rulerY, dashLineOverride = -1){
+    let widthSum = 0;
+    let markingFlag = 0;
+    let leftD = "";
+    let rightD = "";
+    let newMarking = "";
+
+    for(let i = 0;i< record.length;++i){
+        if(record[i].type === "road"){
+            leftD = "";
+            rightD = "";
+            markingFlag = 0;
+
+            //left marking
+            if(i === 0 || record[i-1].type !== "road"){
+                leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  M2Px(0.15), 1, dashLineOverride);
+            }
+            
+            //right marking
+            if(i === record.length - 1){
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  M2Px(0.15), -1, dashLineOverride);
+            }else if(record[i + 1].type === "road"){
+                let color = "white";
+                if(record[i].direction !== record[i + 1].direction){
+                    color = "yellow";
+                }
+                rightD = CreateVerticalMarking(color, M2Px(widthSum + record[i].width), [record[i].crossability&0b10, record[i + 1].crossability&0b1],  M2Px(0.1), 0, dashLineOverride);
+            }else{
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  M2Px(0.15), -1, dashLineOverride);
+            }
+            if(leftD !== ""){
+                newMarking += leftD;
+            }
+            if(rightD !== ""){
+                newMarking += rightD;
+            }
+        }
+        newMarking += CreateRulerMarking(M2Px(widthSum), rulerY, record[i], i==record.length-1, i == 0);
+        widthSum += record[i].width;
+    }
+    return newMarking;
+}
+
 function UpdateMarkingSpace(){
+    
+/*
     let widthSum = 0;
     let markingFlag = 0;
     let leftD = "";
@@ -1194,11 +1267,12 @@ function UpdateMarkingSpace(){
                 newMarking += rightD;
             }
         }
-        newMarking += CreateRulerMarking(M2Px(widthSum), roadSegmentRecord[i], i==roadSegmentRecord.length-1, i == 0);
+        newMarking += CreateRulerMarking(M2Px(widthSum), landElement.clientHeight * (6 / 7), roadSegmentRecord[i], i==roadSegmentRecord.length-1, i == 0);
         widthSum += roadSegmentRecord[i].width;
     }
+*/  
 
-    markingSpaceElement.innerHTML = newMarking;
+    markingSpaceElement.innerHTML = CreateNewMarking(roadSegmentRecord, landElement.clientHeight * (6 / 7));
     console.log("updating marking space");
 
 }
@@ -1446,7 +1520,6 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     //store old undo / redo stack
     tempVariables[DesignStage[fromStage]]['redo'] = JSON.stringify(redoStack);
     tempVariables[DesignStage[fromStage]]['undo'] = JSON.stringify(undoStack);
-
 }
 
 function UpdatePrevButtonVis(){
@@ -1486,6 +1559,7 @@ window.OnSwitchSegment = function(isNext = true){
         LandInit();
     }
     StageVerify();
+    
 
     prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
     if(prevRecord){
@@ -1495,14 +1569,15 @@ window.OnSwitchSegment = function(isNext = true){
         markingSpaceElement.style.transitionDuration = "500ms";
         setTimeout(()=>{
             UpdateMarkingSpace();
+            UnusedMarkingSpaceInit();
             markingSpaceElement.style.opacity = "1";
             setTimeout(()=>{
                 markingSpaceElement.style.removeProperty("opacity");
                 markingSpaceElement.style.removeProperty("transition-duration");
             }, 550);
-            
         }, 300);
     }
+    
     console.log(tempVariables);
 
     RestoreSectionStack();
