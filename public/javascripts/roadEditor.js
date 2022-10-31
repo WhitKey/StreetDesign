@@ -56,7 +56,6 @@ const componentDefaultProperty = {
     "bollard" : {
         "type":"bollard",
         "width": componentDefaultWidth['bollard'],
-        "layout" : [],
     },
 
     "road" : {
@@ -65,15 +64,19 @@ const componentDefaultProperty = {
         "direction": 3,
         "exitDirection": 7,
         "crossability":3,
-        "layout" : ["direction", "exitDirection", "crossability"],
     },
 
     "sidewalk":{
         "type": "sidewalk",
         "width": componentDefaultWidth['sidewalk'],
-        "layout" : [],
     },
 };
+
+const componentLayout = {
+    'road': ["direction", "exitDirection", "crossability"],
+    'bollard':[],
+    'sidewalk':[]
+}
 
 const DesignStage = [
     "road",
@@ -905,7 +908,7 @@ function ConfigPropertySetting(compId, compType){
     let compIdx = GetComponentIdx(document.getElementById(compId));
     let propertyRecord =  GetComponentRecord(compIdx);
     let propertyCards = "";
-    let cardLayout = propertyRecord["layout"];
+    let cardLayout = componentLayout[propertyRecord["type"]];
 
     for(let i = 0; i < cardLayout.length; ++i){
         propertyCards += (CreatePropertyCard(cardLayout[i], propertyRecord[cardLayout[i]], propertyRecord, compIdx));
@@ -987,7 +990,7 @@ window.RerenderPropertyToggle = function(event){
     let toggleBlock = document.getElementById("propertyToggles");
     let recordIdx = parseInt(document.getElementById("propertySettings").getAttribute("component_idx"));
     let propertyRecord = GetComponentRecord(recordIdx);
-    let cardLayout = propertyRecord["layout"];
+    let cardLayout = componentLayout[propertyRecord["type"]];
     let propertyCards = "";
 
     for(let i = 0; i < cardLayout.length; ++i){
