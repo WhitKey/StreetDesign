@@ -33,6 +33,33 @@
     margin-right: 5px;
     padding: 10px;
     z-index: 1;
+    transition-property: all, min-width;
+    transition-duration: 200ms, 200ms;
+    transition-delay: 0ms, 200ms;
+}
+
+#sidebar.intermidiate{
+    transition-property: min-width;
+    transition-delay: 0ms;
+    min-width: 0;
+    width:50px;
+    margin:0px;
+    padding:5px;
+}
+
+#sidebar.intermidiate .utilButtonList{
+    height: 100%;
+    width: 100%;
+    flex-direction: column;
+}
+
+#sidebar.intermidiate .utilButtonList .utilButton{
+    height: unset;
+}
+
+
+#sidebar.intermidiate #componentList {
+    display: none;
 }
 
 #leftSlideout{
@@ -211,9 +238,19 @@
     }
 }
 
+.utilButtonList{
+    margin-bottom:5px;
+    width:100%; 
+    height: 30px; 
+    background-color:white;
+    display:flex;
+    padding:5px;
+    transition-duration: 200ms;
+}
+
 .utilButton{
     aspect-ratio:1;
-    height:100%;
+    height:20px;
     margin-right:5px;
     display:flex;
     justify-content:center;

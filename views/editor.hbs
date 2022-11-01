@@ -4,12 +4,15 @@
         </div>
     </div>
     <div id="sidebar" class="window">
-        <div style="margin-left:2px;margin-right:2px;margin-bottom:5px;">
-            <div class ="window" style="width:100%; height: 30px; background-color:white;display:flex;padding:5px;">
+        <div class="utilButtonList window" >
+            
                 <div class="window utilButton" id="undoButton"><i class="fa-solid fa-rotate-left"></i></div>
                 <div class="window utilButton" id="redoButton"><i class="fa-solid fa-rotate-right"></i></div>
                 <div class="window utilButton active" onclick="OnClearLand()"><i class="fa-regular fa-file-excel"></i></div>
+            <!--
+            <div class ="window" style="width:100%; height: 30px; background-color:white;display:flex;padding:5px;">
             </div>
+            -->
         </div>
         {{>componentList_partial this}}
     </div>
@@ -19,7 +22,7 @@
         <div id="trashcan" class="roadScope" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
         <div id="designInfo" class="unusedSection roadScope" style="background-color: white;">一些設計資訊</div>
         <div id="stopSection" class="unusedSection roadScope" style=""></div>
-        <div id="intermidiateSection" class="roadScope unusedSection" style="background-color:dimgray;height:20px;">漸變段</div>
+        <div id="intermidiateSection" class="roadScope unusedSection" style="background-color:dimgray;height:20px;"></div>
         <div id="roadSection" class="unusedSection roadScope ">
             <!--
                 <div id="land" class="">

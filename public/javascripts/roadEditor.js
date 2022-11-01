@@ -118,6 +118,8 @@ function M2Percent(width){
 //
 //-------------------------
 function LandInit() {
+    let sidebarElement = document.getElementById("sidebar");
+    
     dragElement = null;
     hitboxCounter = 0;
     componentCounter = 0;
@@ -135,6 +137,33 @@ function LandInit() {
     landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
+
+    if(sidebarElement.classList.contains("intermidiate")){
+        sidebarElement.classList.remove("intermidiate");
+    }
+}
+
+function IntermidiateStageInit(){
+    let sectionElement = document.getElementById(`${DesignStage[currentStage]}Section`);
+    let sidebarElement = document.getElementById("sidebar");
+    dragElement = null;
+    draging = false;
+    roadSegmentRecord = [];
+    redoStack = [];
+    undoStack = [];
+    maxStackStep = 50;
+
+    landElement = document.createElement("div");
+
+    sectionElement.innerHTML = "";
+    sectionElement.appendChild(landElement);
+    landElement.setAttribute("id", "land");
+    landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
+    markingSpaceElement = document.getElementById("markingSpace");
+
+    if(!sidebarElement.classList.contains("intermidiate")){
+        sidebarElement.classList.add("intermidiate");
+    }
 }
 
 function InitElementVariables(){
@@ -227,29 +256,33 @@ window.OnLoad = function() {
     LandInit();
     InitElementVariables();
 
-    RebuildUnusedSection();
+    setTimeout(() =>{RebuildUnusedSection();}, 200);
     
     targetSection = document.getElementById(`${DesignStage[currentStage]}Section`);
     targetSection.classList.remove("unusedSection");
     targetSection.classList.add("usingSection");
 
+    if(currentStage === 2){
+        IntermidiateStageInit();
+    }
     StageVerify();
     UpdatePrevButtonVis();
+
     if(prevRecord !== null){
-        //prevRecord = JSON.stringify(prevRecord)
-        //setTimeout(() =>{ImportRoadSegmentRecordJSON(JSON.parse(prevRecord));}, 300);
-        ImportRoadSegmentRecordJSON(prevRecord, false);
-        markingSpaceElement.style.opacity = "0";
-        markingSpaceElement.style.transitionDuration = "500ms";
-        setTimeout(()=>{
-            UpdateMarkingSpace();
-            markingSpaceElement.style.opacity = "1";
+        if(currentStage !== 2){
+            ImportRoadSegmentRecordJSON(prevRecord, false);
+            markingSpaceElement.style.opacity = "0";
+            markingSpaceElement.style.transitionDuration = "500ms";
             setTimeout(()=>{
-                markingSpaceElement.style.removeProperty("opacity");
-                markingSpaceElement.style.removeProperty("transition-duration");
-            }, 550);
-            
-        }, 300);
+                UpdateMarkingSpace();
+                markingSpaceElement.style.opacity = "1";
+                setTimeout(()=>{
+                    markingSpaceElement.style.removeProperty("opacity");
+                    markingSpaceElement.style.removeProperty("transition-duration");
+                }, 550);
+                
+            }, 300);
+        }
         UpdatePrevButtonVis();
     }
 }
@@ -1282,7 +1315,7 @@ window.ResizeMarkingSpace = function(timeWindow){
     if(ResizeMarkingSpace.timeout){
         clearTimeout(ResizeMarkingSpace.timeout); 
     }
-    ResizeMarkingSpace.timeout = setTimeout(UpdateMarkingSpace, timeWindow);
+    ResizeMarkingSpace.timeout = setTimeout(()=>{UpdateMarkingSpace(); UnusedMarkingSpaceInit();}, timeWindow);
 }
 
 //-----------------------------
@@ -1518,6 +1551,17 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     //store old undo / redo stack
     tempVariables[DesignStage[fromStage]]['redo'] = JSON.stringify(redoStack);
     tempVariables[DesignStage[fromStage]]['undo'] = JSON.stringify(undoStack);
+
+    let sectionElement;
+    let sectionSvgElement;
+    for(let i = 0; i < 2;++i){
+        if(i === currentStage)continue;
+        sectionElement = document.getElementById(`${DesignStage[i]}Section`);
+        sectionSvgElement = sectionElement.getElementsByClassName("markingSpace");
+        for(let j = 0;j<sectionSvgElement.length;++j){
+            sectionSvgElement[j].remove();
+        }
+    }
 }
 
 function UpdatePrevButtonVis(){
@@ -1552,30 +1596,32 @@ window.OnSwitchSegment = function(isNext = true){
     
     if(currentStage === 2 && isNext){
         //TODO: switch to intermidiate section
-        LandInit();
+        //LandInit();
+        IntermidiateStageInit();
     }else{
         LandInit();
     }
     StageVerify();
-    
 
-    prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
-    if(prevRecord){
-        ImportRoadSegmentRecordJSON(prevRecord, false);
-        
-        markingSpaceElement.style.opacity = "0";
-        markingSpaceElement.style.transitionDuration = "500ms";
-        setTimeout(()=>{
-            UpdateMarkingSpace();
-            UnusedMarkingSpaceInit();
-            markingSpaceElement.style.opacity = "1";
+    if(currentStage !== 2){
+        prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
+        if(prevRecord){
+            ImportRoadSegmentRecordJSON(prevRecord, false);
+            
+            markingSpaceElement.style.opacity = "0";
+            markingSpaceElement.style.transitionDuration = "500ms";
             setTimeout(()=>{
-                markingSpaceElement.style.removeProperty("opacity");
-                markingSpaceElement.style.removeProperty("transition-duration");
-            }, 550);
-        }, 300);
+                UpdateMarkingSpace();
+                markingSpaceElement.style.opacity = "1";
+                setTimeout(()=>{
+                    markingSpaceElement.style.removeProperty("opacity");
+                    markingSpaceElement.style.removeProperty("transition-duration");
+                }, 550);
+            }, 300);
+        }
     }
     
+    setTimeout(()=>{UnusedMarkingSpaceInit();}, 300);
     console.log(tempVariables);
 
     RestoreSectionStack();
