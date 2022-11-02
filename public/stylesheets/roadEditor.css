@@ -102,6 +102,10 @@
     flex-grow: 1;
 }
 
+#land.intermidiate{
+    background-color: dimgray;
+}
+
 #trashcan {
     position: absolute;
     height: 0px;
@@ -235,6 +239,15 @@
     .clickOn #leftSlideout{
         height: calc(35vh);
         width: calc(100% - 0px);
+    }
+
+    #sidebar.intermidiate{
+        height:50px;
+        width: 100%;
+    }
+
+    #sidebar.intermidiate .utilButtonList{
+        flex-direction: row;
     }
 }
 

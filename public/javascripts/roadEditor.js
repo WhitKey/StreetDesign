@@ -158,6 +158,7 @@ function IntermidiateStageInit(){
     sectionElement.innerHTML = "";
     sectionElement.appendChild(landElement);
     landElement.setAttribute("id", "land");
+    landElement.classList.add("intermidiate");
     landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
 
@@ -1542,7 +1543,11 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     //switching editor section 
     fromSection.classList.remove("usingSection");
     fromSection.classList.add("unusedSection");
-    fromSection.innerHTML = segmentHTML;
+    if(fromSection === 2){
+        fromSection.innerHTML = "";
+    }else{
+        fromSection.innerHTML = segmentHTML;
+    }
 
     toSection.classList.remove("unusedSection");
     toSection.classList.add("usingSection");
@@ -1554,6 +1559,8 @@ function SwitchEditorRoadSegment(fromStage, toStage){
 
     let sectionElement;
     let sectionSvgElement;
+
+    //remove old marking space
     for(let i = 0; i < 2;++i){
         if(i === currentStage)continue;
         sectionElement = document.getElementById(`${DesignStage[i]}Section`);
@@ -1577,14 +1584,17 @@ window.OnSwitchSegment = function(isNext = true){
     let prevRecord = null;
     let oriStage = currentStage;
 
+    //validation
     if(!StageVerify() && isNext)return;
 
+    //switch to presentation page
     if(currentStage === 2 && isNext){
         //TODO: switch to present page
         return;
     }
 
 
+    // inc / dec current stage
     if(isNext){
         currentStage += 1;
     }else{
@@ -1603,6 +1613,7 @@ window.OnSwitchSegment = function(isNext = true){
     }
     StageVerify();
 
+    //update marking space
     if(currentStage !== 2){
         prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
         if(prevRecord){
@@ -1621,9 +1632,11 @@ window.OnSwitchSegment = function(isNext = true){
         }
     }
     
+    // update unused marking space
     setTimeout(()=>{UnusedMarkingSpaceInit();}, 300);
     console.log(tempVariables);
 
+    // storage related process
     RestoreSectionStack();
     SaveTempStorage();
 
