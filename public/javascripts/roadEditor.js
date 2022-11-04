@@ -170,11 +170,9 @@ function IntermidiateStageInit(){
 
 function InitElementVariables(){
     //set element
-    //landElement = document.getElementById("land");
     editorElement = document.getElementById("editor");
     mainWindowElement = document.getElementById("mainWindow");
     propertyEditorElement = document.getElementById("propertyEditor");
-    //markingSpaceElement = document.getElementById("markingSpace");
 
     //button elements
     redoButtonElement = document.getElementById("redoButton");
@@ -338,7 +336,7 @@ function UnusedMarkingSpaceInit(ruler = true){
         sectionElement = document.getElementById(`${DesignStage[i]}Section`);
 
         if(tempStorage[DesignStage[i]]){
-            newMarking = CreateNewMarking(tempStorage[DesignStage[i]], sectionElement.clientHeight - 10, 20, ruler);
+            newMarking = CreateNewMarking(tempStorage[DesignStage[i]], sectionElement.clientHeight - 10, 20, ruler, i===1);
         }
 
         sectionSvgElement = sectionElement.getElementsByClassName("markingSpace");
@@ -405,11 +403,6 @@ function InsertComponent(hitboxId, move = false) {
 
     component.style.width = emptyComp.style.width;
     component.setAttribute("component", componentType);
-
-    //nextComp = emptyComp.nextSibling;
-    //if (!nextComp.classList.contains("roadComponent")) {
-    //    nextComp = null;
-    //}
 
     if (!move) {
         component.appendChild(templateBase[componentType].cloneNode(true));
@@ -516,28 +509,6 @@ window.LeaveTrashcan = function() {
 //----------------------------------------
 function CreateComponentRecord(compType){
     return JSON.parse(JSON.stringify(componentDefaultProperty[compType]));   
-    /*
-    if(compType === "bollard"){
-        return {
-            "type":"bollard",
-            "width": componentMinWidth[compType]
-        }
-    }else if(compType === "road"){
-        return {
-            "type":"road",
-            "width": componentMinWidth[compType],
-            "direction": "both",
-            "exitDirection":"all"
-        }
-    }else if(compType === "sidewalk"){
-        return {
-            "type": "sidewalk",
-            "width": componentMinWidth[compType],
-        }
-    }else{
-        return undefined;
-    }
-    //*/
 }
 
 function AddNewComponentRecord(index, compType){
@@ -1225,7 +1196,7 @@ function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
     return rtn;
 }
 
-function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true){
+function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isStopSection= false){
     let widthSum = 0;
     let markingFlag = 0;
     let leftD = "";
@@ -1237,6 +1208,21 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true){
             leftD = "";
             rightD = "";
             markingFlag = 0;
+            
+            //create stop line
+            if(isStopSection){
+                let stopLineWidth;
+                if((record[i].direction & 2) !== 0){
+                    if(dashLineOverride === -1){
+                        stopLineWidth = M2Px(0.4);
+                    }else{
+                        stopLineWidth = 5;
+                    }
+
+                    newMarking += `<path class="marking" d="M ${M2Px(widthSum)} 0 L ${M2Px(widthSum + record[i].width)} 0" stroke="white" stroke-width="${stopLineWidth}"/>`
+
+                }
+            }
 
             //left marking
             if(i === 0 || record[i-1].type !== "road"){
@@ -1255,6 +1241,7 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true){
             }else{
                 rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  M2Px(0.15), -1, dashLineOverride);
             }
+
             if(leftD !== ""){
                 newMarking += leftD;
             }
@@ -1271,50 +1258,8 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true){
 }
 
 function UpdateMarkingSpace(){
-    
-/*
-    let widthSum = 0;
-    let markingFlag = 0;
-    let leftD = "";
-    let rightD = "";
-    let newMarking = "";
 
-    for(let i = 0;i< roadSegmentRecord.length;++i){
-        if(roadSegmentRecord[i].type === "road"){
-            leftD = "";
-            rightD = "";
-            markingFlag = 0;
-
-            //left marking
-            if(i === 0 || roadSegmentRecord[i-1].type !== "road"){
-                leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  M2Px(0.15), 1);
-            }
-            
-            //right marking
-            if(i === roadSegmentRecord.length - 1){
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadSegmentRecord[i].width), [0],  M2Px(0.15), -1);
-            }else if(roadSegmentRecord[i + 1].type === "road"){
-                let color = "white";
-                if(roadSegmentRecord[i].direction !== roadSegmentRecord[i + 1].direction){
-                    color = "yellow";
-                }
-                rightD = CreateVerticalMarking(color, M2Px(widthSum + roadSegmentRecord[i].width), [roadSegmentRecord[i].crossability&0b10, roadSegmentRecord[i + 1].crossability&0b1],  M2Px(0.1));
-            }else{
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + roadSegmentRecord[i].width), [0],  M2Px(0.15), -1);
-            }
-            if(leftD !== ""){
-                newMarking += leftD;
-            }
-            if(rightD !== ""){
-                newMarking += rightD;
-            }
-        }
-        newMarking += CreateRulerMarking(M2Px(widthSum), landElement.clientHeight * (6 / 7), roadSegmentRecord[i], i==roadSegmentRecord.length-1, i == 0);
-        widthSum += roadSegmentRecord[i].width;
-    }
-*/  
-
-    markingSpaceElement.innerHTML = CreateNewMarking(roadSegmentRecord, landElement.clientHeight * (6 / 7));
+    markingSpaceElement.innerHTML = CreateNewMarking(roadSegmentRecord, landElement.clientHeight * (6 / 7), -1, true, currentStage === 1);
     console.log("updating marking space");
 
 }
