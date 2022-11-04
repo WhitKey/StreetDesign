@@ -8,6 +8,9 @@
                 <div class="window utilButton" id="undoButton"><i class="fa-solid fa-rotate-left"></i></div>
                 <div class="window utilButton" id="redoButton"><i class="fa-solid fa-rotate-right"></i></div>
                 <div class="window utilButton active" onclick="OnClearLand()"><i class="fa-regular fa-file-excel"></i></div>
+                {{#if developing}}
+                <div class="window utilButton active" onclick="OnClearLocalStorage()"><i class="fa-solid fa-xmark"></i></div>
+                {{/if}}
         </div>
         {{>componentList_partial this}}
     </div>

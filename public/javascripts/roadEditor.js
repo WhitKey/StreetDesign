@@ -1355,6 +1355,11 @@ window.OnUndo = function(){
     
 }
 
+window.OnClearLocalStorage = function (){
+    localStorage.clear();
+    window.location.reload();
+}
+
 function PushUndoStack(state, clearRedo = true){
     if(clearRedo){
         redoStack = [];

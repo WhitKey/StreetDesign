@@ -25,6 +25,7 @@ router.get('/', function(req, res, next) {
 	res.render('editor', { 
 		title: 'Express',
 		componentList: components,
+		developing: true,
 		layout:"layout/editor_layout"
 	});
 });
