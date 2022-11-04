@@ -15,7 +15,7 @@
     height: 100%;
 }
 
-.roadComponent::before{
+.roadComponent::after{
     position: absolute;
     background-color: transparent;
     left: 0;
@@ -26,16 +26,17 @@
     transition: border-color 300ms;
     border-style:  dashed;
     border-color: transparent;
+    pointer-events: none;
 }
 
-.roadComponent:hover::before{
+.roadComponent:hover::after{
     /*background-color: cyan;*/
     border-width: 3px;
     border-color: cyan;
     left: 0;
 }
 
-.roadComponent.selected::before{
+.roadComponent.selected::after{
     border-style:  solid;
     border-width: 3px;
     border-color: yellow;
@@ -44,7 +45,7 @@
 
 .component{
     justify-content: space-around;
-    flex-direction: column;
+    flex-direction: row;
     justify-items: center;
 }
 
@@ -79,6 +80,7 @@
     align-self: center;
     aspect-ratio: 1;
     max-width: 120px;
+    /*position: absolute;*/
 }
 
 .unusedSection * * .roadComponentIcon{

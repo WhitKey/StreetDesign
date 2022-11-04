@@ -9,19 +9,16 @@ router.get('/', function(req, res, next) {
 			tag: "road",
 			label: "道路",
 			iconColor: "hsl(0, 0%, 11%)",
-			isDirectional: true,
 		},
 		{
 			tag: "sidewalk",
 			label: "人行道",
 			iconColor: "rgb(145, 39, 39)",
-			isDirectional: false,
 		},
 		{
 			tag: "bollard",
 			label: "分隔島",
 			iconColor: "rgb(143, 143, 143)",
-			isDirectional: false,
 		},
 	];
 
