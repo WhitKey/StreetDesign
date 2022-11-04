@@ -1196,50 +1196,88 @@ function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
     return rtn;
 }
 
+function CreateStopLine(xStart, xEnd, y, lineWidth){
+    //create stop line
+    y = lineWidth / 2;
+    return `<path class="marking" d="M ${xStart} ${y} L ${xEnd} ${y}" stroke="white" stroke-width="${lineWidth}"/>`;
+}
+
 function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isStopSection= false){
     let widthSum = 0;
-    let markingFlag = 0;
     let leftD = "";
     let rightD = "";
     let newMarking = "";
+    let stopMarkingStartX = -1;
+    let marking15cm = M2Px(0.15);
+    let marking10cm = M2Px(0.1);
+    let stopLineWidth = M2Px(0.4);
+
+    console.log(isStopSection);
+
+    if(dashLineOverride !== -1){
+        stopLineWidth = 5;
+    }
 
     for(let i = 0;i< record.length;++i){
         if(record[i].type === "road"){
             leftD = "";
             rightD = "";
-            markingFlag = 0;
-            
-            //create stop line
-            if(isStopSection){
-                let stopLineWidth;
-                if((record[i].direction & 2) !== 0){
-                    if(dashLineOverride === -1){
-                        stopLineWidth = M2Px(0.4);
-                    }else{
-                        stopLineWidth = 5;
-                    }
-
-                    newMarking += `<path class="marking" d="M ${M2Px(widthSum)} 0 L ${M2Px(widthSum + record[i].width)} 0" stroke="white" stroke-width="${stopLineWidth}"/>`
-
-                }
-            }
 
             //left marking
             if(i === 0 || record[i-1].type !== "road"){
-                leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  M2Px(0.15), 1, dashLineOverride);
+                leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  marking15cm, 1, dashLineOverride);
+
+                //stop line start condition
+                if((record[i].direction & 0b10) !== 0 && isStopSection){
+                    stopMarkingStartX = M2Px(widthSum) + marking15cm;
+                }
             }
             
             //right marking
             if(i === record.length - 1){
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  M2Px(0.15), -1, dashLineOverride);
+
+                //stop line end condition
+                if(isStopSection && stopMarkingStartX !== -1){
+                    newMarking += CreateStopLine(stopMarkingStartX, M2Px(widthSum + record[i].width) - marking15cm, 0, stopLineWidth);
+                    stopMarkingStartX = -1;
+                }
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  marking15cm, -1, dashLineOverride);
             }else if(record[i + 1].type === "road"){
                 let color = "white";
                 if(record[i].direction !== record[i + 1].direction){
                     color = "yellow";
+
+                    //calculating stop line parameter
+                    if(isStopSection){
+                        if(stopMarkingStartX !== -1){// stopLine end condition
+                            if((record[i + 1].direction&0b10) === 0){
+
+                                //draw stop line
+                                if((record[i].crossability&0b10) !== 0 && (record[i + 1].crossability&0b1) !== 0){
+                                    newMarking += CreateStopLine(stopMarkingStartX,  M2Px(widthSum + record[i].width) - marking10cm / 2, 0, stopLineWidth);
+                                }else{
+                                    newMarking += CreateStopLine(stopMarkingStartX,  M2Px(widthSum + record[i].width) - marking10cm * 3 / 2, 0, stopLineWidth);
+                                }
+                                stopMarkingStartX = -1;
+                            }
+
+                        } else if((record[i + 1].direction & 0b10) !== 0){// stop line start condition
+                            if((record[i].crossability&0b10)!==0 && (record[i + 1].crossability&0b1) !== 0){
+                                stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm;
+                            }else{
+                                stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm * 3 / 2;
+                            }
+                        }
+                    }
                 }
-                rightD = CreateVerticalMarking(color, M2Px(widthSum + record[i].width), [record[i].crossability&0b10, record[i + 1].crossability&0b1],  M2Px(0.1), 0, dashLineOverride);
+                rightD = CreateVerticalMarking(color, M2Px(widthSum + record[i].width), [record[i].crossability&0b10, record[i + 1].crossability&0b1], marking10cm, 0, dashLineOverride);
             }else{
-                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  M2Px(0.15), -1, dashLineOverride);
+                // stop line end condition
+                if(isStopSection && stopMarkingStartX !== -1){
+                    newMarking += CreateStopLine(stopMarkingStartX, M2Px(widthSum + record[i].width) - marking15cm, 0, stopLineWidth);
+                    stopMarkingStartX = -1;
+                }
+                rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  marking15cm, -1, dashLineOverride);
             }
 
             if(leftD !== ""){
