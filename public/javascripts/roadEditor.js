@@ -46,7 +46,7 @@ let tempVariables = {};
 let currentStage = 0
 
 //conponent default data
-const componentDefaultWidth = {
+let componentMinWidth = {
     "road": 3,
     "sidewalk": 1.5,
     "bollard": 0.5,
@@ -55,12 +55,12 @@ const componentDefaultWidth = {
 const componentDefaultProperty = {
     "bollard" : {
         "type":"bollard",
-        "width": componentDefaultWidth['bollard'],
+        "width": componentMinWidth['bollard'],
     },
 
     "road" : {
         "type":"road",
-        "width": componentDefaultWidth['road'],
+        "width": componentMinWidth['road'],
         "direction": 3,
         "exitDirection": 7,
         "crossability":3,
@@ -68,7 +68,7 @@ const componentDefaultProperty = {
 
     "sidewalk":{
         "type": "sidewalk",
-        "width": componentDefaultWidth['sidewalk'],
+        "width": componentMinWidth['sidewalk'],
     },
 };
 
@@ -236,7 +236,6 @@ window.OnLoad = function() {
     let prevRecord;
     let targetSection;
     console.log("load");
-    //initalize land
 
     //initialize temp variavbles
     tempVariables['road'] = {
@@ -266,8 +265,10 @@ window.OnLoad = function() {
     if(currentStage === 2){
         IntermidiateStageInit();
     }
+
     StageVerify();
     UpdatePrevButtonVis();
+    UpdateSidewalkMinWidth();
 
     if(prevRecord !== null){
         if(currentStage !== 2){
@@ -344,6 +345,12 @@ function UnusedMarkingSpaceInit(){
             sectionSvgElement[j].remove();
         }
         sectionElement.innerHTML +=   `<svg class="markingSpace">${newMarking}</svg>`;
+    }
+}
+
+function UpdateSidewalkMinWidth(){
+    if(landWidth < 8){
+        componentMinWidth.sidewalk=0;
     }
 }
 
@@ -461,7 +468,7 @@ window.EnterHitbox = function(event) {
             document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
             emptyComp.style.width = targetElement.style.width;
         }else{
-            emptyComp.style.width = parseFloat(refPercent * parseFloat(componentDefaultWidth[dragElement.getAttribute("component")])).toString() + "%";
+            emptyComp.style.width = parseFloat(refPercent * parseFloat(componentMinWidth[dragElement.getAttribute("component")])).toString() + "%";
         }
 
         inHitboxId = event.target.id;
@@ -512,19 +519,19 @@ function CreateComponentRecord(compType){
     if(compType === "bollard"){
         return {
             "type":"bollard",
-            "width": componentDefaultWidth[compType]
+            "width": componentMinWidth[compType]
         }
     }else if(compType === "road"){
         return {
             "type":"road",
-            "width": componentDefaultWidth[compType],
+            "width": componentMinWidth[compType],
             "direction": "both",
             "exitDirection":"all"
         }
     }else if(compType === "sidewalk"){
         return {
             "type": "sidewalk",
-            "width": componentDefaultWidth[compType],
+            "width": componentMinWidth[compType],
         }
     }else{
         return undefined;
@@ -910,8 +917,8 @@ window.PropertySettingChange = function(event, type){
         let newWidth = event.target.value;
         let refPercent = 100.0 / landWidth; // % per meter
         
-        if(newWidth < componentDefaultWidth[compType]){
-            event.target.value = componentDefaultWidth[compType];
+        if(newWidth < componentMinWidth[compType]){
+            event.target.value = componentMinWidth[compType];
             return
         }
 
@@ -978,7 +985,7 @@ function ConfigPropertySetting(compId, compType){
         <div id="propertySettings" component_idx=${compIdx}>
             <div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
                 <span class="input-group-text" id="basic-addon1" style="white-space: nowrap;">寬度</span>
-                <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="${componentDefaultWidth[compType]}" step="0.1" aria-describedby="basic-addon1">
+                <input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="${componentMinWidth[compType]}" step="0.1" aria-describedby="basic-addon1">
                 <span class="input-group-text" id="basic-addon1">m</span>
             </div>
             <!--<div class="window propertyCollection"></div>-->
