@@ -1263,7 +1263,7 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 
                         } else if((record[i + 1].direction & 0b10) !== 0){// stop line start condition
                             if((record[i].crossability&0b10)!==0 && (record[i + 1].crossability&0b1) !== 0){
-                                stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm;
+                                stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm / 2;
                             }else{
                                 stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm * 3 / 2;
                             }
