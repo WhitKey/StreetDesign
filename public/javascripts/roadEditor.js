@@ -138,9 +138,10 @@ function LandInit() {
     markingSpaceElement = document.getElementById("markingSpace");
     AddHitbox();
 
-    if(sidebarElement.classList.contains("intermidiate")){
-        sidebarElement.classList.remove("intermidiate");
-    }
+    
+    sidebarElement.classList.remove("intermidiate");
+    document.getElementById("stopSection").classList.remove("intermidiate");
+    document.getElementById("roadSection").classList.remove("intermidiate");
 }
 
 function IntermidiateStageInit(){
@@ -162,9 +163,9 @@ function IntermidiateStageInit(){
     landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
     markingSpaceElement = document.getElementById("markingSpace");
 
-    if(!sidebarElement.classList.contains("intermidiate")){
-        sidebarElement.classList.add("intermidiate");
-    }
+    sidebarElement.classList.add("intermidiate");
+    document.getElementById("stopSection").classList.add("intermidiate");
+    document.getElementById("roadSection").classList.add("intermidiate");
 }
 
 function InitElementVariables(){
@@ -229,7 +230,7 @@ function RebuildUnusedSection(){
         }
     });
 
-    UnusedMarkingSpaceInit();
+    UnusedMarkingSpaceInit(currentStage !== 2);
 }
 
 window.OnLoad = function() {
@@ -325,7 +326,7 @@ function ExportRoadSegmentRecordJSON(){
     return JSON.parse(JSON.stringify(roadSegmentRecord));
 }
 
-function UnusedMarkingSpaceInit(){
+function UnusedMarkingSpaceInit(ruler = true){
     let sectionElement;
     let sectionSvgElement;
     let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
@@ -336,7 +337,7 @@ function UnusedMarkingSpaceInit(){
         sectionElement = document.getElementById(`${DesignStage[i]}Section`);
 
         if(tempStorage[DesignStage[i]]){
-            newMarking = CreateNewMarking(tempStorage[DesignStage[i]], sectionElement.clientHeight - 10, 20);
+            newMarking = CreateNewMarking(tempStorage[DesignStage[i]], sectionElement.clientHeight - 10, 20, ruler);
         }
 
         sectionSvgElement = sectionElement.getElementsByClassName("markingSpace");
@@ -1217,7 +1218,7 @@ function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
     return rtn;
 }
 
-function CreateNewMarking(record, rulerY, dashLineOverride = -1){
+function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true){
     let widthSum = 0;
     let markingFlag = 0;
     let leftD = "";
@@ -1254,7 +1255,9 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1){
                 newMarking += rightD;
             }
         }
-        newMarking += CreateRulerMarking(M2Px(widthSum), rulerY, record[i], i==record.length-1, i == 0);
+        if(ruler){
+            newMarking += CreateRulerMarking(M2Px(widthSum), rulerY, record[i], i==record.length-1, i == 0);
+        }
         widthSum += record[i].width;
     }
     return newMarking;
@@ -1633,8 +1636,9 @@ window.OnSwitchSegment = function(isNext = true){
     }
     
     // update unused marking space
-    setTimeout(()=>{UnusedMarkingSpaceInit();}, 300);
-    console.log(tempVariables);
+    setTimeout(()=>{
+        UnusedMarkingSpaceInit(currentStage!==2);
+    }, 300);
 
     // storage related process
     RestoreSectionStack();
