@@ -25,13 +25,6 @@ router.get('/', function(req, res, next) {
 		},
 	];
 
-	/*
-	res.render('index', { 
-		title: 'Express',
-		aaa: "sdasdasdasda",
-		layout:"layout/layout"
-	});
-  */
 	res.render('editor', { 
 		title: 'Express',
 		componentList: components,

@@ -74,17 +74,10 @@
     flex-shrink: 0;
 }
 
-/*
-.roadExitDirectionIcon *{
-    height: unset;
-}
-*/
-
 .roadComponentIcon {
     width:50%;
     align-self: center;
     aspect-ratio: 1;
-    /*height: unset;*/
     max-width: 120px;
 }
 
