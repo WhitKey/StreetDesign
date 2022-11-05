@@ -11,6 +11,10 @@
     
 }
 
+#warningPopup:focus{
+    outline: none;
+}
+
 #warningPopup * {
     display: none;
 }
