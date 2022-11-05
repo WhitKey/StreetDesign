@@ -1,0 +1,31 @@
+
+#warningPopup {
+    height: 0px;
+    width:0px;
+    right:5px;
+    bottom: 50px;
+    background-color: white;
+    border-color: lightgray;
+    
+    transition-duration: 300ms;
+    
+}
+
+#warningPopup * {
+    display: none;
+}
+
+#warningPopup.active{
+    border-style: solid;
+    width: 500px;
+    height: 300px;
+}
+
+#warningPopup.active * {
+    display: block;
+}
+
+.popupFrame{
+    position: absolute;
+    z-index: 3;
+}

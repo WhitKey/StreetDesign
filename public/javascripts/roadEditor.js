@@ -16,6 +16,7 @@ let redoButtonElement = document.getElementById("redoButton");
 let undoButtonElement = document.getElementById("undoButton");
 let nextButtonElement = document.getElementById("nextButton");
 let prevButtonElement = document.getElementById("prevButton");
+let warningPopupElement = document.getElementById("warningPopup");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -179,6 +180,8 @@ function InitElementVariables(){
     undoButtonElement = document.getElementById("undoButton");
     nextButtonElement = document.getElementById("nextButton");
     prevButtonElement = document.getElementById("prevButton");
+
+    warningPopupElement = document.getElementById("warningPopup");
 
     //get template element from document
     templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -1583,8 +1586,10 @@ window.OnSwitchSegment = function(isNext = true){
     let oriStage = currentStage;
 
     //validation
-    if(!StageVerify() && isNext)return;
-
+    if(!StageVerify() && isNext){
+        ActivateWarningPopup();
+        return;
+    }
     //switch to presentation page
     if(currentStage === 2 && isNext){
         //TODO: switch to present page
@@ -1641,6 +1646,19 @@ window.OnSwitchSegment = function(isNext = true){
 
 }
 
+//-------------------------------
+//
+// warning pop up functions
+//
+//-------------------------------
+window.OnWarningPopupFocusout = function(event){
+    event.target.classList.remove("active");
+}
+
+function ActivateWarningPopup(){
+    warningPopupElement.classList.add("active");
+    warningPopupElement.focus();
+}
 
 
 

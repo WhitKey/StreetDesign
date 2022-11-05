@@ -2,6 +2,7 @@
 @import url("componentListStyle.css");
 @import url("roadComponentStyle.css");
 @import url("propertyEditorStyle.css");
+@import url("warningPopupStyle.css");
 
 .window {
     border-radius: 5px;
