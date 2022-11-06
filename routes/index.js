@@ -30,4 +30,11 @@ router.get('/', function(req, res, next) {
 	});
 });
 
+router.get("/entry", function(req, res, next){
+	res.render('entrySettingPage', {
+		title: 'Express',
+		layout: "layout/entry_layout"
+	});
+})
+
 module.exports = router;
