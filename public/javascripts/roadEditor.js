@@ -430,7 +430,7 @@ function InsertComponent(hitboxId, move = false) {
         AddComponentRecord(toIndex, oldComp);
         console.log("copy old record");
     }
-    console.log(roadSegmentRecord);
+    //console.log(roadSegmentRecord);
     PushUndoStack(tempVariables.state);
 }
 
@@ -1008,7 +1008,6 @@ window.PropertySettingExitTrigger = function(event){
         target.addEventListener("touchstart", ComponentDragStart, {passive: true});
         leftSlidoutOn = false;
         if(tempVariables.propertySettingChangeFlag === true){
-            console.log("Asdadasd");
             PushUndoStack(tempVariables.state);
         }
         tempVariables.propertySettingChangeFlag = undefined;
@@ -1501,6 +1500,8 @@ function MakeRoadSegmentHTML(record){
         //init intermidiate stage attribute
         if(currentStage === 2){
             component.setAttribute("onmousedown", "OnIntermidiateDragStart(event);");
+            component.setAttribute("ontouchstart", "OnIntermidiateDragStart(event);");
+            component.setAttribute("index", i.toString());
         }
 
         //rebuild road exit direction icon
@@ -1638,7 +1639,7 @@ window.OnSwitchSegment = function(isNext = true){
                     markingSpaceElement.style.removeProperty("opacity");
                     markingSpaceElement.style.removeProperty("transition-duration");
                 }, 550);
-            }, 300);
+            }, 400);
         }
     }
     
@@ -1687,6 +1688,7 @@ function EnterIntermidiateStage(){
         let component = components[i];
         component.setAttribute("ontouchstart", "OnIntermidiateDragStart(event);");
         component.setAttribute("onmousedown", "OnIntermidiateDragStart(event);");
+        component.setAttribute("index", i.toString());
     }
 
 
@@ -1703,16 +1705,67 @@ function ExitIntremidiateStage(){
     for(let i = 0;i<components.length;++i){
         components[i].removeAttribute("ontouchstart");
         components[i].removeAttribute("onmousedown");
+        components[i].removeAttribute("index");
     }
     
     console.log("exit intermidate stage");
 }
 
+function LinkageVerify(roadIndex, stopIndex){
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    let roadRecord = tempStorage.road[roadIndex];
+    let stopRecord = tempStorage.stop[stopIndex];
+
+    if(roadRecord.type !== stopRecord.type) return false;
+    //TODO: check link crossing
+
+    if(roadRecord.type === "road"){
+        if(roadRecord.direction !== stopRecord.direction)return false;
+        console.log(roadRecord.exitDirection & stopRecord.exitDirection);
+        if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+    }
+
+    return true;
+}
+
 function OnIntermidiateDragEnd(event){
+    let linkage = {
+        stopSection:-1,
+        roadSection:-1,
+    };
+    
+    let hitElement = null;
+    let hitSection;
+
+    if(event.type === "touchend"){
+        //TODO: touch event
+    }else{
+        hitElement = document.elementFromPoint(event.clientX, event.clientY);
+    }
+    
+    if(hitElement !== null){
+        hitSection = hitElement.closest(".roadScope").id;
+        if(hitSection === "roadSection" || hitSection === "stopSection"){
+            linkage[hitSection] = parseInt(hitElement.closest(".roadComponent").getAttribute("index"));
+            linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
+            
+            if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
+                if(LinkageVerify(linkage.roadSection, linkage.stopSection)){
+                    console.log("make link");
+                }
+            }
+        }
+    }
+
+    //remove event listener
     document.removeEventListener("touchend", OnIntermidiateDragEnd);
     document.removeEventListener("mouseup", OnIntermidiateDragEnd);
     document.removeEventListener("touchmove", OnIntermidiateDragMove);
     document.removeEventListener("mousemove", OnIntermidiateDragMove);
+
+    // reset global variables
+    draging = false;
+    dragElement = null;
 
 }
 
@@ -1721,8 +1774,9 @@ function OnIntermidiateDragMove(event){
 }
 
 window.OnIntermidiateDragStart  = function(event){
-    let targetSection = event.target.closest(".roadScope").id;
-    console.log(event.type);
+    draging = true;
+    dragElement = event.srcElement.closest(".roadComponent");
+    
     if(event.type === "touchstart"){
         document.addEventListener("touchend", OnIntermidiateDragEnd);
         document.addEventListener("touchmove", OnIntermidiateDragMove);

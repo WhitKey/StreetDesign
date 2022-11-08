@@ -87,6 +87,10 @@
     opacity: 0.3;
 }
 
+.unusedSection.intermidiate * * .roadComponentIcon{
+    opacity: unset;
+}
+
 .rot180{
     transform: rotate(180deg);
 }
