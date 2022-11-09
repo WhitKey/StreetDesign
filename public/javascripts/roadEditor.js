@@ -1543,7 +1543,10 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     
     let fromSection = document.getElementById(`${DesignStage[fromStage]}Section`);
     let toSection = document.getElementById(`${DesignStage[toStage]}Section`);
-    let segmentHTML = MakeRoadSegmentHTML(roadSegmentRecord);
+    let segmentHTML = "";
+    if(fromStage !== 2){
+        segmentHTML= MakeRoadSegmentHTML(roadSegmentRecord);
+    }
 
     //switching editor section 
     fromSection.classList.remove("usingSection");
@@ -1680,6 +1683,7 @@ function EnterIntermidiateStage(){
 
     let roadSectionElement = document.getElementById("roadSection");
     let stopSectionElement = document.getElementById("stopSection");
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
     let components;
 
     tempVariables.intermidiateSerialCounter = 0;
@@ -1697,6 +1701,27 @@ function EnterIntermidiateStage(){
         component.setAttribute("index", i.toString());
     }
 
+    tempVariables.componentXCoord = {
+        road:[],
+        stop:[]
+    };
+    //calculate road component width
+    let widthSum;
+    //road section
+    widthSum = 0;
+    for(let i = 0;i<tempStorage.road.length;++i){
+        let component = tempStorage.road[i];
+        widthSum += component.width;
+        tempVariables.componentXCoord.road.push(widthSum);
+    }
+    
+    //stop section
+    widthSum = 0;
+    for(let i = 0;i<tempStorage.stop.length;++i){
+        let component = tempStorage.stop[i];
+        widthSum += component.width;
+        tempVariables.componentXCoord.stop.push(widthSum);
+    }
 
     console.log("enter imtermidiate stage");
 }
@@ -1759,7 +1784,7 @@ function VerifyAndLink(roadIndex, stopIndex){
             if(record.stopIndex < stopIndex){
                 if(roadLeftRemoveIdx !== -1){
                     roadLeftFlag = true;
-                    if(roadLeftRemoveIdx.stopIndex > record.stopIdx){
+                    if(roadLeftRemoveIdx.stopIndex > record.stopIndex){
                         roadLeftRemoveIdx = {
                             index: i,
                             stopIndex: record.stopIndex
@@ -1773,15 +1798,16 @@ function VerifyAndLink(roadIndex, stopIndex){
                 }
             }else{
 
-                if(roadRightRemoveIdx === -1){
+                if(roadRightRemoveIdx !== -1){
                     roadRightFlag = true;
-                    if(roadRightRemoveIdx.stopIndex < record.stopIdx){
+                    if(roadRightRemoveIdx.stopIndex < record.stopIndex){
                         roadRightRemoveIdx = {
                             index: i,
                             stopIndex: record.stopIndex
                         };
                     }
-                }else{roadRightRemoveIdx = {
+                }else{
+                    roadRightRemoveIdx = {
                         index: i,
                         stopIndex: record.stopIndex
                     };
@@ -1794,7 +1820,7 @@ function VerifyAndLink(roadIndex, stopIndex){
             console.log(roadIndex);
             if(record.roadIndex < roadIndex){
                 if(stopLeftRemoveIdx !== -1){
-                    if(stopLeftRemoveIdx.roadIndex > record.roadIdx){
+                    if(stopLeftRemoveIdx.roadIndex > record.roadIndex){
                         stopLeftRemoveIdx = {
                             index: i,
                             roadIndex: record.roadIndex
@@ -1810,7 +1836,7 @@ function VerifyAndLink(roadIndex, stopIndex){
             }else{
                 if(stopRightRemoveIdx !== -1){
                     stopRightFlag = true;
-                    if(stopRightRemoveIdx.roadIndex < record.roadIdx){
+                    if(stopRightRemoveIdx.roadIndex < record.roadIndex){
                         stopRightRemoveIdx = {
                             index: i,
                             roadIndex: record.roadIndex
@@ -1837,11 +1863,16 @@ function VerifyAndLink(roadIndex, stopIndex){
     if(stopRightFlag)removeIdx.push(stopRightRemoveIdx.index);
     if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
     removeIdx = uniq(removeIdx).sort().reverse();
-    
-    console.log(removeIdx);
+
+    console.log(
+        roadRightFlag,
+        roadLeftFlag,
+        stopRightFlag,
+        stopLeftFlag,
+    )
 
     for(let i = 0;i<removeIdx.length;++i){
-        roadSegmentRecord.splice(removeIdx, 1);
+        roadSegmentRecord.splice(removeIdx[i], 1);
     }
 
     if(replaceIdx !== -1){
@@ -1859,9 +1890,6 @@ function VerifyAndLink(roadIndex, stopIndex){
         );
     }
 
-    
-
-    
     ++tempVariables.intermidiateSerialCounter;
     console.log(roadSegmentRecord);
 
@@ -1907,10 +1935,49 @@ function OnIntermidiateDragEnd(event){
     draging = false;
     dragElement = null;
 
+    RenderIntermidiateStage();
 }
 
 function OnIntermidiateDragMove(event){
     console.log("moving");
+}
+
+function BuildIntermidiateComponent(roadIndex, stopIndex, type){
+    let maxY = markingSpaceElement.clientHeight;
+    let tl; //top left x coord
+    let tr; //top right x coord
+    let bl; //bottom left x coord
+    let br; //bottom right x coord
+
+    if(stopIndex === 0){
+        tl = 0
+    }else{
+        tl = M2Px(tempVariables.componentXCoord.stop[stopIndex - 1]);
+    }
+
+    if(roadIndex === 0){
+        bl = 0
+    }else{
+        bl = M2Px(tempVariables.componentXCoord.road[roadIndex - 1]);
+    }
+
+    tr = M2Px(tempVariables.componentXCoord.stop[stopIndex]);
+    br = M2Px(tempVariables.componentXCoord.road[roadIndex]);
+
+
+    return `<polygon points="${tl},${0} ${tr},${0} ${br},${maxY} ${bl},${maxY}" class="${type}">`;
+}
+
+function RenderIntermidiateStage(){
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    markingSpaceElement.innerHTML = "";
+    for(let i = 0;i<roadSegmentRecord.length;++i){
+        let component = roadSegmentRecord[i];
+        markingSpaceElement.innerHTML += BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type);
+        console.log(component);
+    }
+    console.log(tempVariables.componentXCoord);
+    console.log(markingSpaceElement);
 }
 
 window.OnIntermidiateDragStart  = function(event){

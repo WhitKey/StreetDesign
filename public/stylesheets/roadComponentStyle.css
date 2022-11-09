@@ -55,14 +55,26 @@
     display: flex;
 }
 
+polygon.road{
+    fill: hsl(0, 0%, 11%);
+}
+
 .sidewalk {
     background-color: rgb(145, 39, 39);
     flex-shrink: 1;
 }
 
+polygon.sidewalk {
+    fill: rgb(145, 39, 39);
+}
+
 .bollard {
     background-color: rgb(143, 143, 143);
     flex-shrink: 1;
+}
+
+polygon.bollard {
+    fill: rgb(143, 143, 143);
 }
 
 .emptyRoadComponent {
