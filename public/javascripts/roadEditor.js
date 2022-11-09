@@ -1682,6 +1682,12 @@ function EnterIntermidiateStage(){
     let stopSectionElement = document.getElementById("stopSection");
     let components;
 
+    tempVariables.intermidiateSerialCounter = 0;
+    for(let i = 0;i< roadSegmentRecord.length;++i){
+        tempVariables.intermidiateSerialCounter = tempVariables.intermidiateSerialCounter > roadSegmentRecord.serial ? tempVariables.intermidiateSerialCounter : roadSegmentRecord.serial;
+    }
+    ++tempVariables.intermidiateSerialCounter;
+
     //process road section
     components = roadSectionElement.getElementsByClassName("roadComponent");
     for(let i = 0;i<components.length;++i){
@@ -1711,19 +1717,153 @@ function ExitIntremidiateStage(){
     console.log("exit intermidate stage");
 }
 
-function LinkageVerify(roadIndex, stopIndex){
+function VerifyAndLink(roadIndex, stopIndex){
+    function uniq(a) {
+        var seen = {};
+        return a.filter(function(item) {
+            return seen.hasOwnProperty(item) ? false : (seen[item] = true);
+        });
+    }
+
     let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
     let roadRecord = tempStorage.road[roadIndex];
     let stopRecord = tempStorage.stop[stopIndex];
+    let removeIdx = [];
+    let replaceIdx = -1;
+    let roadLeftFlag = false;
+    let roadRightFlag =  false;
+    let stopLeftFlag = false;
+    let stopRightFlag =  false;
+
+    let roadLeftRemoveIdx = -1;
+    let stopLeftRemoveIdx = -1;
+    let roadRightRemoveIdx = -1;
+    let stopRightRemoveIdx = -1;
+
 
     if(roadRecord.type !== stopRecord.type) return false;
-    //TODO: check link crossing
+    
+    for(let i =0;i<roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        //check for remake connection
+        if((record.roadIndex === roadIndex) && (record.stopIndex === stopIndex)){
+            replaceIdx = i;
+            continue;
+        }
+
+        //check link crossing
+        if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
+
+        //check link position
+        if(record.roadIndex === roadIndex){
+            if(record.stopIndex < stopIndex){
+                if(roadLeftRemoveIdx !== -1){
+                    roadLeftFlag = true;
+                    if(roadLeftRemoveIdx.stopIndex > record.stopIdx){
+                        roadLeftRemoveIdx = {
+                            index: i,
+                            stopIndex: record.stopIndex
+                        };
+                    }
+                }else{
+                    roadLeftRemoveIdx = {
+                        index: i,
+                        stopIndex: record.stopIndex
+                    };
+                }
+            }else{
+
+                if(roadRightRemoveIdx === -1){
+                    roadRightFlag = true;
+                    if(roadRightRemoveIdx.stopIndex < record.stopIdx){
+                        roadRightRemoveIdx = {
+                            index: i,
+                            stopIndex: record.stopIndex
+                        };
+                    }
+                }else{roadRightRemoveIdx = {
+                        index: i,
+                        stopIndex: record.stopIndex
+                    };
+                }
+            }
+        }
+
+        if(record.stopIndex === stopIndex){
+            console.log(record);
+            console.log(roadIndex);
+            if(record.roadIndex < roadIndex){
+                if(stopLeftRemoveIdx !== -1){
+                    if(stopLeftRemoveIdx.roadIndex > record.roadIdx){
+                        stopLeftRemoveIdx = {
+                            index: i,
+                            roadIndex: record.roadIndex
+                        };
+                    }
+                    stopLeftFlag = true;
+                }else{
+                    stopLeftRemoveIdx = {
+                        index: i,
+                        roadIndex: record.roadIndex
+                    };
+                }
+            }else{
+                if(stopRightRemoveIdx !== -1){
+                    stopRightFlag = true;
+                    if(stopRightRemoveIdx.roadIndex < record.roadIdx){
+                        stopRightRemoveIdx = {
+                            index: i,
+                            roadIndex: record.roadIndex
+                        };
+                    }
+                }else{
+                    stopRightRemoveIdx = {
+                        index: i,
+                        roadIndex: record.roadIndex
+                    };
+                }
+            }
+        }
+    }
 
     if(roadRecord.type === "road"){
         if(roadRecord.direction !== stopRecord.direction)return false;
-        console.log(roadRecord.exitDirection & stopRecord.exitDirection);
         if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
     }
+    
+    // select remove index
+    if(roadRightFlag)removeIdx.push(roadRightRemoveIdx.index);
+    if(roadLeftFlag)removeIdx.push(roadLeftRemoveIdx.index);
+    if(stopRightFlag)removeIdx.push(stopRightRemoveIdx.index);
+    if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
+    removeIdx = uniq(removeIdx).sort().reverse();
+    
+    console.log(removeIdx);
+
+    for(let i = 0;i<removeIdx.length;++i){
+        roadSegmentRecord.splice(removeIdx, 1);
+    }
+
+    if(replaceIdx !== -1){
+        roadSegmentRecord[replaceIdx].serialNumber = tempVariables.intermidiateSerialCounter;
+    }else{
+        // link
+        roadSegmentRecord.push(
+            {
+                roadIndex: roadIndex,
+                stopIndex: stopIndex,
+                serialNumber: tempVariables.intermidiateSerialCounter,
+                roadSideRecord: JSON.stringify(roadRecord),
+                stopSideRecord: JSON.stringify(stopRecord)
+            }
+        );
+    }
+
+    
+
+    
+    ++tempVariables.intermidiateSerialCounter;
+    console.log(roadSegmentRecord);
 
     return true;
 }
@@ -1750,8 +1890,8 @@ function OnIntermidiateDragEnd(event){
             linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
             
             if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
-                if(LinkageVerify(linkage.roadSection, linkage.stopSection)){
-                    console.log("make link");
+                if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
+                    //
                 }
             }
         }
@@ -1785,6 +1925,3 @@ window.OnIntermidiateDragStart  = function(event){
         document.addEventListener("mousemove", OnIntermidiateDragMove);
     }
 }
-
-
-
