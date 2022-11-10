@@ -113,6 +113,10 @@ function M2Percent(width){
     return `${100 * (width / landWidth)}%`;
 }
 
+function PreventDefault(event){
+    event.preventDefault();
+}
+
 //-------------------------
 //
 //Initialization functions
@@ -1746,7 +1750,7 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 
     let roadRecord = tempStorage.road[roadIndex];
     let stopRecord = tempStorage.stop[stopIndex];
-
+    let check = false;
 
     if(roadRecord.type !== stopRecord.type) return false;
     
@@ -1759,14 +1763,15 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
         let record = roadSegmentRecord[i];
         //check for remake connection
         if((record.roadIndex === roadIndex) && (record.stopIndex === stopIndex)){
+            check= true;
             continue;
         }
 
         //check link crossing
         if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
-    }
 
-    return true;
+    }
+    return check || !draging;
 }
 
 function VerifyAndLink(roadIndex, stopIndex){
@@ -1794,7 +1799,7 @@ function VerifyAndLink(roadIndex, stopIndex){
 
 
     if(roadRecord.type !== stopRecord.type) return false;
-    
+
     for(let i =0;i<roadSegmentRecord.length;++i){
         let record = roadSegmentRecord[i];
         //check for remake connection
@@ -1810,7 +1815,7 @@ function VerifyAndLink(roadIndex, stopIndex){
         if(roadRecord.type === "road"){
             if(roadRecord.direction !== stopRecord.direction)return false;
             if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
-            
+
             //check link position
             if(record.roadIndex === roadIndex){
                 if(record.stopIndex < stopIndex){
@@ -1892,13 +1897,6 @@ function VerifyAndLink(roadIndex, stopIndex){
     if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
     removeIdx = uniq(removeIdx).sort().reverse();
 
-    console.log(
-        roadRightFlag,
-        roadLeftFlag,
-        stopRightFlag,
-        stopLeftFlag,
-    )
-
     for(let i = 0;i<removeIdx.length;++i){
         roadSegmentRecord.splice(removeIdx[i], 1);
     }
@@ -1924,6 +1922,15 @@ function VerifyAndLink(roadIndex, stopIndex){
     return true;
 }
 
+function VerifyAndDelete(roadIndex, stopIndex){
+    for(let i = 0;i<roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        if(record.roadIndex === roadIndex && record.stopIndex === stopIndex){
+            roadSegmentRecord.splice(i, 1);
+        }
+    }
+}
+
 function OnIntermidiateDragEnd(event){
     let linkage = {
         stopSection:-1,
@@ -1938,6 +1945,7 @@ function OnIntermidiateDragEnd(event){
     }else{
         hitElement = document.elementFromPoint(event.clientX, event.clientY);
     }
+    setTimeout(()=>{document.removeEventListener('contextmenu', PreventDefault);}, 100);
     
     if(hitElement !== null){
         hitSection = hitElement.closest(".roadScope").id;
@@ -1946,8 +1954,14 @@ function OnIntermidiateDragEnd(event){
             linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
             
             if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
-                if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
-                    //
+                if(draging){
+                    //deleting mode
+                    VerifyAndDelete(linkage.roadSection, linkage.stopSection);
+                }else{
+                    // adding mode
+                    if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
+                        //
+                    }
                 }
             }
         }
@@ -2077,15 +2091,14 @@ function RenderIntermidiateStage(){
     for(let i = 0;i<roadSegmentRecord.length;++i){
         let component = roadSegmentRecord[i];
         markingSpaceElement.innerHTML += BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type);
-        console.log(component);
     }
     //console.log(tempVariables.componentXCoord);
     //console.log(markingSpaceElement);
 }
 
 window.OnIntermidiateDragStart  = function(event){
-    draging = true;
     dragElement = event.srcElement.closest(".roadComponent");
+    document.addEventListener('contextmenu', PreventDefault);
     
     let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
     let section = dragElement.closest(".roadScope").id;;
@@ -2093,10 +2106,10 @@ window.OnIntermidiateDragStart  = function(event){
     let elementIndex = parseInt(dragElement.getAttribute("index"));
     let startY;
     let tempElmentWidth = 3;
+
     tempElmentWidth /= 2;
-    
+
     //refine section name
-    console.log(section);
     if(section === "roadSection"){
         section = "road";
         startY = markingSpaceElement.clientHeight;
@@ -2113,11 +2126,19 @@ window.OnIntermidiateDragStart  = function(event){
     let points = `${dragTempElementX - tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX - tempElmentWidth},${startY}`;
     markingSpaceElement.innerHTML += `<polygon id="dragTemp" index="${dragElement.getAttribute("index")}" class="fail" x="${dragTempElementX.toString()}" halfWidth="${tempElmentWidth}" section="${section}" points="${points}"></polygon>`;
     
+    //event handling
     if(event.type === "touchstart"){
         document.addEventListener("touchend", OnIntermidiateDragEnd);
         document.addEventListener("touchmove", OnIntermidiateDragMove);
     }else{
         document.addEventListener("mouseup", OnIntermidiateDragEnd);
         document.addEventListener("mousemove", OnIntermidiateDragMove);
+        if(event.button === 2){
+            //deleting mode
+            draging = true;
+        }else{
+            //linking mode
+            draging = false;
+        }
     }
 }
