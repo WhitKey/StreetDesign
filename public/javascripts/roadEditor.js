@@ -1742,6 +1742,33 @@ function ExitIntremidiateStage(){
     console.log("exit intermidate stage");
 }
 
+function VerifyLink(roadIndex, stopIndex, tempStorage){
+
+    let roadRecord = tempStorage.road[roadIndex];
+    let stopRecord = tempStorage.stop[stopIndex];
+
+
+    if(roadRecord.type !== stopRecord.type) return false;
+    
+    if(roadRecord.type === "road"){
+        if(roadRecord.direction !== stopRecord.direction)return false;
+        if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+    }
+
+    for(let i =0;i<roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        //check for remake connection
+        if((record.roadIndex === roadIndex) && (record.stopIndex === stopIndex)){
+            continue;
+        }
+
+        //check link crossing
+        if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
+    }
+
+    return true;
+}
+
 function VerifyAndLink(roadIndex, stopIndex){
     function uniq(a) {
         var seen = {};
@@ -1931,6 +1958,8 @@ function OnIntermidiateDragEnd(event){
     document.removeEventListener("touchmove", OnIntermidiateDragMove);
     document.removeEventListener("mousemove", OnIntermidiateDragMove);
 
+    document.getElementById("dragTemp").remove();
+
     // reset global variables
     draging = false;
     dragElement = null;
@@ -1940,6 +1969,79 @@ function OnIntermidiateDragEnd(event){
 
 function OnIntermidiateDragMove(event){
     console.log("moving");
+    let dragTempElement = document.getElementById("dragTemp");
+    let elementWidth = parseFloat(dragTempElement.getAttribute("halfwidth"));
+    let elementX = parseFloat(dragTempElement.getAttribute("x"));
+    let section = dragTempElement.getAttribute("section"); 
+    let startY;
+    let clientX = 0;
+    let clientY = 0;
+    let raycast;
+    let raycastSection;
+    let markingRect = markingSpaceElement.getClientRects()[0];
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    
+    if(section === "road"){
+        startY = markingSpaceElement.clientHeight;
+    }else if(section === "stop"){
+        startY = 0;
+    }
+    if(event.type === "mousemove"){
+        clientX = event.clientX;
+        clientY = event.clientY;
+    }else{
+        //TODO: touch event;
+    }
+    
+    raycast = document.elementFromPoint(clientX, clientY);
+    
+    clientX -= markingRect.left;
+    clientY -= markingRect.top;
+    
+    let chk = true;
+    if(raycast !== null){
+        raycastSection = raycast.closest(".roadScope");
+        if(raycastSection !== null){
+            raycastSection = raycastSection.id;
+            if(raycastSection === "roadSection"){
+                raycastSection = "road";
+            }else if(raycastSection === "stopSection"){
+                raycastSection = "stop";
+            }
+    
+            if((raycastSection === "road" && section === "stop")|| (raycastSection === "stop" && section === "road")){
+                let endY;
+                let elementIndex = parseInt(raycast.closest(".roadComponent").getAttribute("index"));
+                let X = M2Px(tempVariables.componentXCoord[raycastSection][elementIndex] - tempStorage[raycastSection][elementIndex].width / 2);
+                let roadIndex;
+                let stopIndex;
+
+                if(raycastSection === "road"){
+                    endY = markingSpaceElement.clientHeight;
+                    roadIndex = elementIndex;
+                    stopIndex = parseInt(dragTempElement.getAttribute("index"));
+                }else if(raycastSection === "stop"){
+                    endY = 0;
+                    roadIndex = parseInt(dragTempElement.getAttribute("index"));
+                    stopIndex = elementIndex;
+                }
+                
+                if(VerifyLink(roadIndex, stopIndex, tempStorage)){
+                    chk = false;
+                    dragTempElement.setAttribute("points", `${elementX - elementWidth},${startY} ${elementX + elementWidth},${startY} ${X + elementWidth},${endY} ${X - elementWidth},${endY}`);
+                    dragTempElement.classList.add("accept");
+                    dragTempElement.classList.remove("fail");
+                }
+            }
+
+        }
+    }
+    if(chk){
+        dragTempElement.classList.remove("accept");
+        dragTempElement.classList.add("fail");
+        dragTempElement.setAttribute("points", `${elementX - elementWidth},${startY} ${elementX + elementWidth},${startY} ${clientX + elementWidth},${clientY} ${clientX - elementWidth},${clientY}`);
+    }
+
 }
 
 function BuildIntermidiateComponent(roadIndex, stopIndex, type){
@@ -1976,13 +2078,39 @@ function RenderIntermidiateStage(){
         markingSpaceElement.innerHTML += BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type);
         console.log(component);
     }
-    console.log(tempVariables.componentXCoord);
-    console.log(markingSpaceElement);
+    //console.log(tempVariables.componentXCoord);
+    //console.log(markingSpaceElement);
 }
 
 window.OnIntermidiateDragStart  = function(event){
     draging = true;
     dragElement = event.srcElement.closest(".roadComponent");
+    
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    let section = dragElement.closest(".roadScope").id;;
+    let dragTempElementX = 0;
+    let elementIndex = parseInt(dragElement.getAttribute("index"));
+    let startY;
+    let tempElmentWidth = 3;
+    tempElmentWidth /= 2;
+    
+    //refine section name
+    console.log(section);
+    if(section === "roadSection"){
+        section = "road";
+        startY = markingSpaceElement.clientHeight;
+    }else if(section === "stopSection"){
+        section = "stop";
+        startY = 0;
+    }else{
+        section = undefined;
+    }
+
+    dragTempElementX = M2Px(tempVariables.componentXCoord[section][elementIndex] - tempStorage[section][elementIndex].width / 2);
+    
+    //add dragint temp element to marking space
+    let points = `${dragTempElementX - tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX - tempElmentWidth},${startY}`;
+    markingSpaceElement.innerHTML += `<polygon id="dragTemp" index="${dragElement.getAttribute("index")}" class="fail" x="${dragTempElementX.toString()}" halfWidth="${tempElmentWidth}" section="${section}" points="${points}"></polygon>`;
     
     if(event.type === "touchstart"){
         document.addEventListener("touchend", OnIntermidiateDragEnd);

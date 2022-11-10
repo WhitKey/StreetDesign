@@ -107,4 +107,10 @@ polygon.bollard {
     transform: rotate(180deg);
 }
 
+polygon.fail{
+    fill: red;
+}
 
+polygon.accept{
+    fill: rgb(0, 255, 0);
+}
