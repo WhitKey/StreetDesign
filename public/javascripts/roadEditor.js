@@ -1980,6 +1980,17 @@ function OnIntermidiateDragEnd(event){
     dragElement = null;
 
     RenderIntermidiateStage();
+    
+    //remove acceptable hint
+    let sectionElements = document.getElementById("roadSection").getElementsByClassName("roadComponent");
+    for(let i = 0;i < sectionElements.length; ++i){
+        sectionElements[i].classList.remove("acceptable");
+    }
+    
+    sectionElements = document.getElementById("stopSection").getElementsByClassName("roadComponent");
+    for(let i = 0;i < sectionElements.length; ++i){
+        sectionElements[i].classList.remove("acceptable");
+    }
 }
 
 function OnIntermidiateDragMove(event){
@@ -2126,6 +2137,7 @@ window.OnIntermidiateDragStart  = function(event){
     let points = `${dragTempElementX - tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX - tempElmentWidth},${startY}`;
     markingSpaceElement.innerHTML += `<polygon id="dragTemp" index="${dragElement.getAttribute("index")}" class="fail" x="${dragTempElementX.toString()}" halfWidth="${tempElmentWidth}" section="${section}" points="${points}"></polygon>`;
     
+    
     //event handling
     if(event.type === "touchstart"){
         document.addEventListener("touchend", OnIntermidiateDragEnd);
@@ -2140,5 +2152,24 @@ window.OnIntermidiateDragStart  = function(event){
             //linking mode
             draging = false;
         }
+    }
+    
+    // show acceptable.
+    console.log("sadadadasd");
+    if(section === "road"){
+        let stopSectionElements = document.getElementById("stopSection").getElementsByClassName("roadComponent");
+        for(let stopIndex = 0;stopIndex < tempStorage.stop.length; ++stopIndex){
+            if(VerifyLink(elementIndex, stopIndex, tempStorage)){
+                stopSectionElements[stopIndex].classList.add("acceptable");
+            }
+        }
+    }else if(section === "stop"){
+        let roadSectionElements = document.getElementById("roadSection").getElementsByClassName("roadComponent");
+        for(let roadIndex = 0;roadIndex < tempStorage.road.length; ++roadIndex){
+            if(VerifyLink(roadIndex, elementIndex, tempStorage)){
+                roadSectionElements[roadIndex].classList.add("acceptable");
+            }
+        }
+
     }
 }

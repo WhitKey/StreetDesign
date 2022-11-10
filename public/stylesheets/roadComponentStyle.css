@@ -23,10 +23,13 @@
     height: calc(100% - 0px);
     width: calc(100% - 0px);
     border-width: 3px;
-    transition: border-color 300ms;
+
+    transition-property: border-color, opacity;
+    transition-duration: 300ms, 300ms;
     border-style:  dashed;
     border-color: transparent;
     pointer-events: none;
+    z-index: 2;
 }
 
 .roadComponent:hover::after{
@@ -41,6 +44,17 @@
     border-width: 3px;
     border-color: yellow;
     left: 0;
+}
+
+.roadComponent.acceptable:hover::after{
+    border: solid;
+    border-color: cyan;
+}
+
+.roadComponent.acceptable::after{
+    border: solid;
+    border-color: blue;
+    border-width: 5px;
 }
 
 .component{
