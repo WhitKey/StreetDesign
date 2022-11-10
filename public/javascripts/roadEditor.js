@@ -1806,82 +1806,83 @@ function VerifyAndLink(roadIndex, stopIndex){
         //check link crossing
         if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
 
-        //check link position
-        if(record.roadIndex === roadIndex){
-            if(record.stopIndex < stopIndex){
-                if(roadLeftRemoveIdx !== -1){
-                    roadLeftFlag = true;
-                    if(roadLeftRemoveIdx.stopIndex > record.stopIndex){
+        
+        if(roadRecord.type === "road"){
+            if(roadRecord.direction !== stopRecord.direction)return false;
+            if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+            
+            //check link position
+            if(record.roadIndex === roadIndex){
+                if(record.stopIndex < stopIndex){
+                    if(roadLeftRemoveIdx !== -1){
+                        roadLeftFlag = true;
+                        if(roadLeftRemoveIdx.stopIndex > record.stopIndex){
+                            roadLeftRemoveIdx = {
+                                index: i,
+                                stopIndex: record.stopIndex
+                            };
+                        }
+                    }else{
                         roadLeftRemoveIdx = {
                             index: i,
                             stopIndex: record.stopIndex
                         };
                     }
                 }else{
-                    roadLeftRemoveIdx = {
-                        index: i,
-                        stopIndex: record.stopIndex
-                    };
-                }
-            }else{
-
-                if(roadRightRemoveIdx !== -1){
-                    roadRightFlag = true;
-                    if(roadRightRemoveIdx.stopIndex < record.stopIndex){
+    
+                    if(roadRightRemoveIdx !== -1){
+                        roadRightFlag = true;
+                        if(roadRightRemoveIdx.stopIndex < record.stopIndex){
+                            roadRightRemoveIdx = {
+                                index: i,
+                                stopIndex: record.stopIndex
+                            };
+                        }
+                    }else{
                         roadRightRemoveIdx = {
                             index: i,
                             stopIndex: record.stopIndex
                         };
                     }
-                }else{
-                    roadRightRemoveIdx = {
-                        index: i,
-                        stopIndex: record.stopIndex
-                    };
                 }
             }
-        }
-
-        if(record.stopIndex === stopIndex){
-            console.log(record);
-            console.log(roadIndex);
-            if(record.roadIndex < roadIndex){
-                if(stopLeftRemoveIdx !== -1){
-                    if(stopLeftRemoveIdx.roadIndex > record.roadIndex){
+    
+            if(record.stopIndex === stopIndex){
+                console.log(record);
+                console.log(roadIndex);
+                if(record.roadIndex < roadIndex){
+                    if(stopLeftRemoveIdx !== -1){
+                        if(stopLeftRemoveIdx.roadIndex > record.roadIndex){
+                            stopLeftRemoveIdx = {
+                                index: i,
+                                roadIndex: record.roadIndex
+                            };
+                        }
+                        stopLeftFlag = true;
+                    }else{
                         stopLeftRemoveIdx = {
                             index: i,
                             roadIndex: record.roadIndex
                         };
                     }
-                    stopLeftFlag = true;
                 }else{
-                    stopLeftRemoveIdx = {
-                        index: i,
-                        roadIndex: record.roadIndex
-                    };
-                }
-            }else{
-                if(stopRightRemoveIdx !== -1){
-                    stopRightFlag = true;
-                    if(stopRightRemoveIdx.roadIndex < record.roadIndex){
+                    if(stopRightRemoveIdx !== -1){
+                        stopRightFlag = true;
+                        if(stopRightRemoveIdx.roadIndex < record.roadIndex){
+                            stopRightRemoveIdx = {
+                                index: i,
+                                roadIndex: record.roadIndex
+                            };
+                        }
+                    }else{
                         stopRightRemoveIdx = {
                             index: i,
                             roadIndex: record.roadIndex
                         };
                     }
-                }else{
-                    stopRightRemoveIdx = {
-                        index: i,
-                        roadIndex: record.roadIndex
-                    };
                 }
             }
         }
-    }
-
-    if(roadRecord.type === "road"){
-        if(roadRecord.direction !== stopRecord.direction)return false;
-        if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
     }
     
     // select remove index
