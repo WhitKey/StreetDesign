@@ -1934,15 +1934,42 @@ function VerifyAndLink(roadIndex, stopIndex){
     if(replaceIdx !== -1){
         ++tempVariables.intermidiateOverrideCounter;
         roadSegmentRecord[replaceIdx].overrideSerialNumber = tempVariables.intermidiateOverrideCounter;
+        centerRoadRecord = roadSegmentRecord[replaceIdx];
+        centerStopRecord = roadSegmentRecord[replaceIdx];
         
-        for(let i =0;i<roadSegmentRecord.length;++i){
-            let record = roadSegmentRecord[i];
-            if(roadRecord.type === "road"){
-                //check link position
-                if(record.roadIndex === roadIndex && record.stopIndex === stopIndex)continue;
+    }else{
+        // making link
+        if(isCenter){
+            ++tempVariables.intermidiateOverrideCounter;
+        }
+        
+        roadSegmentRecord.push(
+            {
+                roadIndex: roadIndex,
+                stopIndex: stopIndex,
+                serialNumber: tempVariables.intermidiateSerialCounter,
+                overrideSerialNumber: tempVariables.intermidiateOverrideCounter,
+                roadSideRecord: JSON.stringify(roadRecord),
+                stopSideRecord: JSON.stringify(stopRecord)
+            }
+            );
+        if(isCenter){
+            centerRoadRecord = roadSegmentRecord[roadSegmentRecord.length-1];
+            centerStopRecord = centerRoadRecord;
+        }
+        ++tempVariables.intermidiateSerialCounter;
+    }
+    
+    console.log(centerRoadRecord);
+    console.log(centerStopRecord);
+    for(let i =0;i<roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        if(roadRecord.type === "road"){
+            //check link position
 
-                if(record.roadIndex === roadIndex){
-                    if(record.stopIndex < stopIndex){
+            if(centerRoadRecord !== null){
+                if(record.roadIndex === centerRoadRecord.roadIndex){
+                    if(record.stopIndex < centerRoadRecord.stopIndex){
                         if(roadLeftRemoveIdx !== -1){
                             roadLeftFlag = true;
                             if(roadLeftRemoveIdx.stopIndex > record.stopIndex){
@@ -1957,7 +1984,7 @@ function VerifyAndLink(roadIndex, stopIndex){
                                 stopIndex: record.stopIndex
                             };
                         }
-                    }else{
+                    }else if(record.stopIndex > centerRoadRecord.stopIndex){
                         if(roadRightRemoveIdx !== -1){
                             roadRightFlag = true;
                             if(roadRightRemoveIdx.stopIndex < record.stopIndex){
@@ -1974,9 +2001,11 @@ function VerifyAndLink(roadIndex, stopIndex){
                         }
                     }
                 }
-        
-                if(record.stopIndex === stopIndex){
-                    if(record.roadIndex < roadIndex){
+            }
+    
+            if(centerStopRecord !== null){
+                if(record.stopIndex === centerStopRecord.stopIndex){
+                    if(record.roadIndex < centerStopRecord.roadIndex){
                         if(stopLeftRemoveIdx !== -1){
                             if(stopLeftRemoveIdx.roadIndex > record.roadIndex){
                                 stopLeftRemoveIdx = {
@@ -1991,7 +2020,7 @@ function VerifyAndLink(roadIndex, stopIndex){
                                 roadIndex: record.roadIndex
                             };
                         }
-                    }else{
+                    }else if(record.roadIndex > centerStopRecord.roadIndex){
                         if(stopRightRemoveIdx !== -1){
                             stopRightFlag = true;
                             if(stopRightRemoveIdx.roadIndex < record.roadIndex){
@@ -2010,45 +2039,32 @@ function VerifyAndLink(roadIndex, stopIndex){
                 }
             }
         }
-        
-        // select remove index
-        if(roadRightFlag)removeIdx.push(roadRightRemoveIdx.index);
-        if(roadLeftFlag)removeIdx.push(roadLeftRemoveIdx.index);
-        if(stopRightFlag)removeIdx.push(stopRightRemoveIdx.index);
-        if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
-        removeIdx = uniq(removeIdx).sort().reverse();
-
-        console.log(
-            roadRightFlag,
-            roadLeftFlag,
-            stopRightFlag,
-            stopLeftFlag
-            );
-        console.log(removeIdx);
-
-        for(let i = 0;i<removeIdx.length;++i){
-            roadSegmentRecord.splice(removeIdx[i], 1);
-        }
-
-    }else{
-        // making link
-        if(isCenter){
-            ++tempVariables.intermidiateOverrideCounter;
-        }
-
-        roadSegmentRecord.push(
-            {
-                roadIndex: roadIndex,
-                stopIndex: stopIndex,
-                serialNumber: tempVariables.intermidiateSerialCounter,
-                overrideSerialNumber: tempVariables.intermidiateOverrideCounter,
-                roadSideRecord: JSON.stringify(roadRecord),
-                stopSideRecord: JSON.stringify(stopRecord)
-            }
-        );
-        ++tempVariables.intermidiateSerialCounter;
     }
+    
+    // select remove index
+    if(roadRightFlag)removeIdx.push(roadRightRemoveIdx.index);
+    if(roadLeftFlag)removeIdx.push(roadLeftRemoveIdx.index);
+    if(stopRightFlag)removeIdx.push(stopRightRemoveIdx.index);
+    if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
+    removeIdx = uniq(removeIdx).sort().reverse();
+
+    console.log(
+        roadRightFlag,
+        roadLeftFlag,
+        stopRightFlag,
+        stopLeftFlag
+        );
+    console.log(removeIdx);
+
+    for(let i = 0;i<removeIdx.length;++i){
+        roadSegmentRecord.splice(removeIdx[i], 1);
+    }
+    
+    
+    
     console.log(roadSegmentRecord);
+
+
 
     return true;
 }
