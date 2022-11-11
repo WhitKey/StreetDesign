@@ -1799,7 +1799,12 @@ function VerifyAndLink(roadIndex, stopIndex){
 
 
     if(roadRecord.type !== stopRecord.type) return false;
-
+    if(roadRecord.type === "road"){
+        if(roadRecord.direction !== stopRecord.direction)return false;
+        if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+    }
+        console.log(roadRecord.exitDirection);
+        console.log(stopRecord.exitDirection);
     for(let i =0;i<roadSegmentRecord.length;++i){
         let record = roadSegmentRecord[i];
         //check for remake connection
@@ -1809,13 +1814,8 @@ function VerifyAndLink(roadIndex, stopIndex){
         }
 
         //check link crossing
-        if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
-
-        
+        if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;    
         if(roadRecord.type === "road"){
-            if(roadRecord.direction !== stopRecord.direction)return false;
-            if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
-
             //check link position
             if(record.roadIndex === roadIndex){
                 if(record.stopIndex < stopIndex){
@@ -1853,8 +1853,6 @@ function VerifyAndLink(roadIndex, stopIndex){
             }
     
             if(record.stopIndex === stopIndex){
-                console.log(record);
-                console.log(roadIndex);
                 if(record.roadIndex < roadIndex){
                     if(stopLeftRemoveIdx !== -1){
                         if(stopLeftRemoveIdx.roadIndex > record.roadIndex){
@@ -1994,7 +1992,6 @@ function OnIntermidiateDragEnd(event){
 }
 
 function OnIntermidiateDragMove(event){
-    console.log("moving");
     let dragTempElement = document.getElementById("dragTemp");
     let elementWidth = parseFloat(dragTempElement.getAttribute("halfwidth"));
     let elementX = parseFloat(dragTempElement.getAttribute("x"));
@@ -2155,7 +2152,6 @@ window.OnIntermidiateDragStart  = function(event){
     }
     
     // show acceptable.
-    console.log("sadadadasd");
     if(section === "road"){
         let stopSectionElements = document.getElementById("stopSection").getElementsByClassName("roadComponent");
         for(let stopIndex = 0;stopIndex < tempStorage.stop.length; ++stopIndex){
