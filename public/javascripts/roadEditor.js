@@ -1752,6 +1752,10 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 
     let roadRecord = tempStorage.road[roadIndex];
     let stopRecord = tempStorage.stop[stopIndex];
+    let isCenter = true;
+
+    let centerStopRecord = null;
+    let centerRoadRecord = null;
     let check = false;
 
     if(roadRecord.type !== stopRecord.type) return false;
@@ -1765,13 +1769,67 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
         let record = roadSegmentRecord[i];
         //check for remake connection
         if((record.roadIndex === roadIndex) && (record.stopIndex === stopIndex)){
-            check= true;
+            isCenter = true;
+            check = true;
             continue;
+        }
+
+        if(!check && ((record.roadIndex === roadIndex) || (record.stopIndex === stopIndex))){
+            isCenter =  false;
         }
 
         //check link crossing
         if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
 
+        if(!draging){
+            if(roadRecord.type === "road"){
+                if(record.roadIndex === roadIndex){
+                    if(centerRoadRecord === null){
+                        centerRoadRecord = record;
+                    }else{
+                        if(centerRoadRecord.overrideSerialNumber < record.overrideSerialNumber){
+                            centerRoadRecord = record;
+                        }else if(centerRoadRecord.overrideSerialNumber === record.overrideSerialNumber && centerRoadRecord.serialNumber > record.serialNumber){
+                            centerRoadRecord = record;
+                        }
+                    }
+                }
+                
+                if(record.stopIndex === stopIndex){
+                    if(centerStopRecord === null){
+                        centerStopRecord = record;
+                    }else{
+                        if(centerStopRecord.overrideSerialNumber < record.overrideSerialNumber){
+                            centerStopRecord = record;
+                        }else if(centerStopRecord.overrideSerialNumber === record.overrideSerialNumber && centerStopRecord.serialNumber > record.serialNumber){
+                            centerStopRecord = record;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if(!draging){
+        if(!isCenter && roadRecord.type === "road"){
+            for(let i = 0;i < roadSegmentRecord.length;++i){
+                let record = roadSegmentRecord[i];
+                if(centerStopRecord !== null){
+                    console.log(record, centerStopRecord, roadIndex);
+                    console.log(((record.roadIndex > roadIndex) && (record.roadIndex < centerStopRecord.roadIndex)) , ((record.roadIndex < roadIndex) && (record.roadIndex > centerStopRecord.roadIndex)));
+                    if(record.stopIndex === centerStopRecord.stopIndex && (((record.roadIndex > roadIndex) && (record.roadIndex < centerStopRecord.roadIndex)) || ((record.roadIndex < roadIndex) && (record.roadIndex > centerStopRecord.roadIndex)))){
+                        return false;
+                    }
+                }
+                if(centerRoadRecord !== null){
+                    console.log(record, centerRoadRecord, stopIndex);
+                    console.log((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex),  ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)));
+                    if(record.roadIndex === centerRoadRecord.roadIndex && (((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex)) || ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)))){
+                        return false;
+                    }
+                }
+            }
+        }
     }
     return check || !draging;
 }
@@ -1847,7 +1905,7 @@ function VerifyAndLink(roadIndex, stopIndex){
                 }else{
                     if(centerStopRecord.overrideSerialNumber < record.overrideSerialNumber){
                         centerStopRecord = record;
-                    }else if(centerStopRecord.overrideSerialNumber === record.overrideSerialNumber && centerStopRecord.serialNumber < record.serialNumber){
+                    }else if(centerStopRecord.overrideSerialNumber === record.overrideSerialNumber && centerStopRecord.serialNumber > record.serialNumber){
                         centerStopRecord = record;
                     }
                 }
@@ -1864,8 +1922,6 @@ function VerifyAndLink(roadIndex, stopIndex){
                 }
             }
             if(centerRoadRecord !== null){
-                console.log(record, centerRoadRecord, stopIndex);
-                console.log((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex),  ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)));
                 if(record.roadIndex === centerRoadRecord.roadIndex && (((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex)) || ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)))){
                     return false;
                 }
