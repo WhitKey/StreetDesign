@@ -117,6 +117,17 @@ function PreventDefault(event){
     event.preventDefault();
 }
 
+function LineLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4){
+    let tempA = (x3 * y4 - y3 * x4);
+    let tempB = (x1 - x2) * (y3 - y4) - (y1 - y2)*( x3 - x4);
+    let tempC = (x1 * y2 - y1 * x2);
+
+    console.log(x1, y1, x2, y2, x3, y3, x4, y4);
+    console.log( [(tempC * (x3 - x4) - (x1 - x2) * tempA) / tempB, (tempC * (y3 - y4) - (y1 - y2) * tempA) /tempB]);
+
+    return [(tempC * (x3 - x4) - (x1 - x2) * tempA) / tempB, (tempC * (y3 - y4) - (y1 - y2) * tempA) /tempB];
+}
+
 //-------------------------
 //
 //Initialization functions
@@ -1300,8 +1311,11 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 }
 
 function UpdateMarkingSpace(){
-
-    markingSpaceElement.innerHTML = CreateNewMarking(roadSegmentRecord, landElement.clientHeight * (6 / 7), -1, currentStage !== 2, currentStage === 1);
+    if(currentStage === 2){
+        RenderIntermidiateStage();
+    }else{
+        markingSpaceElement.innerHTML = CreateNewMarking(roadSegmentRecord, landElement.clientHeight * (6 / 7), -1, currentStage !== 2, currentStage === 1);
+    }
     console.log("updating marking space");
 
 }
@@ -1815,15 +1829,11 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
             for(let i = 0;i < roadSegmentRecord.length;++i){
                 let record = roadSegmentRecord[i];
                 if(centerStopRecord !== null){
-                    console.log(record, centerStopRecord, roadIndex);
-                    console.log(((record.roadIndex > roadIndex) && (record.roadIndex < centerStopRecord.roadIndex)) , ((record.roadIndex < roadIndex) && (record.roadIndex > centerStopRecord.roadIndex)));
                     if(record.stopIndex === centerStopRecord.stopIndex && (((record.roadIndex > roadIndex) && (record.roadIndex < centerStopRecord.roadIndex)) || ((record.roadIndex < roadIndex) && (record.roadIndex > centerStopRecord.roadIndex)))){
                         return false;
                     }
                 }
                 if(centerRoadRecord !== null){
-                    console.log(record, centerRoadRecord, stopIndex);
-                    console.log((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex),  ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)));
                     if(record.roadIndex === centerRoadRecord.roadIndex && (((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex)) || ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)))){
                         return false;
                     }
@@ -1960,8 +1970,6 @@ function VerifyAndLink(roadIndex, stopIndex){
         ++tempVariables.intermidiateSerialCounter;
     }
     
-    console.log(centerRoadRecord);
-    console.log(centerStopRecord);
     for(let i =0;i<roadSegmentRecord.length;++i){
         let record = roadSegmentRecord[i];
         if(roadRecord.type === "road"){
@@ -2048,6 +2056,7 @@ function VerifyAndLink(roadIndex, stopIndex){
     if(stopLeftFlag)removeIdx.push(stopLeftRemoveIdx.index);
     removeIdx = uniq(removeIdx).sort().reverse();
 
+/*
     console.log(
         roadRightFlag,
         roadLeftFlag,
@@ -2055,14 +2064,14 @@ function VerifyAndLink(roadIndex, stopIndex){
         stopLeftFlag
         );
     console.log(removeIdx);
-
+*/
     for(let i = 0;i<removeIdx.length;++i){
         roadSegmentRecord.splice(removeIdx[i], 1);
     }
     
     
     
-    console.log(roadSegmentRecord);
+    //console.log(roadSegmentRecord);
 
 
 
@@ -2249,9 +2258,263 @@ function RenderIntermidiateStage(){
         let component = roadSegmentRecord[i];
         markingSpaceElement.innerHTML += BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type);
     }
+
+    RenderIntermidiateStageMarking(tempStorage);
     //console.log(tempVariables.componentXCoord);
     //console.log(markingSpaceElement);
 }
+
+function RenderIntermidiateStageMarking(tempStorage){
+    function CreateSvgLine(startPoint, endPoint, width, color, dashLength, lineCount = 1, offset = -0.5){
+        let xOffset = width * (lineCount * 2 - 1) * offset;
+        let rtn = "";
+
+        for (let i = 0;i< lineCount;++i){
+            if(dashLength === 0){
+                rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" />`;
+            }else{
+                rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dashLength}"/>`;
+            }
+            xOffset += width;
+        }
+        console.log(rtn);
+        return rtn;
+    }
+
+    let roadRecordMap = {};
+    let stopRecordMap = {};
+    let maxY = markingSpaceElement.clientHeight;
+    
+
+    //create record entry map
+    for(let i = 0;i< roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        
+        if(roadRecordMap[record.roadIndex] === undefined){
+            roadRecordMap[record.roadIndex] = [i];
+        }else{
+            roadRecordMap[record.roadIndex].push(i);
+        }
+        
+        if(stopRecordMap[record.stopIndex] === undefined){
+            stopRecordMap[record.stopIndex] = [i];
+        }else{
+            stopRecordMap[record.stopIndex].push(i);
+        }
+    }
+
+    //set center
+    for(let i = 0;i<roadSegmentRecord.length;++i){
+        let record = roadSegmentRecord[i];
+        if(tempStorage.road[record.roadIndex].type !== "road")continue;
+
+        let leftCombine = {
+            isCombine: false,
+            index: -1
+        };
+        let rightCombine = {
+            isCombine: false,
+            index: -1
+        };
+
+        let leftMarkingSetting = {
+            stop:{
+                crossing: false,
+                isCenter: false,
+                isCover: false,
+                index: -1,
+                point: (0, 0)
+            },
+            
+            road:{
+                crossing: false,
+                isCenter: false,
+                isCover: false,
+                index: -1,
+                point: (0, 0)
+            }
+        }
+
+        let rightMarkingSetting = {
+            stop:{
+                crossing: false,
+                isCenter: false,
+                isCover: false,
+                index: -1,
+                point: (0, 0)
+            },
+            
+            road:{
+                crossing: false,
+                isCenter: false,
+                isCover: false,
+                index: -1,
+                point: (0, 0)
+            }
+        }
+        
+        // check left combine marking
+        if(record.roadIndex !== 0 && record.stopIndex !== 0){
+            let leftRoadIndex = record.roadIndex - 1;
+            if(roadRecordMap[leftRoadIndex] !== undefined){
+                for(let j = 0;j<roadRecordMap[leftRoadIndex].length;++j){
+                    let leftRoadRecordIndex = roadRecordMap[leftRoadIndex][j];
+                    if(roadSegmentRecord[leftRoadRecordIndex].stopIndex === record.stopIndex - 1){
+                        leftCombine.isCombine = true;
+                        leftCombine.index = leftRoadIndex;
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // check right combine marking
+        if(record.roadIndex !== tempStorage.road.length -1 && record.stopIndex !== tempStorage.stop.length - 1){
+            let rightRoadIndex = record.roadIndex + 1;
+            if(roadRecordMap[rightRoadIndex] !== undefined){
+                for(let j = 0;j<roadRecordMap[rightRoadIndex].length;++j){
+                    let rightRoadRecordIndex = roadRecordMap[rightRoadIndex][j];
+                    if(roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex){
+                        rightCombine.isCombine = true;
+                        rightCombine.index = rightRoadIndex;
+                        break;
+                    }
+                }
+            }
+        }
+
+        
+        //check road side setting
+        let roadRecordIndexList = roadRecordMap[record.roadIndex];
+        if(roadRecordIndexList.length !== 1){
+            for(let j = 0; j<roadRecordIndexList.length; ++j){
+                if(roadRecordIndexList[j] === i)continue;
+                let linkRecord = roadSegmentRecord[roadRecordIndexList[j]];
+
+                if(linkRecord.stopIndex < record.stopIndex){
+                    leftMarkingSetting.road.crossing = true;
+                    leftMarkingSetting.road.index = roadRecordIndexList[j];
+                    if(linkRecord.overrideSerialNumber < record.overrideSerialNumber || (linkRecord.overrideSerialNumber === record.overrideSerialNumber && linkRecord.serialNumber > record.serialNumber)){
+                        leftMarkingSetting.road.isCenter = true;
+                    }else if(linkRecord.stopIndex === record.stopIndex - 1){
+                        leftMarkingSetting.road.isCover = true;
+                    }
+                }else{
+                    rightMarkingSetting.road.crossing = true;
+                    rightMarkingSetting.road.index = roadRecordIndexList[j];
+                    if(linkRecord.overrideSerialNumber < record.overrideSerialNumber || (linkRecord.overrideSerialNumber === record.overrideSerialNumber && linkRecord.serialNumber > record.serialNumber)){
+                        rightMarkingSetting.road.isCenter = true;
+                    }else if(linkRecord.stopIndex === record.stopIndex + 1){
+                        rightMarkingSetting.road.isCover = true;
+                    }
+                }
+            }
+        }
+
+        //check stop side setting
+        let stopRecordIndexList = stopRecordMap[record.stopIndex];
+        if(stopRecordIndexList.length !== 1){
+            for(let j = 0; j<stopRecordIndexList.length; ++j){
+                if(stopRecordIndexList[j] === i)continue;
+                let linkRecord = roadSegmentRecord[stopRecordIndexList[j]];
+                console.log(linkRecord);
+                if(linkRecord.roadIndex < record.roadIndex){
+                    leftMarkingSetting.stop.crossing = true;
+                    leftMarkingSetting.stop.index = stopRecordIndexList[j];
+                    if(linkRecord.overrideSerialNumber < record.overrideSerialNumber || (linkRecord.overrideSerialNumber === record.overrideSerialNumber && linkRecord.serialNumber > record.serialNumber)){
+                        leftMarkingSetting.stop.isCenter = true;
+                    }else if(linkRecord.roadIndex === record.roadIndex - 1){
+                        leftMarkingSetting.stop.isCover = true;
+                    }
+                }else{
+                    rightMarkingSetting.stop.crossing = true;
+                    rightMarkingSetting.stop.index = stopRecordIndexList[j];
+                    if(linkRecord.overrideSerialNumber < record.overrideSerialNumber || (linkRecord.overrideSerialNumber === record.overrideSerialNumber && linkRecord.serialNumber > record.serialNumber)){
+                        rightMarkingSetting.stop.isCenter = true;
+                    }else if(linkRecord.roadIndex === record.roadIndex + 1){
+                        rightMarkingSetting.stop.isCover = true;
+                    }
+                }
+            }
+        }
+    
+        // if left didn't combine
+        let lineWidth = M2Px(0.15);
+        let link = {
+            roadComponent: {
+                width: M2Px(tempStorage.road[record.roadIndex].width),
+                right: M2Px(tempVariables.componentXCoord.road[record.roadIndex]),
+                left: M2Px(tempVariables.componentXCoord.road[record.roadIndex]) -  M2Px(tempStorage.road[record.roadIndex].width)
+            },
+
+            stopComponent: {
+                width: M2Px(tempStorage.stop[record.stopIndex].width),
+                right: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]),
+                left: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]) - M2Px(tempStorage.stop[record.stopIndex].width)
+            }
+        };
+        let lineFinish = false;
+        let intersection = [link.roadComponent.left, maxY];
+
+        //left marking
+        if(!leftCombine.isCombine){
+            console.log(leftMarkingSetting);
+            if(!leftMarkingSetting.road.isCover && !leftMarkingSetting.stop.isCover){
+                //if crossing at roadSide
+                if(leftMarkingSetting.road.crossing){
+                    let crossLink = roadSegmentRecord[leftMarkingSetting.road.index];
+                    if(leftMarkingSetting.road.isCenter){
+                        console.log(crossLink);
+                        intersection = LineLineIntersection(
+                                link.roadComponent.left, maxY, 
+                                link.stopComponent.left, 0, 
+                                M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex]), maxY, 
+                                M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex]), 0
+                        );
+
+                        markingSpaceElement.innerHTML += CreateSvgLine(
+                            [link.roadComponent.left, maxY],
+                            intersection, 
+                            M2Px(0.15), 
+                            "green", 
+                            0,
+                            1,
+                            0.5
+                        );
+                    }else{
+                        intersection = LineLineIntersection(
+                            link.roadComponent.left, maxY, 
+                            link.stopComponent.left, 0, 
+                            M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex]), maxY, 
+                            M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex]), 0
+                        );
+                    }
+                }
+                if(!lineFinish){
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.stopComponent.left, 0], M2Px(0.15), "red", 0, 1, 0.5);
+                }
+            }
+        }
+
+        //right marking
+        if(rightCombine.isCombine){
+            let color = "white";
+            let lineCount = 1;
+            
+
+
+        }else{
+
+        }
+
+    }
+
+    console.log(roadSegmentRecord);
+    //console.log(roadRecordMap);
+    //console.log(stopRecordMap);
+}
+
+
 
 window.OnIntermidiateDragStart  = function(event){
     dragElement = event.srcElement.closest(".roadComponent");
@@ -2318,3 +2581,6 @@ window.OnIntermidiateDragStart  = function(event){
 
     }
 }
+
+
+
