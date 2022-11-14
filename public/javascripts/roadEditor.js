@@ -2369,12 +2369,12 @@ function RenderIntermidiateStageMarking(tempStorage){
         }
         
         // check right combine marking
-        if(record.roadIndex !== tempStorage.road.length -1 && record.stopIndex !== tempStorage.stop.length - 1){
+        if((record.roadIndex !== tempStorage.road.length -1) && (record.stopIndex !== tempStorage.stop.length - 1)){
             let rightRoadIndex = record.roadIndex + 1;
             if(roadRecordMap[rightRoadIndex] !== undefined){
                 for(let j = 0;j<roadRecordMap[rightRoadIndex].length;++j){
                     let rightRoadRecordIndex = roadRecordMap[rightRoadIndex][j];
-                    if(roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex){
+                    if(roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex + 1){
                         rightCombine.isCombine = true;
                         rightCombine.index = rightRoadIndex;
                         break;
@@ -2463,7 +2463,7 @@ function RenderIntermidiateStageMarking(tempStorage){
                 //if crossing at roadSide
                 if(leftMarkingSetting.road.crossing){
                     let crossLink = roadSegmentRecord[leftMarkingSetting.road.index];
-                    if(leftMarkingSetting.road.isCenter){
+                    if(leftMarkingSetting.road.isCenter || leftMarkingSetting.stop.isCenter){
                         console.log(crossLink);
                         intersection = LineLineIntersection(
                                 link.roadComponent.left, maxY, 
@@ -2489,9 +2489,40 @@ function RenderIntermidiateStageMarking(tempStorage){
                             M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex]), 0
                         );
                     }
-                }
-                if(!lineFinish){
+                    
                     markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.stopComponent.left, 0], M2Px(0.15), "red", 0, 1, 0.5);
+                }else if(leftMarkingSetting.stop.crossing){
+                    let crossLink = roadSegmentRecord[leftMarkingSetting.stop.index];
+                    if(leftMarkingSetting.road.isCenter || leftMarkingSetting.stop.isCenter){
+                        console.log(crossLink);
+                        intersection = LineLineIntersection(
+                                link.roadComponent.left, maxY, 
+                                link.stopComponent.left, 0, 
+                                M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex]), maxY, 
+                                M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex]), 0
+                        );
+
+                        markingSpaceElement.innerHTML += CreateSvgLine(
+                            [link.stopComponent.left, 0],
+                            intersection, 
+                            M2Px(0.15), 
+                            "green", 
+                            0,
+                            1,
+                            0.5
+                        );
+                    }else{
+                        intersection = LineLineIntersection(
+                            link.roadComponent.left, maxY, 
+                            link.stopComponent.left, 0, 
+                            M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex]), maxY, 
+                            M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex]), 0
+                        );
+                    }
+                    
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.roadComponent.left, maxY], M2Px(0.15), "red", 0, 1, 0.5);
+                }else{
+                    markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "red", 0, 1, 0.5);
                 }
             }
         }
@@ -2500,9 +2531,7 @@ function RenderIntermidiateStageMarking(tempStorage){
         if(rightCombine.isCombine){
             let color = "white";
             let lineCount = 1;
-            
-
-
+            markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, 0, lineCount, 0.5);
         }else{
 
         }
