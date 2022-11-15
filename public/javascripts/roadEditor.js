@@ -122,9 +122,6 @@ function LineLineIntersection(x1, y1, x2, y2, x3, y3, x4, y4){
     let tempB = (x1 - x2) * (y3 - y4) - (y1 - y2)*( x3 - x4);
     let tempC = (x1 * y2 - y1 * x2);
 
-    console.log(x1, y1, x2, y2, x3, y3, x4, y4);
-    console.log( [(tempC * (x3 - x4) - (x1 - x2) * tempA) / tempB, (tempC * (y3 - y4) - (y1 - y2) * tempA) /tempB]);
-
     return [(tempC * (x3 - x4) - (x1 - x2) * tempA) / tempB, (tempC * (y3 - y4) - (y1 - y2) * tempA) /tempB];
 }
 
@@ -2375,7 +2372,7 @@ function RenderIntermidiateStageMarking(tempStorage){
             if(roadRecordMap[leftRoadIndex] !== undefined){
                 for(let j = 0;j<roadRecordMap[leftRoadIndex].length;++j){
                     let leftRoadRecordIndex = roadRecordMap[leftRoadIndex][j];
-                    if(roadSegmentRecord[leftRoadRecordIndex].stopIndex === record.stopIndex - 1){
+                    if(roadSegmentRecord[leftRoadRecordIndex].stopIndex === record.stopIndex - 1 && tempStorage.road[record.roadIndex - 1].type === "road"){
                         leftCombine.isCombine = true;
                         leftCombine.index = leftRoadIndex;
                         break;
@@ -2385,7 +2382,7 @@ function RenderIntermidiateStageMarking(tempStorage){
         }
         
         // check right combine marking
-        if((record.roadIndex !== tempStorage.road.length -1) && (record.stopIndex !== tempStorage.stop.length - 1)){
+        if((record.roadIndex !== tempStorage.road.length -1) && (record.stopIndex !== tempStorage.stop.length - 1) && tempStorage.road[record.roadIndex + 1].type === "road"){
             let rightRoadIndex = record.roadIndex + 1;
             if(roadRecordMap[rightRoadIndex] !== undefined){
                 for(let j = 0;j<roadRecordMap[rightRoadIndex].length;++j){
@@ -2433,7 +2430,6 @@ function RenderIntermidiateStageMarking(tempStorage){
             for(let j = 0; j<stopRecordIndexList.length; ++j){
                 if(stopRecordIndexList[j] === i)continue;
                 let linkRecord = roadSegmentRecord[stopRecordIndexList[j]];
-                console.log(linkRecord);
                 if(linkRecord.roadIndex < record.roadIndex){
                     leftMarkingSetting.stop.crossing = true;
                     leftMarkingSetting.stop.index = stopRecordIndexList[j];
@@ -2471,7 +2467,6 @@ function RenderIntermidiateStageMarking(tempStorage){
 
         //left marking
         if(!leftCombine.isCombine){
-            console.log(leftMarkingSetting);
             if(!leftMarkingSetting.road.isCover && !leftMarkingSetting.stop.isCover){
                 //if crossing at roadSide
                 if(leftMarkingSetting.road.crossing){
@@ -2591,7 +2586,6 @@ function RenderIntermidiateStageMarking(tempStorage){
                 if(rightMarkingSetting.road.crossing){
                     let crossLink = roadSegmentRecord[rightMarkingSetting.road.index];
                     if(rightMarkingSetting.road.isCenter || rightMarkingSetting.stop.isCenter){
-                        console.log(crossLink);
                         intersection = LineLineIntersection(
                                 link.roadComponent.right, maxY, 
                                 link.stopComponent.right, 0, 
@@ -2620,7 +2614,6 @@ function RenderIntermidiateStageMarking(tempStorage){
                 }else if(rightMarkingSetting.stop.crossing){
                     let crossLink = roadSegmentRecord[rightMarkingSetting.stop.index];
                     if(rightMarkingSetting.road.isCenter || rightMarkingSetting.stop.isCenter){
-                        console.log(crossLink);
                         intersection = LineLineIntersection(
                                 link.roadComponent.right, maxY, 
                                 link.stopComponent.right, 0, 
@@ -2634,7 +2627,7 @@ function RenderIntermidiateStageMarking(tempStorage){
                             M2Px(0.1), 
                             "white", 
                             [M2Px(1)],
-                            -1
+                            -0.5
                         );
                     }else{
                         intersection = LineLineIntersection(
