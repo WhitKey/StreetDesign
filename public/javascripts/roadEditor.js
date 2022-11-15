@@ -2392,7 +2392,7 @@ function RenderIntermidiateStageMarking(tempStorage){
                     let rightRoadRecordIndex = roadRecordMap[rightRoadIndex][j];
                     if(roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex + 1){
                         rightCombine.isCombine = true;
-                        rightCombine.index = rightRoadIndex;
+                        rightCombine.index = rightRoadRecordIndex;
                         break;
                     }
                 }
@@ -2538,12 +2538,53 @@ function RenderIntermidiateStageMarking(tempStorage){
                     markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
                 }
             }
-        }
+        }  
 
         //right marking
         if(rightCombine.isCombine){
-            let color = "blue";
-            markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, [0, 50], -0.5);
+            let color = "white";
+
+            let rightLink = roadSegmentRecord[rightCombine.index];
+
+            let roadElement;
+            let stopElement;
+            let rightRoadElement;
+            let rightStopElement;
+
+            let leftCrossability;
+            let rightCrossability;
+
+            let markingList = [];
+
+            roadElement = tempStorage.road[record.roadIndex];
+            stopElement = tempStorage.stop[record.stopIndex];
+            rightRoadElement = tempStorage.road[rightLink.roadIndex];
+            rightStopElement = tempStorage.stop[rightLink.stopIndex];
+
+            //set marking color
+            if(rightRoadElement.direction !== roadElement.direction){
+                color = "yellow";
+            }
+
+            leftCrossability = (roadElement.crossability&0b10)&(stopElement.crossability&0b10);
+            rightCrossability = (rightRoadElement.crossability&0b1)&(rightStopElement.crossability&0b1);
+
+            if(leftCrossability !== 0 && rightCrossability !== 0){
+                markingList = [M2Px(1)];
+            }else{
+                if(leftCrossability !== 0){
+                    markingList.push(M2Px(1));
+                }else{
+                    markingList.push(0);
+                }
+                if(rightCrossability !== 0){
+                    markingList.push(M2Px(1));
+                }else{
+                    markingList.push(0);
+                }
+            }
+
+            markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, markingList, -0.5);
         }else{
             if(!rightMarkingSetting.road.isCover && !rightMarkingSetting.stop.isCover){
                 //if crossing at roadSide
