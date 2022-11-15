@@ -1705,7 +1705,6 @@ function EnterIntermidiateStage(){
     let components;
 
     tempVariables.intermidiateSerialCounter = 0;
-    tempVariables.intermidiateOverrideCounter = 0;
 
     for(let i = 0;i< roadSegmentRecord.length;++i){
         tempVariables.intermidiateSerialCounter = tempVariables.intermidiateSerialCounter > roadSegmentRecord.serial ? tempVariables.intermidiateSerialCounter : roadSegmentRecord.serial;
@@ -1942,15 +1941,33 @@ function VerifyAndLink(roadIndex, stopIndex){
     
     // center index override
     if(replaceIdx !== -1){
-        ++tempVariables.intermidiateOverrideCounter;
-        roadSegmentRecord[replaceIdx].overrideSerialNumber = tempVariables.intermidiateOverrideCounter;
+        let intermidiateOverride = 0; 
+        if(isCenter){
+            //find max override serial
+            for(let i = 0;i<roadSegmentRecord.length;++i){
+                let record = roadSegmentRecord[i];
+                if(record.overrideSerialNumber > intermidiateOverride ){
+                    intermidiateOverride = record.overrideSerialNumber;
+                }
+            }
+            ++intermidiateOverride;
+        }
+        roadSegmentRecord[replaceIdx].overrideSerialNumber = intermidiateOverride;
         centerRoadRecord = roadSegmentRecord[replaceIdx];
         centerStopRecord = roadSegmentRecord[replaceIdx];
         
     }else{
         // making link
+        let intermidiateOverride = 0; 
         if(isCenter){
-            ++tempVariables.intermidiateOverrideCounter;
+            //find max override serial
+            for(let i = 0;i<roadSegmentRecord.length;++i){
+                let record = roadSegmentRecord[i];
+                if(record.overrideSerialNumber > intermidiateOverride ){
+                    intermidiateOverride = record.overrideSerialNumber;
+                }
+            }
+            ++intermidiateOverride;
         }
         
         roadSegmentRecord.push(
@@ -1958,7 +1975,7 @@ function VerifyAndLink(roadIndex, stopIndex){
                 roadIndex: roadIndex,
                 stopIndex: stopIndex,
                 serialNumber: tempVariables.intermidiateSerialCounter,
-                overrideSerialNumber: tempVariables.intermidiateOverrideCounter,
+                overrideSerialNumber: intermidiateOverride,
                 roadSideRecord: JSON.stringify(roadRecord),
                 stopSideRecord: JSON.stringify(stopRecord)
             }
