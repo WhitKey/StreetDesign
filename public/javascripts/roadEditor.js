@@ -2282,19 +2282,18 @@ function RenderIntermidiateStage(){
 }
 
 function RenderIntermidiateStageMarking(tempStorage){
-    function CreateSvgLine(startPoint, endPoint, width, color, dashLength, lineCount = 1, offset = -0.5){
-        let xOffset = width * (lineCount * 2 - 1) * offset;
+    function CreateSvgLine(startPoint, endPoint, width, color, dashLengthList, offset = -0.5){
+        let xOffset = width * (dashLengthList.length * 2 - 1) * offset + width / 2;
         let rtn = "";
 
-        for (let i = 0;i< lineCount;++i){
-            if(dashLength === 0){
+        for (let i = 0;i< dashLengthList.length;++i){
+            if(dashLengthList[i] === 0){
                 rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" />`;
             }else{
-                rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dashLength}"/>`;
+                rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dashLengthList[i]}"/>`;
             }
-            xOffset += width;
+            xOffset += width * 2;
         }
-        console.log(rtn);
         return rtn;
     }
 
@@ -2401,7 +2400,7 @@ function RenderIntermidiateStageMarking(tempStorage){
         }
 
         
-        //check road side setting
+        //set road side setting
         let roadRecordIndexList = roadRecordMap[record.roadIndex];
         if(roadRecordIndexList.length !== 1){
             for(let j = 0; j<roadRecordIndexList.length; ++j){
@@ -2428,7 +2427,7 @@ function RenderIntermidiateStageMarking(tempStorage){
             }
         }
 
-        //check stop side setting
+        //set stop side setting
         let stopRecordIndexList = stopRecordMap[record.stopIndex];
         if(stopRecordIndexList.length !== 1){
             for(let j = 0; j<stopRecordIndexList.length; ++j){
@@ -2455,8 +2454,6 @@ function RenderIntermidiateStageMarking(tempStorage){
             }
         }
     
-        // if left didn't combine
-        let lineWidth = M2Px(0.15);
         let link = {
             roadComponent: {
                 width: M2Px(tempStorage.road[record.roadIndex].width),
@@ -2470,8 +2467,7 @@ function RenderIntermidiateStageMarking(tempStorage){
                 left: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]) - M2Px(tempStorage.stop[record.stopIndex].width)
             }
         };
-        let lineFinish = false;
-        let intersection = [link.roadComponent.left, maxY];
+        let intersection;
 
         //left marking
         if(!leftCombine.isCombine){
@@ -2480,8 +2476,8 @@ function RenderIntermidiateStageMarking(tempStorage){
                 //if crossing at roadSide
                 if(leftMarkingSetting.road.crossing){
                     let crossLink = roadSegmentRecord[leftMarkingSetting.road.index];
+                    //if is center
                     if(leftMarkingSetting.road.isCenter || leftMarkingSetting.stop.isCenter){
-                        console.log(crossLink);
                         intersection = LineLineIntersection(
                                 link.roadComponent.left, maxY, 
                                 link.stopComponent.left, 0, 
@@ -2492,11 +2488,10 @@ function RenderIntermidiateStageMarking(tempStorage){
                         markingSpaceElement.innerHTML += CreateSvgLine(
                             [link.roadComponent.left, maxY],
                             intersection, 
-                            M2Px(0.15), 
-                            "green", 
-                            0,
-                            1,
-                            0.5
+                            M2Px(0.1), 
+                            "white", 
+                            [M2Px(1)],
+                            -0.5
                         );
                     }else{
                         intersection = LineLineIntersection(
@@ -2507,8 +2502,10 @@ function RenderIntermidiateStageMarking(tempStorage){
                         );
                     }
                     
-                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.stopComponent.left, 0], M2Px(0.15), "red", 0, 1, 0.5);
-                }else if(leftMarkingSetting.stop.crossing){
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
+                    
+                }// crossing at stop side
+                else if(leftMarkingSetting.stop.crossing){
                     let crossLink = roadSegmentRecord[leftMarkingSetting.stop.index];
                     if(leftMarkingSetting.road.isCenter || leftMarkingSetting.stop.isCenter){
                         console.log(crossLink);
@@ -2522,11 +2519,10 @@ function RenderIntermidiateStageMarking(tempStorage){
                         markingSpaceElement.innerHTML += CreateSvgLine(
                             [link.stopComponent.left, 0],
                             intersection, 
-                            M2Px(0.15), 
-                            "green", 
-                            0,
-                            1,
-                            0.5
+                            M2Px(0.1), 
+                            "white", 
+                            [M2Px(1)],
+                            -0.5
                         );
                     }else{
                         intersection = LineLineIntersection(
@@ -2537,27 +2533,84 @@ function RenderIntermidiateStageMarking(tempStorage){
                         );
                     }
                     
-                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.roadComponent.left, maxY], M2Px(0.15), "red", 0, 1, 0.5);
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.roadComponent.left, maxY], M2Px(0.15), "white", [0], 0);
                 }else{
-                    markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "red", 0, 1, 0.5);
+                    markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
                 }
             }
         }
 
         //right marking
         if(rightCombine.isCombine){
-            let color = "white";
-            let lineCount = 1;
-            markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, 0, lineCount, 0.5);
+            let color = "blue";
+            markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, [0, 50], -0.5);
         }else{
+            if(!rightMarkingSetting.road.isCover && !rightMarkingSetting.stop.isCover){
+                //if crossing at roadSide
+                if(rightMarkingSetting.road.crossing){
+                    let crossLink = roadSegmentRecord[rightMarkingSetting.road.index];
+                    if(rightMarkingSetting.road.isCenter || rightMarkingSetting.stop.isCenter){
+                        console.log(crossLink);
+                        intersection = LineLineIntersection(
+                                link.roadComponent.right, maxY, 
+                                link.stopComponent.right, 0, 
+                                M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex] - tempStorage.road[crossLink.roadIndex].width), maxY, 
+                                M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex] - tempStorage.stop[crossLink.stopIndex].width), 0
+                        );
 
+                        markingSpaceElement.innerHTML += CreateSvgLine(
+                            [link.roadComponent.right, maxY],
+                            intersection, 
+                            M2Px(0.1), 
+                            "white", 
+                            [M2Px(1)],
+                            -0.5
+                        );
+                    }else{
+                        intersection = LineLineIntersection(
+                            link.roadComponent.right, maxY, 
+                            link.stopComponent.right, 0, 
+                            M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex] - tempStorage.road[crossLink.roadIndex].width), maxY, 
+                            M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex] - tempStorage.stop[crossLink.stopIndex].width), 0
+                        );
+                    }
+                    
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
+                }else if(rightMarkingSetting.stop.crossing){
+                    let crossLink = roadSegmentRecord[rightMarkingSetting.stop.index];
+                    if(rightMarkingSetting.road.isCenter || rightMarkingSetting.stop.isCenter){
+                        console.log(crossLink);
+                        intersection = LineLineIntersection(
+                                link.roadComponent.right, maxY, 
+                                link.stopComponent.right, 0, 
+                                M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex] - tempStorage.road[crossLink.roadIndex].width), maxY, 
+                                M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex] - tempStorage.stop[crossLink.stopIndex].width), 0
+                        );
+
+                        markingSpaceElement.innerHTML += CreateSvgLine(
+                            [link.stopComponent.right, 0],
+                            intersection, 
+                            M2Px(0.1), 
+                            "white", 
+                            [M2Px(1)],
+                            -1
+                        );
+                    }else{
+                        intersection = LineLineIntersection(
+                            link.roadComponent.right, maxY, 
+                            link.stopComponent.right, 0, 
+                            M2Px(tempVariables.componentXCoord.road[crossLink.roadIndex] - tempStorage.road[crossLink.roadIndex].width), maxY, 
+                            M2Px(tempVariables.componentXCoord.stop[crossLink.stopIndex] - tempStorage.stop[crossLink.stopIndex].width), 0
+                        );
+                    }
+                    
+                    markingSpaceElement.innerHTML += CreateSvgLine(intersection, [link.roadComponent.right, maxY], M2Px(0.15), "white", [0], -1);
+                }else{
+                    markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
+                }
+            }
         }
-
     }
-
-    console.log(roadSegmentRecord);
-    //console.log(roadRecordMap);
-    //console.log(stopRecordMap);
 }
 
 
