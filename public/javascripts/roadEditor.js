@@ -469,8 +469,7 @@ function RemoveComponent(target, move = false) {
     
     let compIndex = GetComponentIdx(target);
     RemoveComponentRecord(compIndex);
-    console.log(roadSegmentRecord);
-
+    
     target.remove();
     if(!move){
         PushUndoStack(tempVariables.state);
@@ -1473,9 +1472,14 @@ window.OnClearLand = function(){
 // Validation functions
 //
 //------------------------------
-function StageVerify(){
+function StageVerify(updateWarningPopup = false){
     let widthSum = 0;
     let chkFlag = true;
+
+    if(updateWarningPopup){
+        InitWarningPopup();
+    }
+
     if(currentStage !== 2){
         //check width sum
         roadSegmentRecord.forEach(record => {
@@ -1484,18 +1488,29 @@ function StageVerify(){
     
         if(widthSum !== landWidth){
             chkFlag = false;
+
+            if(updateWarningPopup){
+                WarningPopupAddMessage("道路空間未填滿", 3);
+            }
         }
     
     
-        //check process
-        if(chkFlag){
-            if(!nextButtonElement.classList.contains("active")){
-                nextButtonElement.classList.add("active");
-            }
-        }else{
-            if(nextButtonElement.classList.contains("active")){
-                nextButtonElement.classList.remove("active");
-            }
+        
+    }else{
+        chkFlag = false;
+        if(updateWarningPopup){
+            WarningPopupAddMessage("not avaliable", 3);
+        }
+    }
+
+    //check process
+    if(chkFlag){
+        if(!nextButtonElement.classList.contains("active")){
+            nextButtonElement.classList.add("active");
+        }
+    }else{
+        if(nextButtonElement.classList.contains("active")){
+            nextButtonElement.classList.remove("active");
         }
     }
     return chkFlag;
@@ -1543,8 +1558,6 @@ function IntermidiateStageTempStorageRefit(){
         }
     }
 
-    console.log(removeList);
-
     //remove
     removeList = removeList.sort().reverse();
     for(let i = 0;i< removeList.length;++i){
@@ -1553,6 +1566,18 @@ function IntermidiateStageTempStorageRefit(){
     // update local storage
     localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
     return tempStorage;
+}
+
+function InitWarningPopup(){
+    document.getElementById("warningPopupBody").innerHTML = "";
+}
+
+function WarningPopupAddMessage(message, level){
+    document.getElementById("warningPopupBody").innerHTML += 
+    `<div class = "warning">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div class = "info">${message}</div>
+    </div>`;
 }
 
 //-----------------------------
@@ -1676,7 +1701,7 @@ window.OnSwitchSegment = function(isNext = true){
     let oriStage = currentStage;
 
     //validation
-    if(!StageVerify() && isNext){
+    if(!StageVerify(true) && isNext){
         ActivateWarningPopup();
         return;
     }
@@ -2580,7 +2605,6 @@ function RenderIntermidiateStageMarking(tempStorage){
                 else if(leftMarkingSetting.stop.crossing){
                     let crossLink = roadSegmentRecord[leftMarkingSetting.stop.index];
                     if(leftMarkingSetting.road.isCenter || leftMarkingSetting.stop.isCenter){
-                        console.log(crossLink);
                         intersection = LineLineIntersection(
                                 link.roadComponent.left, maxY, 
                                 link.stopComponent.left, 0, 

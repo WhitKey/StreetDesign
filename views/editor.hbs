@@ -26,6 +26,11 @@
         <div id="nextButton" class="stageCntlButton" onclick="OnSwitchSegment();">下一步</div>
         <div id="prevButton" class="stageCntlButton active" onclick="OnSwitchSegment(false);">上一步</div>
         <div id="warningPopup" class="popupFrame window" onfocusout="OnWarningPopupFocusout(event);"  tabindex="0">
+            <div class="frame">
+                <div id="warningPopupTitle">錯誤清單</div>
+                <hr style="margin-top:5px;margin-bottom:5px;">
+                <div id="warningPopupBody"></div>
+            </div>
         </div>
     </div>
 
