@@ -219,7 +219,7 @@ function LoadPrevSession(){
     let tempStorage = localStorage.getItem("tempStorage");
     //currentSection = editorElement.getAttribute("currentSection");
     if(tempStorage !== null){
-        tempStorage = JSON.parse(tempStorage);
+        tempStorage = IntermidiateStageTempStorageRefit();
         if(landWidth !== tempStorage.landWidth || temp.tempVersion !== tempStorage.tempVersion){
             localStorage.setItem("tempStorage", JSON.stringify(temp));
         }else{
@@ -238,7 +238,7 @@ function RebuildUnusedSection(){
     let storage = JSON.parse(localStorage.getItem("tempStorage"));
     if(storage === null) return;
     DesignStage.forEach(stage => {
-        if(storage[stage] && stage !== DesignStage[currentStage]){
+        if(storage[stage] && stage !== DesignStage[currentStage] && stage !== "intermidiate"){
             document.getElementById(`${stage}Section`).innerHTML = MakeRoadSegmentHTML(storage[stage]);
         }
     });
@@ -253,10 +253,6 @@ window.OnLoad = function() {
 
     //initialize temp variavbles
     tempVariables['road'] = {
-        'redo':'[]',
-        'undo':'[]' 
-    }
-    tempVariables['intermidiate'] = {
         'redo':'[]',
         'undo':'[]' 
     }
@@ -310,15 +306,13 @@ window.OnLoad = function() {
 
 function ImportRoadSegmentRecordJSON(json, updateMarking = true){
     if(currentStage === 2){
-        
         //overwrite roadSegmentRecord
         roadSegmentRecord = json;
-
+        
         if(updateMarking){
             //Render
             RenderIntermidiateStage();
         }
-
     }else{
         ClearRoadSegmentRecord();
         
@@ -1482,28 +1476,83 @@ window.OnClearLand = function(){
 function StageVerify(){
     let widthSum = 0;
     let chkFlag = true;
+    if(currentStage !== 2){
+        //check width sum
+        roadSegmentRecord.forEach(record => {
+            widthSum+=record.width;
+        });
     
-    //check width sum
-    roadSegmentRecord.forEach(record => {
-        widthSum+=record.width;
-    });
-
-    if(widthSum !== landWidth){
-        chkFlag = false;
-    }
-
-
-    //check process
-    if(chkFlag){
-        if(!nextButtonElement.classList.contains("active")){
-            nextButtonElement.classList.add("active");
+        if(widthSum !== landWidth){
+            chkFlag = false;
         }
-    }else{
-        if(nextButtonElement.classList.contains("active")){
-            nextButtonElement.classList.remove("active");
+    
+    
+        //check process
+        if(chkFlag){
+            if(!nextButtonElement.classList.contains("active")){
+                nextButtonElement.classList.add("active");
+            }
+        }else{
+            if(nextButtonElement.classList.contains("active")){
+                nextButtonElement.classList.remove("active");
+            }
         }
     }
     return chkFlag;
+}
+
+function IntermidiateStageTempStorageRefit(){
+    let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+    let intermidiateRecord = tempStorage.intermidiate;
+    let removeList = [];
+
+    console.log("intermidiate stage refit");
+
+    if(intermidiateRecord === undefined){
+        tempStorage.intermidiate = [];
+        return;
+    }
+
+    // select for remove
+    for(let i = 0;i<intermidiateRecord.length;++i){
+        let record =  intermidiateRecord[i];
+        let roadConnectionRecord = JSON.parse(record.roadSideRecord);
+        let stopConnectionRecord = JSON.parse(record.stopSideRecord);
+
+        //check connection
+        if(roadConnectionRecord.type !== tempStorage.road[record.roadIndex].type || stopConnectionRecord.type !== tempStorage.stop[record.stopIndex].type){
+            removeList.push(i);
+            continue;
+        }
+        if(roadConnectionRecord.type === "road"){
+            if(
+                (roadConnectionRecord.direction !== tempStorage.road[record.roadIndex].direction) ||
+                (stopConnectionRecord.direction !== tempStorage.stop[record.stopIndex].direction )
+                ){
+                removeList.push(i);
+                continue;
+            }
+            
+            if(
+                (roadConnectionRecord.exitDirection & tempStorage.road[record.roadIndex].exitDirection) === 0 ||
+                (stopConnectionRecord.exitDirection & tempStorage.stop[record.stopIndex].exitDirection) === 0
+            ){
+                removeList.push(i);
+                continue;
+            }
+        }
+    }
+
+    console.log(removeList);
+
+    //remove
+    removeList = removeList.sort().reverse();
+    for(let i = 0;i< removeList.length;++i){
+        tempStorage.intermidiate.splice(removeList[i], 1);
+    }
+    // update local storage
+    localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+    return tempStorage;
 }
 
 //-----------------------------
@@ -1594,8 +1643,10 @@ function SwitchEditorRoadSegment(fromStage, toStage){
     toSection.innerHTML = "";
 
     //store old undo / redo stack
-    tempVariables[DesignStage[fromStage]]['redo'] = JSON.stringify(redoStack);
-    tempVariables[DesignStage[fromStage]]['undo'] = JSON.stringify(undoStack);
+    if(fromStage !== 2){
+        tempVariables[DesignStage[fromStage]]['redo'] = JSON.stringify(redoStack);
+        tempVariables[DesignStage[fromStage]]['undo'] = JSON.stringify(undoStack);
+    }
 
     let sectionElement;
     let sectionSvgElement;
@@ -1660,11 +1711,10 @@ window.OnSwitchSegment = function(isNext = true){
     StageVerify();
 
     //update marking space
-    if(currentStage !== 2){
-        prevRecord = JSON.parse(localStorage.getItem("tempStorage"))[DesignStage[currentStage]];
-        if(prevRecord){
-            ImportRoadSegmentRecordJSON(prevRecord, false);
-            
+    prevRecord = IntermidiateStageTempStorageRefit()[DesignStage[currentStage]];
+    if(prevRecord){
+        ImportRoadSegmentRecordJSON(prevRecord, false);
+        if(currentStage !== 2){
             markingSpaceElement.style.opacity = "0";
             markingSpaceElement.style.transitionDuration = "500ms";
             setTimeout(()=>{
@@ -1675,6 +1725,10 @@ window.OnSwitchSegment = function(isNext = true){
                     markingSpaceElement.style.removeProperty("transition-duration");
                 }, 550);
             }, 400);
+        }else{
+            setTimeout(()=>{
+                RenderIntermidiateStage();
+            }, 300);
         }
     }
     
@@ -1684,7 +1738,9 @@ window.OnSwitchSegment = function(isNext = true){
     }, 300);
 
     // storage related process
-    RestoreSectionStack();
+    if(currentStage !== 2){
+        RestoreSectionStack();
+    }
     SaveTempStorage();
 
 }
@@ -1721,7 +1777,7 @@ function EnterIntermidiateStage(){
     tempVariables.intermidiateSerialCounter = 0;
 
     for(let i = 0;i< roadSegmentRecord.length;++i){
-        tempVariables.intermidiateSerialCounter = tempVariables.intermidiateSerialCounter > roadSegmentRecord.serial ? tempVariables.intermidiateSerialCounter : roadSegmentRecord.serial;
+        tempVariables.intermidiateSerialCounter = tempVariables.intermidiateSerialCounter > roadSegmentRecord[i].serial ? tempVariables.intermidiateSerialCounter : roadSegmentRecord[i].serial;
     }
     ++tempVariables.intermidiateSerialCounter;
 
