@@ -285,8 +285,8 @@ window.OnLoad = function() {
     UpdateSidewalkMinWidth();
 
     if(prevRecord !== null){
+        ImportRoadSegmentRecordJSON(prevRecord, false);
         if(currentStage !== 2){
-            ImportRoadSegmentRecordJSON(prevRecord, false);
             markingSpaceElement.style.opacity = "0";
             markingSpaceElement.style.transitionDuration = "500ms";
             setTimeout(()=>{
@@ -298,41 +298,58 @@ window.OnLoad = function() {
                 }, 550);
                 
             }, 300);
+        }else{
+            setTimeout(()=>{
+                RenderIntermidiateStage();
+            }, 300);
+
         }
         UpdatePrevButtonVis();
     }
 }
 
 function ImportRoadSegmentRecordJSON(json, updateMarking = true){
-    ClearRoadSegmentRecord();
+    if(currentStage === 2){
+        
+        //overwrite roadSegmentRecord
+        roadSegmentRecord = json;
+
+        if(updateMarking){
+            //Render
+            RenderIntermidiateStage();
+        }
+
+    }else{
+        ClearRoadSegmentRecord();
+        
+        //construct html
+        for(let i = 0;i< json.length;++i){
+            let componentType = json[i].type;
+            let component = roadComponentTemplate.cloneNode(true);
+            let emptyComp = document.getElementById(`hb${i}c`);
     
-    //construct html
-    for(let i = 0;i< json.length;++i){
-        let componentType = json[i].type;
-        let component = roadComponentTemplate.cloneNode(true);
-        let emptyComp = document.getElementById(`hb${i}c`);
-
-
-        //set up new component
-        component.id = "comp" + componentCounter.toString();
-        component.style.width = M2Percent(json[i].width);
-        component.setAttribute("component", componentType);
-        component.appendChild(templateBase[componentType].cloneNode(true));
-        ++componentCounter;
-
-        //insert component into land 
-        landElement.insertBefore(component, emptyComp.nextSibling);
-        AddHitbox(component);
-    }
     
-    //overwrite roadSegmentRecord
-    roadSegmentRecord = json;
-
-    //update marking and icon
-    if(updateMarking){
-        UpdateMarkingSpace();
+            //set up new component
+            component.id = "comp" + componentCounter.toString();
+            component.style.width = M2Percent(json[i].width);
+            component.setAttribute("component", componentType);
+            component.appendChild(templateBase[componentType].cloneNode(true));
+            ++componentCounter;
+    
+            //insert component into land 
+            landElement.insertBefore(component, emptyComp.nextSibling);
+            AddHitbox(component);
+        }
+        
+        //overwrite roadSegmentRecord
+        roadSegmentRecord = json;
+    
+        //update marking and icon
+        if(updateMarking){
+            UpdateMarkingSpace();
+        }
+        UpdateRoadExitDirectionIcon();
     }
-    UpdateRoadExitDirectionIcon();
     StageVerify();
 }
 
@@ -2124,13 +2141,17 @@ function OnIntermidiateDragEnd(event){
             linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
             
             if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
+                tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
                 if(draging){
                     //deleting mode
                     VerifyAndDelete(linkage.roadSection, linkage.stopSection);
+                    // save to temp storage
+                    PushUndoStack(tempVariables.state);
+                    
                 }else{
                     // adding mode
                     if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
-                        //
+                        PushUndoStack(tempVariables.state);
                     }
                 }
             }
