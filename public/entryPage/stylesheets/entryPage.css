@@ -1,0 +1,23 @@
+#page{
+	height: 100%;
+	width:100%;
+	display:flex;
+}
+
+.pageFrame{
+	transition-property: width;
+	transition-duration: 500ms;
+	transition-timing-function: ease-out;
+	width:0px;
+	height:100%;
+	overflow-x: hidden;
+}
+
+.currPage{
+	width:100%;
+}
+
+.pageinner{
+	height: 100%;
+	width:100vw;
+}
