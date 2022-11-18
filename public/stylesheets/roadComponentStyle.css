@@ -114,7 +114,7 @@ polygon.bollard {
 }
 
 .unusedSection.intermidiate * * .roadComponentIcon{
-    opacity: unset;
+    /*opacity: unset;*/
 }
 
 .rot180{

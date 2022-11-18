@@ -263,7 +263,7 @@ function RebuildUnusedSection(){
         }
     });
 
-    UnusedMarkingSpaceInit(currentStage !== 2);
+    UnusedMarkingSpaceInit(/*currentStage !== 2*/);
 }
 
 window.OnLoad = function() {
@@ -1196,8 +1196,8 @@ function CreateVerticalMarking(color, x, type, markingWidth, offsetIndex = 0, da
 }
 
 function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
-    let fontsize = 10;
-    let textY = y - fontsize - 2;
+    let fontsize = 15;
+    let textY = y - fontsize/2 ;
     let arrowHeadLength = 5;
     let arrowHeadWidth = 3;
     let lineWidth = 1;
@@ -1235,7 +1235,7 @@ function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
     }
 
     //craete text
-    rtn += `<text x="${x + width / 2}" y="${textY}" fill="${color}" font-size="${fontsize}" text-anchor="middle">${record.width} m</text>`
+    rtn += `<text x="${x + width / 2}" y="${textY}" fill="${color}" font-size="${fontsize}" text-anchor="middle" background="red">${record.width} m</text>`
 
     return rtn;
 }
@@ -1354,7 +1354,7 @@ window.ResizeMarkingSpace = function(timeWindow){
     if(ResizeMarkingSpace.timeout){
         clearTimeout(ResizeMarkingSpace.timeout); 
     }
-    ResizeMarkingSpace.timeout = setTimeout(()=>{UpdateMarkingSpace(); UnusedMarkingSpaceInit(currentStage !== 2);}, timeWindow);
+    ResizeMarkingSpace.timeout = setTimeout(()=>{UpdateMarkingSpace(); UnusedMarkingSpaceInit(/*currentStage !== 2*/);}, timeWindow);
 }
 
 //-----------------------------
@@ -1510,7 +1510,11 @@ function StageVerify(updateWarningPopup = false){
             chkFlag = false;
 
             if(updateWarningPopup){
-                WarningPopupAddMessage("道路空間未填滿", 3);
+                if(widthSum > landWidth){
+                    WarningPopupAddMessage("腹地空間不足", 3);
+                }else{
+                    WarningPopupAddMessage("道路空間未填滿", 3);
+                }
             }
         }
     
@@ -1779,7 +1783,7 @@ window.OnSwitchSegment = function(isNext = true){
     
     // update unused marking space
     setTimeout(()=>{
-        UnusedMarkingSpaceInit(currentStage!==2);
+        UnusedMarkingSpaceInit(/*currentStage!==2*/);
     }, 300);
 
     // storage related process
