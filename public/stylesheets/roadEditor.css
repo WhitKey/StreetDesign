@@ -5,298 +5,298 @@
 @import url("warningPopupStyle.css");
 
 .window {
-    border-radius: 5px;
+	border-radius: 5px;
 }
 
 #mainWindow {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
+	display: flex;
+	flex-direction: row;
+	height: 100%;
 }
 
 #editor {
-    display: flex;
-    height: calc(100% - 4px);
-    flex-flow: column;
-    flex-grow: 1;
-    flex-shrink: 1;
-    background-color: green;
-    position: relative;
-    z-index: 0;
+	display: flex;
+	height: calc(100% - 4px);
+	flex-flow: column;
+	flex-grow: 1;
+	flex-shrink: 1;
+	background-color: green;
+	position: relative;
+	z-index: 0;
 }
 
 #sidebar{
-    background-color: darkgray;
-    width: 15%;
-    height: calc(100% - 3px);
-    min-width: 210px;
-    margin: 1px;
-    margin-right: 5px;
-    padding: 10px;
-    z-index: 1;
-    transition-property: all, min-width;
-    transition-duration: 200ms, 200ms;
-    transition-delay: 0ms, 200ms;
+	background-color: darkgray;
+	width: 15%;
+	height: calc(100% - 3px);
+	min-width: 210px;
+	margin: 1px;
+	margin-right: 5px;
+	padding: 10px;
+	z-index: 1;
+	transition-property: all, min-width;
+	transition-duration: 200ms, 200ms;
+	transition-delay: 0ms, 200ms;
 }
 
 #sidebar.intermidiate{
-    transition-property: min-width;
-    transition-delay: 0ms;
-    min-width: 0;
-    width:50px;
-    margin:0px;
-    padding:5px;
+	transition-property: min-width;
+	transition-delay: 0ms;
+	min-width: 0;
+	width:50px;
+	margin:0px;
+	padding:5px;
 }
 
 #sidebar.intermidiate .utilButtonList{
-    height: 100%;
-    width: 100%;
-    flex-direction: column;
+	height: 100%;
+	width: 100%;
+	flex-direction: column;
 }
 
 #sidebar.intermidiate .utilButtonList .utilButton{
-    height: unset;
+	height: unset;
 }
 
 #sidebar.intermidiate #componentList {
-    display: none;
+	display: none;
 }
 
 #leftSlideout{
-    width: 0px;
-    height: 100vh;
-    transition: width 300ms;
-    background-color: #b1b1b1;
-    position: absolute;
-    min-width: 0px;
-    z-index: 10;
-    overflow-y: auto;
-    overflow-x: hidden;
+	width: 0px;
+	height: 100vh;
+	transition: width 300ms;
+	background-color: #b1b1b1;
+	position: absolute;
+	min-width: 0px;
+	z-index: 10;
+	overflow-y: auto;
+	overflow-x: hidden;
 }
 
 .clickOn #leftSlideout{
-    width: calc(15vw + 5px);
-    min-width: 210px;
-    transition-property: min-width, width;
-    transition-delay:  300ms , 0ms;
-    transition-duration:  0ms, 300ms;
-    padding: 10px;
-    left: 0;
+	width: calc(15vw + 5px);
+	min-width: 210px;
+	transition-property: min-width, width;
+	transition-delay:  300ms , 0ms;
+	transition-duration:  0ms, 300ms;
+	padding: 10px;
+	left: 0;
 }
 
 #designInfo{
-    border-width: 3px;
-    border-bottom: solid;
-    border-color: gray;
+	border-width: 3px;
+	border-bottom: solid;
+	border-color: gray;
 }
 
 #land {
-    background-color: rgb(161, 114, 43);
-    height: 100%;
-    width: 100%;
-    align-self: center;
-    position: relative;
-    display: flex;
-    justify-content: start;
-    flex-wrap: nowrap;
-    flex-grow: 1;
+	background-color: rgb(161, 114, 43);
+	height: 100%;
+	width: 100%;
+	align-self: center;
+	position: relative;
+	display: flex;
+	justify-content: start;
+	flex-wrap: nowrap;
+	flex-grow: 1;
 }
 
 #land.intermidiate{
-    background-color: dimgray;
+	background-color: dimgray;
 }
 
 #trashcan {
-    position: absolute;
-    height: 0px;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;
-    background-color: red;
-    transition: 0.1s;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: -1;
+	position: absolute;
+	height: 0px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	background-color: red;
+	transition: 0.1s;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: -1;
 }
 
 .hitOn #trashcan {
-    height: 150px;
-    z-index: 2;
+	height: 150px;
+	z-index: 2;
 }
 
 .markingSpace{
-    position:absolute;
-    width:100%;
-    height:100%;
-    touch-action:none;
-    z-index: 1;
-    pointer-events: none;
+	position:absolute;
+	width:100%;
+	height:100%;
+	touch-action:none;
+	z-index: 1;
+	pointer-events: none;
 }
 
 .clickOn #markingSpace .marking{
-    transition-duration: 200ms;
+	transition-duration: 200ms;
 }
 
 .hitOn #markingSpace{
-    display: none;
+	display: none;
 }
 
 .clickOn #markingSpace .marking{
-    opacity: 0.4;
+	opacity: 0.4;
 
 }
 
 .unusedSection {
-    width: 100%;
-    height: 50px;
-    display:flex;
-    background-color: rgb(161, 114, 43);
+	width: 100%;
+	height: 50px;
+	display:flex;
+	background-color: rgb(161, 114, 43);
 }
 
 .usingSection {
-    width: 100%;
-    height: 10px;
-    flex-grow: 1;
+	width: 100%;
+	height: 10px;
+	flex-grow: 1;
 }
 
 .draggingElement {
-    opacity: 0.5;
-    max-width: 300px;
-    max-height: 300px;
-    position: absolute;
-    pointer-events: none;
-    z-index:2;
+	opacity: 0.5;
+	max-width: 300px;
+	max-height: 300px;
+	position: absolute;
+	pointer-events: none;
+	z-index:2;
 }
 
 .roadScope {
-    width: 90%;
-    align-self: center;
-    transition-duration: 300ms;
-    position: relative;
+	width: 90%;
+	align-self: center;
+	transition-duration: 300ms;
+	position: relative;
 }
 
 .hitbox {
-    left: 0px;
-    right: 0px;
-    width: 0px;
-    height: 100%;
-    opacity: 0.8;
-    position: relative;
-    transition-duration: 0.05s;
-    flex-shrink: 0;
+	left: 0px;
+	right: 0px;
+	width: 0px;
+	height: 100%;
+	opacity: 0.8;
+	position: relative;
+	transition-duration: 0.05s;
+	flex-shrink: 0;
 }
 
 .hitOn .hitbox {
-    width: 10px;
-    transition-duration: 0.05s;
-    background-color: aquamarine;
+	width: 10px;
+	transition-duration: 0.05s;
+	background-color: aquamarine;
 }
 
 .hitOn * .hitbox {
-    width: 10px;
-    transition-duration: 0.05s;
-    background-color: aquamarine;
+	width: 10px;
+	transition-duration: 0.05s;
+	background-color: aquamarine;
 }
 
 .trashcan {
-    margin-top: auto;
-    background-color: red;
+	margin-top: auto;
+	background-color: red;
 }
 
 .utilButtonList{
-    margin-bottom:5px;
-    width:100%; 
-    height: 30px; 
-    background-color:white;
-    display:flex;
-    padding:5px;
-    transition-duration: 200ms;
+	margin-bottom:5px;
+	width:100%; 
+	height: 30px; 
+	background-color:white;
+	display:flex;
+	padding:5px;
+	transition-duration: 200ms;
 }
 
 .utilButton{
-    aspect-ratio:1;
-    height:20px;
-    margin-right:5px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    color:lightgray;
+	aspect-ratio:1;
+	height:20px;
+	margin-right:5px;
+	display:flex;
+	justify-content:center;
+	align-items:center;
+	color:lightgray;
 }
 
 .utilButton.active{
-    color:gray;
-    transition-duration: 200ms;
+	color:gray;
+	transition-duration: 200ms;
 }
 
 .utilButton.active:hover{
-    color:gray;
-    background-color:lightgray;
+	color:gray;
+	background-color:lightgray;
 }
 
 .stageCntlButton{
-    height: 30px;
-    width: 70px;
-    position:absolute;
-    border-width: 3px;
-    color: cyan;
-    border: solid;
-    line-height: 30px;
-    text-align: center;
-    background-color: darkcyan;
-    font-weight: 1000;
-    opacity: 0.3;
-    z-index: 2;
-    border-radius: 5px;
-    transition: background-color 300ms;
+	height: 30px;
+	width: 70px;
+	position:absolute;
+	border-width: 3px;
+	color: cyan;
+	border: solid;
+	line-height: 30px;
+	text-align: center;
+	background-color: darkcyan;
+	font-weight: 1000;
+	opacity: 0.3;
+	z-index: 2;
+	border-radius: 5px;
+	transition: background-color 300ms;
 }
 
 .stageCntlButton.active {
-    opacity: 1;
+	opacity: 1;
 }
 
 .stageCntlButton.active:hover {
-    background-color: darkturquoise;
+	background-color: darkturquoise;
 }
 
 #nextButton{
-    right: 5px;
-    bottom: 10px;
+	right: 5px;
+	bottom: 10px;
 }
 
 #prevButton{
-    left: 5px;
-    bottom: 10px;
+	left: 5px;
+	bottom: 10px;
 }
 
 @media screen and (max-width: 600px) {
-    #mainWindow {
-        flex-direction: column-reverse;
-        justify-content: flex-start;
-    }
-    #sidebar {
-        width: auto;
-        height: 35%;
-        margin-right: 0px;
-    }
+	#mainWindow {
+		flex-direction: column-reverse;
+		justify-content: flex-start;
+	}
+	#sidebar {
+		width: auto;
+		height: 35%;
+		margin-right: 0px;
+	}
 
-    #leftSlideout{
-        transition: height 300ms;
-        position: absolute;
-        height: 0vh;
-        width: 100vw;
-    }
-    
-    .clickOn #leftSlideout{
-        height: calc(35vh);
-        width: calc(100% - 0px);
-    }
+	#leftSlideout{
+		transition: height 300ms;
+		position: absolute;
+		height: 0vh;
+		width: 100vw;
+	}
+	
+	.clickOn #leftSlideout{
+		height: calc(35vh);
+		width: calc(100% - 0px);
+	}
 
-    #sidebar.intermidiate{
-        height:50px;
-        width: 100%;
-    }
+	#sidebar.intermidiate{
+		height:50px;
+		width: 100%;
+	}
 
-    #sidebar.intermidiate .utilButtonList{
-        flex-direction: row;
-    }
+	#sidebar.intermidiate .utilButtonList{
+		flex-direction: row;
+	}
 }

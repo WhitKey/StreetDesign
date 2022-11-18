@@ -10,9 +10,9 @@ const LandMinWidth = 1;
 const SessionStorageName = "entryConfig";
 
 let entryConfig = {
-    loadLocal: false,
-    loadExtern: false,
-    landWidth: 15
+	loadLocal: false,
+	loadExtern: false,
+	landWidth: 15
 };
 
 //--------------------------
@@ -21,7 +21,7 @@ let entryConfig = {
 //
 //--------------------------
 window.OnLoad = function(){
-    console.log("load");
+	console.log("load");
 }
 
 //--------------------------
@@ -30,7 +30,7 @@ window.OnLoad = function(){
 //
 //--------------------------
 function SaveToSession(){
-    sessionStorage.setItem(SessionStorageName, JSON.stringify(entryConfig));
+	sessionStorage.setItem(SessionStorageName, JSON.stringify(entryConfig));
 }
 
 
@@ -40,19 +40,19 @@ function SaveToSession(){
 //
 //--------------------------
 window.OnChangeLandWidth = function(event){
-    let value = event.target.value;
-    if(value > LandMaxWidth){
-        value = LandMaxWidth;
-        event.target.value = value;
-    }
-    else if(value < LandMinWidth){
-        value = LandMinWidth;
-        event.target.value = value;
-    }
-    entryConfig.landWidth = parseFloat(value);
+	let value = event.target.value;
+	if(value > LandMaxWidth){
+		value = LandMaxWidth;
+		event.target.value = value;
+	}
+	else if(value < LandMinWidth){
+		value = LandMinWidth;
+		event.target.value = value;
+	}
+	entryConfig.landWidth = parseFloat(value);
 }
 
 window.ToEditor = function(){
-    SaveToSession();
-    window.location.replace('/');
+	SaveToSession();
+	window.location.replace('/');
 }

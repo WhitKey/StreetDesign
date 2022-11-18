@@ -1,109 +1,109 @@
 
 #propertyEditor{
-    width: 100%;
-    height: 100%;
+	width: 100%;
+	height: 100%;
 }
 
 #propertySettings{
-    width:100%;
+	width:100%;
 }
 
 .propertyName{
-    text-align: center;
-    margin-right: 5px;
-    text-orientation: upright;
-    writing-mode: vertical-rl;
-    font-size: 20px;
+	text-align: center;
+	margin-right: 5px;
+	text-orientation: upright;
+	writing-mode: vertical-rl;
+	font-size: 20px;
 }
 
 .propertySettingFrame{
-    display: flex;
-    width:100%;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: start;
+	display: flex;
+	width:100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: start;
 }
 
 .propertySettingFrame * {
-    text-overflow: clip;
+	text-overflow: clip;
 }
 
 .propertyCard{
-    min-height: 100px;
-    width:100%;
-    margin-top: 5px;
+	min-height: 100px;
+	width:100%;
+	margin-top: 5px;
 }
 
 .propertyToggle{
-    width: 50px;
-    height:50px;
-    background-color: lightgray;
-    opacity: 0.5;
-    border-radius: 3px;
-    padding:5px;
+	width: 50px;
+	height:50px;
+	background-color: lightgray;
+	opacity: 0.5;
+	border-radius: 3px;
+	padding:5px;
 }
 
 .propertyToggle.enable{
-    background-color: white;
-    opacity: 1;
-    position: relative;
-    transition-duration: 150ms;
+	background-color: white;
+	opacity: 1;
+	position: relative;
+	transition-duration: 150ms;
 }
 
 .propertyToggle.enable::before{
-    position: absolute;
-    background-color: transparent;
-    content: "";
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    border-radius: 3px;
-    transition-duration: 300ms;
-    
-    border: solid;
-    border-width: 2px;
-    border-color: transparent;
+	position: absolute;
+	background-color: transparent;
+	content: "";
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	border-radius: 3px;
+	transition-duration: 300ms;
+	
+	border: solid;
+	border-width: 2px;
+	border-color: transparent;
 }
 
 .propertyToggle.enable:hover::before{
-    
-    border-color: blue;
+	
+	border-color: blue;
 }
 
 .propertyToggle.enable.true{
-    background-color: rgb(46,210,147);
+	background-color: rgb(46,210,147);
 }
 
 .propertyToggle.enable.false{
-    background-color: lightcoral;
+	background-color: lightcoral;
 }
 
 .propertyToggle * {
-    height: 40px;
-    width: 40px;
+	height: 40px;
+	width: 40px;
 }
 
 .propertyToggle img.togglableImg{
-    display: none;
+	display: none;
 }
 
 .propertyToggle.true img.togglableImg.true{
-    display: block;
+	display: block;
 }
 
 .propertyToggle.false img.togglableImg.false{
-    display: block;
+	display: block;
 }
 
 .rot180{
-    rotate: 180;
+	rotate: 180;
 }
 
 @media screen and (max-width: 600px) {
-    #propertyEditor h1{
-        font-size: large;
-    }
+	#propertyEditor h1{
+		font-size: large;
+	}
 
 }

@@ -1,130 +1,130 @@
 
 .roadComponent {
-    width: 50px;
-    height: 100%;
-    position: relative;
-    display: flex;
-    flex-flow: row;
-    flex-shrink: 0;
-    transition-duration: 100ms;
-    transition-property: opacity;
+	width: 50px;
+	height: 100%;
+	position: relative;
+	display: flex;
+	flex-flow: row;
+	flex-shrink: 0;
+	transition-duration: 100ms;
+	transition-property: opacity;
 }
 
 .roadComponent * {
-    width: 100%;
-    height: 100%;
+	width: 100%;
+	height: 100%;
 }
 
 .roadComponent::after{
-    position: absolute;
-    background-color: transparent;
-    left: 0;
-    content: "";
-    height: calc(100% - 0px);
-    width: calc(100% - 0px);
-    border-width: 3px;
+	position: absolute;
+	background-color: transparent;
+	left: 0;
+	content: "";
+	height: calc(100% - 0px);
+	width: calc(100% - 0px);
+	border-width: 3px;
 
-    transition-property: border-color, opacity;
-    transition-duration: 300ms, 300ms;
-    border-style:  dashed;
-    border-color: transparent;
-    pointer-events: none;
-    z-index: 2;
+	transition-property: border-color, opacity;
+	transition-duration: 300ms, 300ms;
+	border-style:  dashed;
+	border-color: transparent;
+	pointer-events: none;
+	z-index: 2;
 }
 
 .roadComponent:hover::after{
-    /*background-color: cyan;*/
-    border-width: 3px;
-    border-color: cyan;
-    left: 0;
+	/*background-color: cyan;*/
+	border-width: 3px;
+	border-color: cyan;
+	left: 0;
 }
 
 .roadComponent.selected::after{
-    border-style:  solid;
-    border-width: 3px;
-    border-color: yellow;
-    left: 0;
+	border-style:  solid;
+	border-width: 3px;
+	border-color: yellow;
+	left: 0;
 }
 
 .roadComponent.acceptable:hover::after{
-    border: solid;
-    border-color: cyan;
+	border: solid;
+	border-color: cyan;
 }
 
 .roadComponent.acceptable::after{
-    border: solid;
-    border-color: blue;
-    border-width: 5px;
+	border: solid;
+	border-color: blue;
+	border-width: 5px;
 }
 
 .component{
-    justify-content: space-around;
-    flex-direction: row;
-    justify-items: center;
+	justify-content: space-around;
+	flex-direction: row;
+	justify-items: center;
 }
 
 .road {
-    background-color: hsl(0, 0%, 11%);
-    flex-shrink: 1;
-    display: flex;
+	background-color: hsl(0, 0%, 11%);
+	flex-shrink: 1;
+	display: flex;
 }
 
 polygon.road{
-    fill: hsl(0, 0%, 11%);
+	fill: hsl(0, 0%, 11%);
 }
 
 .sidewalk {
-    background-color: rgb(145, 39, 39);
-    flex-shrink: 1;
+	background-color: rgb(145, 39, 39);
+	flex-shrink: 1;
 }
 
 polygon.sidewalk {
-    fill: rgb(145, 39, 39);
+	fill: rgb(145, 39, 39);
 }
 
 .bollard {
-    background-color: rgb(143, 143, 143);
-    flex-shrink: 1;
+	background-color: rgb(143, 143, 143);
+	flex-shrink: 1;
 }
 
 polygon.bollard {
-    fill: rgb(143, 143, 143);
+	fill: rgb(143, 143, 143);
 }
 
 .emptyRoadComponent {
-    width: 0px;
-    display: block;
-    height: 100%;
-    background-color: rgba(0, 255, 255, 0.384);
-    transition-duration: 0.1s;
-    transition-property: width;
-    flex-shrink: 0;
+	width: 0px;
+	display: block;
+	height: 100%;
+	background-color: rgba(0, 255, 255, 0.384);
+	transition-duration: 0.1s;
+	transition-property: width;
+	flex-shrink: 0;
 }
 
 .roadComponentIcon {
-    width:50%;
-    align-self: center;
-    aspect-ratio: 1;
-    max-width: 120px;
-    /*position: absolute;*/
+	width:50%;
+	align-self: center;
+	aspect-ratio: 1;
+	max-width: 120px;
+	/*position: absolute;*/
 }
 
 .unusedSection * * .roadComponentIcon{
-    opacity: 0.3;
+	opacity: 0.3;
 }
 
 .unusedSection.intermidiate * * .roadComponentIcon{
-    /*opacity: unset;*/
+	/*opacity: unset;*/
 }
 
 .rot180{
-    transform: rotate(180deg);
+	transform: rotate(180deg);
 }
 
 polygon.fail{
-    fill: red;
+	fill: red;
 }
 
 polygon.accept{
-    fill: rgb(0, 255, 0);
+	fill: rgb(0, 255, 0);
 }
