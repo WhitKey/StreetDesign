@@ -803,7 +803,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 		}else{
 			toggleValue = "false";
 		}
-		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
+		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/straight_arrow.svg" style="transform: scaleY(-1); pointer-events: none;"></div>`;
 		
 		//上行
 		index = "1";
@@ -812,7 +812,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 		}else{
 			toggleValue = "false";
 		}
-		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/straight_arrow.svg" style="pointer-events: none;"></div>`;
+		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle enable ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/straight_arrow.svg" style="pointer-events: none;"></div>`;
 
 	}else if(type === "exitDirection"){
 		propertyTitle = "出口方向";
@@ -830,7 +830,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/left_arrow.svg" style="pointer-events: none;"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/left_arrow.svg" style="pointer-events: none;"></div>`;
 			
 			//直行
 			index = "1";
@@ -839,7 +839,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/straight_arrow.svg" style="pointer-events: none;"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/straight_arrow.svg" style="pointer-events: none;"></div>`;
 			
 			//右轉
 			index = "2";
@@ -848,7 +848,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/right_arrow.svg" style="pointer-events: none;"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/right_arrow.svg" style="pointer-events: none;"></div>`;
 		}else{
 			//右轉
 			index = "2";
@@ -857,7 +857,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/right_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/right_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
 			
 			//直行
 			index = "1";
@@ -866,7 +866,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/straight_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/straight_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
 			
 			//左轉
 			index = "0";
@@ -875,7 +875,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 			}else{
 				toggleValue = "false";
 			}
-			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="images/left_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
+			cardToggle += `<div id="propertyToggle_${type}_${index}" class=" propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img src="roadEditor/images/left_arrow.svg" style="pointer-events: none;transform:rotate(180deg);"></div>`;
 		}
 		
 
@@ -895,7 +895,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 		}else{
 			toggleValue = "false";
 		}
-		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="images/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="images/solid_line.svg" style="pointer-events: none;"></div>`;
+		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="roadEditor/images/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="roadEditor/images/solid_line.svg" style="pointer-events: none;"></div>`;
 		
 		//右側標線
 		enableFlag = ""
@@ -908,7 +908,7 @@ function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx
 		}else{
 			toggleValue = "false";
 		}
-		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="images/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="images/solid_line.svg" style="pointer-events: none;"></div>`;
+		cardToggle += `<div id="propertyToggle_${type}_${index}" class="propertyToggle ${enableFlag} ${toggleValue}" value="${toggleValue}" type="${type}" index="${index}" onclick="PropertyToggleTrigger(event);"><img class="true togglableImg" src="roadEditor/images/break_line.svg" style="pointer-events: none;"><img class="false togglableImg" src="roadEditor/images/solid_line.svg" style="pointer-events: none;"></div>`;
 		
 	}
 	
@@ -1144,13 +1144,13 @@ function UpdateRoadExitDirectionIcon(){
 			
 
 			if(exitDirection === 0)continue;
-			if(exitDirection === 1) iconSrc = "images/left_arrow.svg";
-			else if(exitDirection === 2) iconSrc = "images/straight_arrow.svg";
-			else if(exitDirection === 3) iconSrc = "images/straight_left_arrow.svg";
-			else if(exitDirection === 4) iconSrc = "images/right_arrow.svg";
-			else if(exitDirection === 5) iconSrc = "images/left_right_arrow.svg";
-			else if(exitDirection === 6) iconSrc = "images/straight_right_arrow.svg";
-			else if(exitDirection === 7) iconSrc = "images/three_way_arrow.svg";
+			if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
+			else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
+			else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
+			else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
+			else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
+			else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
+			else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 	}
@@ -1654,13 +1654,13 @@ function MakeRoadSegmentHTML(record){
 			
 
 			if(exitDirection === 0)continue;
-			if(exitDirection === 1) iconSrc = "images/left_arrow.svg";
-			else if(exitDirection === 2) iconSrc = "images/straight_arrow.svg";
-			else if(exitDirection === 3) iconSrc = "images/straight_left_arrow.svg";
-			else if(exitDirection === 4) iconSrc = "images/right_arrow.svg";
-			else if(exitDirection === 5) iconSrc = "images/left_right_arrow.svg";
-			else if(exitDirection === 6) iconSrc = "images/straight_right_arrow.svg";
-			else if(exitDirection === 7) iconSrc = "images/three_way_arrow.svg";
+			if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
+			else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
+			else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
+			else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
+			else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
+			else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
+			else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 
