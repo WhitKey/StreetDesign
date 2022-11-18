@@ -211,6 +211,25 @@ function InitElementVariables(){
 
 }
 
+function LoadEntryConfig(){
+    let entryConfig = JSON.parse(sessionStorage.getItem("entryConfig"));
+
+    if(entryConfig === null){
+        return LoadPrevSession();
+    }
+    if(entryConfig.loadLocal){
+        return LoadPrevSession();
+    }
+    
+    localStorage.removeItem("tempStorage");
+    sessionStorage.removeItem("entryConfig");
+    landWidth = entryConfig.landWidth;
+    LoadPrevSession();
+
+    return null;
+
+}
+
 function LoadPrevSession(){
     let temp = TempStorageTemplate;
     temp.landWidth = landWidth;
@@ -220,11 +239,12 @@ function LoadPrevSession(){
     //currentSection = editorElement.getAttribute("currentSection");
     if(tempStorage !== null){
         tempStorage = IntermidiateStageTempStorageRefit();
-        if(landWidth !== tempStorage.landWidth || temp.tempVersion !== tempStorage.tempVersion){
+        if(temp.tempVersion !== tempStorage.tempVersion){
             localStorage.setItem("tempStorage", JSON.stringify(temp));
         }else{
             currentStage = tempStorage.stage;
             if(tempStorage[DesignStage[currentStage]]){
+                landWidth = tempStorage.landWidth;
                 return tempStorage[DesignStage[currentStage]];
             }
         }
@@ -261,7 +281,7 @@ window.OnLoad = function() {
         'undo':'[]' 
     }
 
-    prevRecord = LoadPrevSession();
+    prevRecord = LoadEntryConfig();
     
     LandInit();
     InitElementVariables();
@@ -1525,7 +1545,7 @@ function IntermidiateStageTempStorageRefit(){
 
     if(intermidiateRecord === undefined){
         tempStorage.intermidiate = [];
-        return;
+        return tempStorage;
     }
 
     // select for remove
@@ -1753,7 +1773,7 @@ window.OnSwitchSegment = function(isNext = true){
         }else{
             setTimeout(()=>{
                 RenderIntermidiateStage();
-            }, 300);
+            }, 330);
         }
     }
     
