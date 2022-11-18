@@ -6,7 +6,7 @@
 
 .pageFrame{
 	transition-property: width;
-	transition-duration: 500ms;
+	transition-duration: 300ms;
 	transition-timing-function: ease-out;
 	width:0px;
 	height:100%;
@@ -20,4 +20,56 @@
 .pageinner{
 	height: 100%;
 	width:100vw;
+	display:flex;
+	justify-content:center;
+}
+
+.questionContainer{
+	min-width: 600px;
+	width: 60%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}
+
+.flowArea{
+	height: 50px;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	
+}
+
+.flowArea * {
+	height: 100%;
+	width: 40%;
+}
+
+.flowArea button{
+	border-radius: 5px;
+	transition-duration: 100ms;
+	border:none;
+	flex-grow: 1;
+	margin: 10px;
+}
+
+button.next{
+	background-color: skyblue;
+}
+button.next:hover{
+	background-color: lightsteelblue;
+}
+
+button.prev{
+	background-color: lightcoral;
+}
+button.prev:hover{
+	background-color: pink;
+}
+
+.question{
+	font-size: xx-large;
+	text-align: center;
+	margin-bottom: 50px;
 }
