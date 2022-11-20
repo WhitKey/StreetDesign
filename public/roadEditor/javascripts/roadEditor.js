@@ -89,6 +89,8 @@ const TempStorageTemplate = {
 	landWidth: 0,
 	stage: 0,
 	tempVersion: "1",
+	hasArcade: false,
+	roadType: "primary"
 }
 
 //left slide out variables
@@ -211,7 +213,8 @@ function InitElementVariables(){
 
 function LoadEntryConfig(){
 	let entryConfig = JSON.parse(sessionStorage.getItem("entryConfig"));
-
+	let temp;
+	
 	if(entryConfig === null){
 		console.log("restore from prev");
 		return LoadPrevSession();
@@ -225,9 +228,24 @@ function LoadEntryConfig(){
 	sessionStorage.removeItem("entryConfig");
 	console.log("load from entry config");
 	console.log(entryConfig);
-	landWidth = entryConfig.landWidth;
-	LoadPrevSession();
+	
+	temp = TempStorageTemplate;
+	
+	//setting up temp storage
+	temp.hasArcade = entryConfig.hasArcade === "true";
+	temp.roadType = entryConfig.roadType;
 
+	//setting up land width
+	landWidth = entryConfig.landWidth;
+
+	//load extern template
+	if(entryConfig.loadExtern){
+		//TODO: load template
+	}
+
+	// setting up limition
+
+	localStorage.setItem("tempStorage", JSON.stringify(temp));
 	return null;
 
 }
