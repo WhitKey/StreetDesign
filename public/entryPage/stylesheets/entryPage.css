@@ -57,6 +57,7 @@
 button.next{
 	background-color: skyblue;
 }
+
 button.next:hover{
 	background-color: lightsteelblue;
 }
@@ -64,6 +65,7 @@ button.next:hover{
 button.prev{
 	background-color: lightcoral;
 }
+
 button.prev:hover{
 	background-color: pink;
 }

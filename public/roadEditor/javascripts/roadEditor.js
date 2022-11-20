@@ -91,8 +91,6 @@ const TempStorageTemplate = {
 	tempVersion: "1",
 }
 
-//let currentSection = ""
-
 //left slide out variables
 let leftSlidoutOn = false;
 
@@ -215,14 +213,18 @@ function LoadEntryConfig(){
 	let entryConfig = JSON.parse(sessionStorage.getItem("entryConfig"));
 
 	if(entryConfig === null){
+		console.log("restore from prev");
 		return LoadPrevSession();
 	}
 	if(entryConfig.loadLocal){
+		console.log("load from prev");
 		return LoadPrevSession();
 	}
 	
 	localStorage.removeItem("tempStorage");
 	sessionStorage.removeItem("entryConfig");
+	console.log("load from entry config");
+	console.log(entryConfig);
 	landWidth = entryConfig.landWidth;
 	LoadPrevSession();
 

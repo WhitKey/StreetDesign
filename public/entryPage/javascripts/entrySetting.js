@@ -92,12 +92,30 @@ const Pages = {
 		</div>
 		<div class="flowArea">
 			<button class="prev" onclick="OnSwitchPage(-1, 'selectRoadSide')">上一步</button>
-			<button class="next" onclick="OnSwitchoutRoadWidth('page1')">下一步</button>
+			<button class="next" onclick="OnSwitchoutRoadWidth('getTemplate')">下一步</button>
 		</div>
 	</div>
 </div>
 		`,
 		onload:()=>{RestoreValue("roadSideSelect")},
+	},
+
+	getTemplate:{
+		content:`
+<div class = "pageinner" >
+	<div class="questionContainer">
+		<span class="question">輸入模板</span>
+		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
+			<input id="roadTemplateInput" type="text" class="form-control" aria-describedby="basic-addon1" onchange="SaveOnChange(event);" config ="template">
+		</div>
+		<div class="flowArea">
+			<button class="prev" onclick="OnSwitchPage(-1, 'inputRoadWidth')">上一步</button>
+			<button class="next" onclick="OnSwitchoutRoadTemplate()">開始編輯</button>
+		</div>
+	</div>
+</div>
+		`,
+		onload:()=>{RestoreValue("roadTemplateInput")},
 	}
 }
 
@@ -111,7 +129,7 @@ let entryConfig = {
 	landWidth: 15,
 	roadType: "primary",
 	hasArcade: "false",
-	template: []
+	template: ""
 };
 
 
@@ -177,7 +195,7 @@ function LoadPage(direction, pageKey){
 }
 
 function ToEditorCallback(page){
-	setTimeout(()=>{window.location.replace(editorLocation);}, editorLoadingTime);
+	setTimeout(()=>{window.location.href = editorLocation;}, editorLoadingTime);
 }
 
 window.OnSwitchPage = function(direction, pageKey){
@@ -187,6 +205,8 @@ window.OnSwitchPage = function(direction, pageKey){
 function TestFunc(page){
 	console.log(entryConfig);
 }
+
+
 //--------------------------
 //
 // storage functions
@@ -210,7 +230,10 @@ window.SaveOnChange = function(event){
 	entryConfig[prop] = target.value;
 }
 
-
+function ToEditorWithSetting(){
+	SaveToSession();
+	LoadPage(1, 'ToEditor');
+}
 //--------------------------
 //
 // land width functions
@@ -230,7 +253,7 @@ window.OnChangeLandWidth = function(event){
 }
 
 window.OnSwitchoutRoadWidth = function(nextPage){
-	console.log( document.getElementById("roadWidthInput"));
+	//console.log( document.getElementById("roadWidthInput"));
 	let value = document.getElementById("roadWidthInput").value;
 	if(value > LandMaxWidth){
 		value = LandMaxWidth;
@@ -268,6 +291,23 @@ window.OnSwitchoutRoadType = function(nextPage){
 window.OnSwitchoutRoadSide = function(nextPage){
 	entryConfig.hasArcade = document.getElementById("roadSideSelect").value;
 	LoadPage(1, nextPage);
+}
+
+//--------------------------
+//
+// road template functions
+//
+//--------------------------
+window.OnSwitchoutRoadTemplate = function(){
+	entryConfig.template = document.getElementById("roadTemplateInput").value;
+
+	if(entryConfig.template === ""){
+		entryConfig.loadExtern = false;
+	}else{
+		entryConfig.loadExtern = true;
+	}
+
+	ToEditorWithSetting();
 }
 
 
