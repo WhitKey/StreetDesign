@@ -239,7 +239,7 @@ function LoadEntryConfig(){
 	landWidth = entryConfig.landWidth;
 
 	//load extern template
-	if(entryConfig.loadExtern){
+	if(entryConfig.loadExtern && TemplateVerify(entryConfig.template, entryConfig)){
 		//TODO: load template
 	}
 
@@ -1624,6 +1624,53 @@ function WarningPopupAddMessage(message, level){
 	</div>`;
 }
 
+function TemplateVerify(template, entryConfig){
+	let templateJson;
+	let keys;
+	
+	InitWarningPopup();
+	try {
+		templateJson = JSON.parse(template);
+		// check match of template road type and setting road type
+		if(templateJson.roadType !== entryConfig.roadType){
+			throw "road type miss match";
+		}
+
+
+		keys = Object.keys(templateJson.section);
+		keys.forEach(key => {
+			console.log(key);
+
+			//verifing the stage existance
+			if(!DesignStage.includes(key)){
+				throw "invalid stage";
+			}
+			
+			//verify the components
+			templateJson.section[key].forEach( component=>{
+				//verify component type existance
+				if(componentLayout[component.type] === undefined){
+					throw "invalid component type";
+				}
+				
+				//verify component layout
+				componentLayout[component.type].forEach(element => {
+					if(component[element] === undefined){
+						throw "invalid component layout";
+					}
+				});
+			});
+		});
+	} catch (error) {
+		WarningPopupAddMessage("模板解析失敗", 3);
+		ActivateWarningPopup();
+		console.error(error);
+		return false;
+	}
+
+	return true;
+}
+
 //-----------------------------
 //
 // stage controlling function
@@ -1767,7 +1814,7 @@ window.OnSwitchSegment = function(isNext = true){
 	SwitchEditorRoadSegment(oriStage, currentStage);
 	
 	if(currentStage === 2 && isNext){
-		//TODO: switch to intermidiate section
+		//switch to intermidiate section
 		//LandInit();
 		EnterIntermidiateStage();
 	}else{
