@@ -53,15 +53,21 @@ let componentMinWidth = {
 	"bollard": 0.5,
 };
 
+let componentDefaultWidth = {
+	"road": 3,
+	"sidewalk": 1.5,
+	"bollard": 0.5,
+};
+
 const componentDefaultProperty = {
 	"bollard" : {
 		"type":"bollard",
-		"width": componentMinWidth['bollard'],
+		"width": componentDefaultWidth['bollard'],
 	},
 
 	"road" : {
 		"type":"road",
-		"width": componentMinWidth['road'],
+		"width": componentDefaultWidth['road'],
 		"direction": 3,
 		"exitDirection": 7,
 		"crossability":3,
@@ -69,7 +75,7 @@ const componentDefaultProperty = {
 
 	"sidewalk":{
 		"type": "sidewalk",
-		"width": componentMinWidth['sidewalk'],
+		"width": componentDefaultWidth['sidewalk'],
 	},
 };
 
