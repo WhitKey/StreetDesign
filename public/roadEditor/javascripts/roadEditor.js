@@ -793,6 +793,7 @@ window.ComponentDragEnd = function(event) {
 			emptyComp.style.display = "block";
 		}, 300);
 		UpdateMarkingSpace();
+		UpdateRoadExitDirectionIcon();
 	}
 	dragElement.remove();
 	dragElement = null;
@@ -1153,24 +1154,26 @@ function UpdateRoadExitDirectionIcon(){
 
 			iconContainer.innerHTML = "";
 			
-			if (direction === 3)continue;
-			//上行
-			if (direction === 2){
-				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
-			}//下行
-			else{
+			//下行
+			if (direction !== 2){
 				if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+			}//上行
+			else{
+				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
 			}
 			
-
-			if(exitDirection === 0)continue;
-			if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
-			else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
-			else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
-			else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
-			else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
-			else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
-			else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
+			if(direction !== 3){
+				if(exitDirection === 0)continue;
+				if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
+				else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
+				else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
+				else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
+				else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
+				else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
+				else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
+			}else{
+				iconSrc = "roadEditor/images/double_arrow.svg";
+			}
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 	}
@@ -1710,24 +1713,26 @@ function MakeRoadSegmentHTML(record){
 
 			iconContainer.innerHTML = "";
 			
-			if (direction === 3)continue;
-			//上行
-			if (direction === 2){
-				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
-			}//下行
-			else{
+			//下行
+			if (direction !== 2){
 				if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+			}//上行
+			else{
+				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
 			}
-			
-
-			if(exitDirection === 0)continue;
-			if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
-			else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
-			else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
-			else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
-			else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
-			else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
-			else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
+		
+			if(direction !== 3){
+				if(exitDirection === 0)continue;
+				if(exitDirection === 1) iconSrc = "roadEditor/images/left_arrow.svg";
+				else if(exitDirection === 2) iconSrc = "roadEditor/images/straight_arrow.svg";
+				else if(exitDirection === 3) iconSrc = "roadEditor/images/straight_left_arrow.svg";
+				else if(exitDirection === 4) iconSrc = "roadEditor/images/right_arrow.svg";
+				else if(exitDirection === 5) iconSrc = "roadEditor/images/left_right_arrow.svg";
+				else if(exitDirection === 6) iconSrc = "roadEditor/images/straight_right_arrow.svg";
+				else if(exitDirection === 7) iconSrc = "roadEditor/images/three_way_arrow.svg";
+			}else{
+				iconSrc = "roadEditor/images/double_arrow.svg";
+			}
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 
