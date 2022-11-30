@@ -51,12 +51,14 @@ let componentMinWidth = {
 	"road": 3,
 	"sidewalk": 1.5,
 	"bollard": 0.5,
+	"shoulder" : 0.1,
 };
 
 let componentDefaultWidth = {
 	"road": 3,
 	"sidewalk": 1.5,
 	"bollard": 0.5,
+	"shoulder": 0.5,
 };
 
 const componentDefaultProperty = {
@@ -77,12 +79,17 @@ const componentDefaultProperty = {
 		"type": "sidewalk",
 		"width": componentDefaultWidth['sidewalk'],
 	},
+	"shoulder":{
+		"type": "shoulder",
+		"width": componentDefaultWidth['shoulder'],
+	},
 };
 
 const componentLayout = {
 	'road': ["direction", "exitDirection", "crossability"],
 	'bollard':[],
-	'sidewalk':[]
+	'sidewalk':[],
+	'shoulder':[],
 }
 
 const DesignStage = [
@@ -205,6 +212,7 @@ function InitElementVariables(){
 	templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
 	templateBase["sidewalk"] = document.getElementById("sidewalkTemplate").cloneNode(true);
 	templateBase["bollard"] = document.getElementById("bollardTemplate").cloneNode(true);
+	templateBase["shoulder"] = document.getElementById("shoulderTemplate").cloneNode(true);
 
 	//setting template
 	templateBase["road"].removeAttribute("id");
@@ -533,7 +541,7 @@ window.EnterHitbox = function(event) {
 			document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
 			emptyComp.style.width = targetElement.style.width;
 		}else{
-			emptyComp.style.width = parseFloat(refPercent * parseFloat(componentMinWidth[dragElement.getAttribute("component")])).toString() + "%";
+			emptyComp.style.width = parseFloat(refPercent * parseFloat(componentDefaultWidth[dragElement.getAttribute("component")])).toString() + "%";
 		}
 
 		inHitboxId = event.target.id;

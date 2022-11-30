@@ -73,6 +73,16 @@ polygon.road{
 	fill: hsl(0, 0%, 11%);
 }
 
+.shoulder {
+	background-color: hsl(0, 0%, 11%);
+	flex-shrink: 1;
+	display: flex;
+}
+
+polygon.shoulder{
+	fill: hsl(0, 0%, 11%);
+}
+
 .sidewalk {
 	background-color: rgb(145, 39, 39);
 	flex-shrink: 1;

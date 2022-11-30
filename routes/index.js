@@ -20,6 +20,11 @@ router.get('/', function(req, res, next) {
 			label: "分隔島",
 			iconColor: "rgb(143, 143, 143)",
 		},
+		{
+			tag: "shoulder",
+			label: "路肩",
+			iconColor: "hsl(0, 0%, 11%)",
+		},
 	];
 
 	res.render('editor', { 
