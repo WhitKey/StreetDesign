@@ -254,7 +254,20 @@ function LoadEntryConfig(){
 
 	//load extern template
 	if(entryConfig.loadExtern && TemplateVerify(entryConfig.template, entryConfig)){
-		//TODO: load template
+		console.log("load template");
+		let template = JSON.parse(entryConfig.template);
+		if( template.section.road){
+			temp.road = template.section.road;
+		}
+		if( template.section.stop){
+			temp.stop = template.section.stop;
+		}
+		if( template.section.intermidiate){
+			temp.intermidiate = template.section.intermidiate;
+		}
+		
+		localStorage.setItem("tempStorage", JSON.stringify(temp));
+		return temp[DesignStage[currentStage]];
 	}
 
 	// setting up limition
@@ -1668,20 +1681,24 @@ function TemplateVerify(template, entryConfig){
 				throw "invalid stage";
 			}
 			
-			//verify the components
-			templateJson.section[key].forEach( component=>{
-				//verify component type existance
-				if(componentLayout[component.type] === undefined){
-					throw "invalid component type";
-				}
-				
-				//verify component layout
-				componentLayout[component.type].forEach(element => {
-					if(component[element] === undefined){
-						throw "invalid component layout";
+			if(key !== "intermidiate"){
+				//verify the components
+				templateJson.section[key].forEach( component=>{
+					//verify component type existance
+					if(componentLayout[component.type] === undefined){
+						throw "invalid component type";
 					}
+					
+					//verify component layout
+					componentLayout[component.type].forEach(element => {
+						if(component[element] === undefined){
+							throw "invalid component layout";
+						}
+					});
 				});
-			});
+			}else{
+				//TODO: intermidiate stage check
+			}
 		});
 	} catch (error) {
 		WarningPopupAddMessage("模板解析失敗", 3);
