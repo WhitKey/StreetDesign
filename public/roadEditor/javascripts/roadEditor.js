@@ -99,7 +99,7 @@ const DesignStage = [
 ];
 
 const TempStorageTemplate = {
-	landWidth: 0,
+	landWidth: 15,
 	stage: 0,
 	tempVersion: "1",
 	hasArcade: false,
@@ -241,13 +241,13 @@ function LoadEntryConfig(){
 	localStorage.removeItem("tempStorage");
 	sessionStorage.removeItem("entryConfig");
 	console.log("load from entry config");
-	console.log(entryConfig);
-	
+
 	temp = TempStorageTemplate;
 	
 	//setting up temp storage
 	temp.hasArcade = entryConfig.hasArcade === "true";
 	temp.roadType = entryConfig.roadType;
+	temp.landWidth = entryConfig.landWidth;
 
 	//setting up land width
 	landWidth = entryConfig.landWidth;
@@ -268,14 +268,16 @@ function LoadPrevSession(){
 	let temp = TempStorageTemplate;
 	temp.landWidth = landWidth;
 
-	//load previous work
+	//load previous work session
 	let tempStorage = localStorage.getItem("tempStorage");
-	//currentSection = editorElement.getAttribute("currentSection");
+
 	if(tempStorage !== null){
 		tempStorage = IntermidiateStageTempStorageRefit();
 		if(temp.tempVersion !== tempStorage.tempVersion){
+			console.log("temp storage version mismatch");
 			localStorage.setItem("tempStorage", JSON.stringify(temp));
 		}else{
+			console.log("temp storage match");
 			currentStage = tempStorage.stage;
 			if(tempStorage[DesignStage[currentStage]]){
 				landWidth = tempStorage.landWidth;
@@ -283,6 +285,7 @@ function LoadPrevSession(){
 			}
 		}
 	}else{
+		console.log("temp storage not found");
 		localStorage.setItem("tempStorage", JSON.stringify(temp));
 	}
 	return null;
@@ -334,8 +337,10 @@ window.OnLoad = function() {
 	UpdatePrevButtonVis();
 	UpdateSidewalkMinWidth();
 
+	
 	if(prevRecord !== null){
 		ImportRoadSegmentRecordJSON(prevRecord, false);
+		
 		if(currentStage !== 2){
 			markingSpaceElement.style.opacity = "0";
 			markingSpaceElement.style.transitionDuration = "500ms";
