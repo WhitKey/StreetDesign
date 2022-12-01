@@ -2457,11 +2457,17 @@ function OnIntermidiateDragMove(event){
 }
 
 function BuildIntermidiateComponent(roadIndex, stopIndex, type){
+	const indicatorLineWidth = 1;
+	const indicatorLineColor = "blue";
+	
 	let maxY = markingSpaceElement.clientHeight;
 	let tl; //top left x coord
 	let tr; //top right x coord
 	let bl; //bottom left x coord
 	let br; //bottom right x coord
+
+	let tm; //top middle x coord
+	let bm; // bottom middle x coord
 
 	if(stopIndex === 0){
 		tl = 0
@@ -2478,19 +2484,32 @@ function BuildIntermidiateComponent(roadIndex, stopIndex, type){
 	tr = M2Px(tempVariables.componentXCoord.stop[stopIndex]);
 	br = M2Px(tempVariables.componentXCoord.road[roadIndex]);
 
+	tm = (tr + tl) / 2;
+	bm = (br + bl) / 2;
 
-	return `<polygon points="${tl},${0} ${tr},${0} ${br},${maxY} ${bl},${maxY}" class="${type}">`;
+	return [`<polygon points="${tl},${0} ${tr},${0} ${br},${maxY} ${bl},${maxY}" class="${type}"/>`, `<path d = "M ${tm} 0 L ${bm} ${maxY}" stroke="${indicatorLineColor}" stroke-width="${indicatorLineWidth}"/>`];
 }
 
 function RenderIntermidiateStage(){
 	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	let indicatorMarkings = [];
+
 	markingSpaceElement.innerHTML = "";
+
 	for(let i = 0;i<roadSegmentRecord.length;++i){
 		let component = roadSegmentRecord[i];
-		markingSpaceElement.innerHTML += BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type);
+		let temp = BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type)
+		markingSpaceElement.innerHTML += temp[0];
+		indicatorMarkings.push(temp[1]);
 	}
 
 	RenderIntermidiateStageMarking(tempStorage);
+	
+	//render indicator marking
+	for(let i = 0;i<roadSegmentRecord.length;++i){
+		markingSpaceElement.innerHTML += indicatorMarkings[i];
+	}
+
 	//console.log(tempVariables.componentXCoord);
 	//console.log(markingSpaceElement);
 }
