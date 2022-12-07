@@ -2581,7 +2581,24 @@ function OnIntermidiateDragMove(event){//TODO: add cp link
 	if(raycast !== null){
 		raycastSection = raycast.closest(".roadScope");
 
-		if(raycastSection !== null){
+		if(raycast.classList.contains("anchor")){
+			let pointIndex = parseInt(raycast.getAttribute("index"));
+			let endY = 0;
+			let X = raycast.offsetLeft + raycast.clientWidth / 2;
+
+
+			if(raycastSection.id === "roadSection"){
+				endY = markingSpaceElement.clientHeight;
+			}else if(raycastSection.id === "stopSection"){
+				endY = 0;
+			}
+
+			chk = false;
+			dragTempElement.setAttribute("points", `${elementX - elementWidth},${startY} ${elementX + elementWidth},${startY} ${X + elementWidth},${endY} ${X - elementWidth},${endY}`);
+			dragTempElement.classList.add("accept");
+			dragTempElement.classList.remove("fail");
+		}
+		else if(raycastSection !== null){
 			raycastSection = raycastSection.id;
 			if(raycastSection === "roadSection"){
 				raycastSection = "road";
@@ -2589,7 +2606,7 @@ function OnIntermidiateDragMove(event){//TODO: add cp link
 				raycastSection = "stop";
 			}
 	
-			// check inside oposise side
+			// check inside opposite side
 			if((raycastSection === "road" && section === "stop")|| (raycastSection === "stop" && section === "road")){
 				let endY;
 				let elementIndex = raycast.closest(".roadComponent");
