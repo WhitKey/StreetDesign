@@ -1699,7 +1699,6 @@ function IntermidiateStageTempStorageRefit(){
 	}
 
 	//remove
-	console.log(removeList);
 	removeList = removeList.sort().reverse();
 	for(let i = 0;i< removeList.length;++i){
 		tempStorage.intermidiate.splice(removeList[i], 1);
@@ -2509,7 +2508,6 @@ function OnIntermidiateDragEnd(event){
 					let isRoadComponent = startSection === "roadSection";
 					let isStopComponent = startSection === "stopSection";
 					// create mode
-					console.log(tempStorage);
 					if(VerifyComponentPointLink(isRoadComponent, isStopComponent, linkage.roadSection, linkage.stopSection, tempStorage)){
 						
 						roadSegmentRecord.push(
@@ -2758,6 +2756,17 @@ function BuildIntermidiatePointComponent(roadIndex, stopIndex, type, isRoadCompo
 	
 	//get l, r, top
 	if(isRoadComponent){
+		if(roadIndex === 0){
+			l = 0
+		}else{
+			l = M2Px(tempVariables.componentXCoord.road[roadIndex - 1]);
+		}
+		
+		r = M2Px(tempVariables.componentXCoord.road[roadIndex]);
+		anchor = document.getElementById(`stopPointAnchor_${stopIndex}`);
+		bottomY = markingSpaceElement.clientHeight;
+		topY = 0;
+	}else{
 		if(stopIndex === 0){
 			l = 0
 		}else{
@@ -2769,18 +2778,7 @@ function BuildIntermidiatePointComponent(roadIndex, stopIndex, type, isRoadCompo
 		anchor = document.getElementById(`roadPointAnchor_${roadIndex}`);
 		bottomY = 0;
 		topY = markingSpaceElement.clientHeight;
-	}else{
-		if(roadIndex === 0){
-			l = 0
-		}else{
-			l = M2Px(tempVariables.componentXCoord.road[roadIndex - 1]);
-		}
-
-		r = M2Px(tempVariables.componentXCoord.road[roadIndex]);
-		anchor = document.getElementById(`stopPointAnchor_${stopIndex}`);
 		
-		bottomY = markingSpaceElement.clientHeight;
-		topY = 0;
 	}
 
 	top = anchor.offsetLeft + anchor.clientWidth / 2;
@@ -2807,7 +2805,7 @@ function RenderIntermidiateStage(){
 		}else{
 
 			let componentType = component.roadLinkType === "component"? tempStorage.road[component.roadIndex].type : tempStorage.stop[component.stopIndex].type;
-			temp = BuildIntermidiatePointComponent(component.roadIndex, component.stopIndex, componentType, component.isRoadComponent, component.isStopComponent);
+			temp = BuildIntermidiatePointComponent(component.roadIndex, component.stopIndex, componentType, component.roadLinkType === "component", component.stopLinkType === "component");
 			
 		}
 		markingSpaceElement.innerHTML += temp[0];
@@ -2866,6 +2864,8 @@ function RenderIntermidiateStageMarking(tempStorage){
 	//set center
 	for(let i = 0;i<roadSegmentRecord.length;++i){
 		let record = roadSegmentRecord[i];
+		if(record.type === "cp")continue;
+
 		if(tempStorage.road[record.roadIndex].type !== "road")continue;
 
 		let leftCombine = {
@@ -2919,7 +2919,7 @@ function RenderIntermidiateStageMarking(tempStorage){
 			if(roadRecordMap[leftRoadIndex] !== undefined){
 				for(let j = 0;j<roadRecordMap[leftRoadIndex].length;++j){
 					let leftRoadRecordIndex = roadRecordMap[leftRoadIndex][j];
-					if(roadSegmentRecord[leftRoadRecordIndex].stopIndex === record.stopIndex - 1 && tempStorage.road[record.roadIndex - 1].type === "road"){
+					if(roadSegmentRecord[leftRoadRecordIndex].type === "cc" && roadSegmentRecord[leftRoadRecordIndex].stopIndex === record.stopIndex - 1 && tempStorage.road[record.roadIndex - 1].type === "road"){
 						leftCombine.isCombine = true;
 						leftCombine.index = leftRoadIndex;
 						break;
@@ -2934,7 +2934,7 @@ function RenderIntermidiateStageMarking(tempStorage){
 			if(roadRecordMap[rightRoadIndex] !== undefined){
 				for(let j = 0;j<roadRecordMap[rightRoadIndex].length;++j){
 					let rightRoadRecordIndex = roadRecordMap[rightRoadIndex][j];
-					if(roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex + 1){
+					if(roadSegmentRecord[rightRoadRecordIndex].type === "cc" && roadSegmentRecord[rightRoadRecordIndex].stopIndex === record.stopIndex + 1){
 						rightCombine.isCombine = true;
 						rightCombine.index = rightRoadRecordIndex;
 						break;
@@ -2950,6 +2950,7 @@ function RenderIntermidiateStageMarking(tempStorage){
 			for(let j = 0; j<roadRecordIndexList.length; ++j){
 				if(roadRecordIndexList[j] === i)continue;
 				let linkRecord = roadSegmentRecord[roadRecordIndexList[j]];
+				if(linkRecord.type === "cp")continue;
 
 				if(linkRecord.stopIndex < record.stopIndex){
 					leftMarkingSetting.road.crossing = true;
@@ -2977,6 +2978,8 @@ function RenderIntermidiateStageMarking(tempStorage){
 			for(let j = 0; j<stopRecordIndexList.length; ++j){
 				if(stopRecordIndexList[j] === i)continue;
 				let linkRecord = roadSegmentRecord[stopRecordIndexList[j]];
+				if(linkRecord.type === "cp")continue;
+
 				if(linkRecord.roadIndex < record.roadIndex){
 					leftMarkingSetting.stop.crossing = true;
 					leftMarkingSetting.stop.index = stopRecordIndexList[j];
@@ -3016,6 +3019,18 @@ function RenderIntermidiateStageMarking(tempStorage){
 		if(!leftCombine.isCombine){
 			if(!leftMarkingSetting.road.isCover && !leftMarkingSetting.stop.isCover){
 				//if crossing at roadSide
+				if(leftMarkingSetting.road.crossing){
+					if( roadSegmentRecord[leftMarkingSetting.road.index].type==="cp"){
+						leftMarkingSetting.road.crossing = false;
+					}
+				}
+
+				if(leftMarkingSetting.stop.crossing){
+					if( roadSegmentRecord[leftMarkingSetting.stop.index].type==="cp"){
+						leftMarkingSetting.stop.crossing = false;
+					}
+				}
+
 				if(leftMarkingSetting.road.crossing){
 					let crossLink = roadSegmentRecord[leftMarkingSetting.road.index];
 					//if is center
