@@ -481,7 +481,7 @@ function UnusedMarkingSpaceInit(ruler = true, auxWorkspaceFlag = false, removeAu
 				}
 				widthSum += record[recordIdx].width;
 			}
-			newAnchor += `<div id="${DesignStage[i]}pointAnchor_${record.length}" class="anchor" index="${record.length}" style="${anchorAlign}:0px;left:${M2Percent(widthSum - anchorWOffset)};width:${M2Percent(0.15)};"></div>`;
+			newAnchor += `<div id="${DesignStage[i]}PointAnchor_${record.length}" class="anchor" index="${record.length}" style="${anchorAlign}:0px;left:${M2Percent(widthSum - anchorWOffset)};width:${M2Percent(0.15)};"></div>`;
 
 			sectionElement.innerHTML += `<div id="${DesignStage[i]}AuxWorkspace" class="auxWorkspace">${newAnchor}</div>`;
 
@@ -1661,30 +1661,45 @@ function IntermidiateStageTempStorageRefit(){
 		let stopConnectionRecord = JSON.parse(record.stopSideRecord);
 
 		//check connection
-		if(roadConnectionRecord.type !== tempStorage.road[record.roadIndex].type || stopConnectionRecord.type !== tempStorage.stop[record.stopIndex].type){
-			removeList.push(i);
-			continue;
-		}
-		if(roadConnectionRecord.type === "road"){
-			if(
-				(roadConnectionRecord.direction !== tempStorage.road[record.roadIndex].direction) ||
-				(stopConnectionRecord.direction !== tempStorage.stop[record.stopIndex].direction )
+		if(record.type === "cc"){
+			if(record.roadIndex < 0 || record.roadIndex >= tempStorage.road.length || record.stopIndex < 0|| record.stopIndex >= tempStorage.stop.length){
+				removeList.push(i);
+				continue;
+			}
+			if(roadConnectionRecord.type !== tempStorage.road[record.roadIndex].type || stopConnectionRecord.type !== tempStorage.stop[record.stopIndex].type){
+				removeList.push(i);
+				continue;
+			}
+			if(roadConnectionRecord.type === "road"){
+				if(
+					(roadConnectionRecord.direction !== tempStorage.road[record.roadIndex].direction) ||
+					(stopConnectionRecord.direction !== tempStorage.stop[record.stopIndex].direction )
+					){
+					removeList.push(i);
+					continue;
+				}
+				
+				if(
+					(roadConnectionRecord.exitDirection & tempStorage.road[record.roadIndex].exitDirection) === 0 ||
+					(stopConnectionRecord.exitDirection & tempStorage.stop[record.stopIndex].exitDirection) === 0
 				){
-				removeList.push(i);
-				continue;
+					removeList.push(i);
+					continue;
+				}
 			}
+		}else if(record.type === "cp"){
+			//TODO: add component-point link refit
+			//check index range
+				
+			//check component type
 			
-			if(
-				(roadConnectionRecord.exitDirection & tempStorage.road[record.roadIndex].exitDirection) === 0 ||
-				(stopConnectionRecord.exitDirection & tempStorage.stop[record.stopIndex].exitDirection) === 0
-			){
-				removeList.push(i);
-				continue;
-			}
+			//check point type
+
 		}
 	}
 
 	//remove
+	console.log(removeList);
 	removeList = removeList.sort().reverse();
 	for(let i = 0;i< removeList.length;++i){
 		tempStorage.intermidiate.splice(removeList[i], 1);
@@ -2185,7 +2200,7 @@ function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, s
 
 	}
 	
-	return check || !draging;
+	return check == draging;
 }
 
 function VerifyAndLink(roadIndex, stopIndex){
@@ -2506,8 +2521,8 @@ function OnIntermidiateDragEnd(event){
 								stopIndex: linkage.stopSection,
 								serialNumber: tempVariables.intermidiateSerialCounter,
 								overrideSerialNumber: 0,
-								roadSideRecord: isRoadComponent? JSON.stringify(tempStorage.road[linkage.roadSection]) : "[]",
-								stopSideRecord: isStopComponent? JSON.stringify(tempStorage.stop[linkage.stopSection]) : "[]"
+								roadSideRecord: isRoadComponent || linkage.roadSection < tempStorage.road.length? JSON.stringify(tempStorage.road[linkage.roadSection]) : "[]",
+								stopSideRecord: isStopComponent || linkage.stopSection < tempStorage.stop.length? JSON.stringify(tempStorage.stop[linkage.stopSection]) : "[]"
 							}
 						);
 						++tempVariables.intermidiateSerialCounter;
@@ -2728,6 +2743,54 @@ function BuildIntermidiateComponent(roadIndex, stopIndex, type){
 	return [`<polygon points="${tl},${0} ${tr},${0} ${br},${maxY} ${bl},${maxY}" class="${type}"/>`, `<path d = "M ${tm} 0 L ${bm} ${maxY}" stroke="${indicatorLineColor}" stroke-width="${indicatorLineWidth}"/>`];
 }
 
+function BuildIntermidiatePointComponent(roadIndex, stopIndex, type, isRoadComponent, isStopComponent){
+	
+	const indicatorLineWidth = 1;
+	const indicatorLineColor = "blue";
+	
+	let l; //left coord of the triangle shape 
+	let r; //right coord of the triangle shape
+	let m;
+	let top; // top coord of the triangle shape
+	let anchor;
+	let bottomY = 0;
+	let topY = 0;
+	
+	//get l, r, top
+	if(isRoadComponent){
+		if(stopIndex === 0){
+			l = 0
+		}else{
+			l = M2Px(tempVariables.componentXCoord.stop[stopIndex - 1]);
+		}
+		
+		r = M2Px(tempVariables.componentXCoord.stop[stopIndex]);
+		
+		anchor = document.getElementById(`roadPointAnchor_${roadIndex}`);
+		bottomY = 0;
+		topY = markingSpaceElement.clientHeight;
+	}else{
+		if(roadIndex === 0){
+			l = 0
+		}else{
+			l = M2Px(tempVariables.componentXCoord.road[roadIndex - 1]);
+		}
+
+		r = M2Px(tempVariables.componentXCoord.road[roadIndex]);
+		anchor = document.getElementById(`stopPointAnchor_${stopIndex}`);
+		
+		bottomY = markingSpaceElement.clientHeight;
+		topY = 0;
+	}
+
+	top = anchor.offsetLeft + anchor.clientWidth / 2;
+	m = (l + r) / 2;
+
+	return [`<polygon points="${l},${bottomY} ${r},${bottomY} ${top},${topY}" class="${type}"/>`, 
+	`<path d = "M ${top} ${topY} L ${m} ${bottomY}" stroke="${indicatorLineColor}" stroke-width="${indicatorLineWidth}"/>`];
+
+}
+
 function RenderIntermidiateStage(){
 	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
 	let indicatorMarkings = [];
@@ -2736,7 +2799,17 @@ function RenderIntermidiateStage(){
 
 	for(let i = 0;i<roadSegmentRecord.length;++i){
 		let component = roadSegmentRecord[i];
-		let temp = BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type)
+		let temp;
+		if(component.type === "cc"){
+		
+			temp = BuildIntermidiateComponent(component.roadIndex, component.stopIndex, tempStorage.road[component.roadIndex].type)
+		
+		}else{
+
+			let componentType = component.roadLinkType === "component"? tempStorage.road[component.roadIndex].type : tempStorage.stop[component.stopIndex].type;
+			temp = BuildIntermidiatePointComponent(component.roadIndex, component.stopIndex, componentType, component.isRoadComponent, component.isStopComponent);
+			
+		}
 		markingSpaceElement.innerHTML += temp[0];
 		indicatorMarkings.push(temp[1]);
 	}
