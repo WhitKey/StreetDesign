@@ -2215,7 +2215,7 @@ function VerifyAndLink(roadIndex, stopIndex){
 	let centerStopRecord = null;
 	let centerRoadRecord = null;
 
-	// link compoent type check
+	// link component type check
 	if(roadRecord.type !== stopRecord.type) return false;
 	
 	//road component check
@@ -2444,16 +2444,16 @@ function VerifyAndLink(roadIndex, stopIndex){
 	return true;
 }
 
-function VerifyAndDelete(roadIndex, stopIndex){
+function VerifyAndDelete(roadIndex, stopIndex, linkType){
 	for(let i = 0;i<roadSegmentRecord.length;++i){
 		let record = roadSegmentRecord[i];
-		if(record.roadIndex === roadIndex && record.stopIndex === stopIndex){
+		if(record.roadIndex === roadIndex && record.stopIndex === stopIndex && record.type === linkType){
 			roadSegmentRecord.splice(i, 1);
 		}
 	}
 }
 
-function OnIntermidiateDragEnd(event){//TODO:add cp link
+function OnIntermidiateDragEnd(event){
 
 	function LinkingProcess(hitElement){
 		let linkage = {
@@ -2464,6 +2464,8 @@ function OnIntermidiateDragEnd(event){//TODO:add cp link
 		
 		let hitSection;
 		let hitComponent;
+		let startSection;
+		let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
 
 		//check hit in the road
 		if(hitElement === null)return;
@@ -2473,29 +2475,74 @@ function OnIntermidiateDragEnd(event){//TODO:add cp link
 		if(hitSection === null)return;
 		hitSection = hitSection.id;
 
-		//check hit in the component
-		hitComponent = hitElement.closest(".roadComponent");
-		if (hitComponent === null) return;
+		
+		if(hitElement.classList.contains("anchor")){
+			startSection = dragElement.closest(".roadScope").id;
 
-		//link process
-		linkage[hitSection] = parseInt(hitComponent.getAttribute("index"));
-		linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
+			linkage[hitSection] = parseInt(hitElement.getAttribute("index"));
+			linkage[startSection] = parseInt(dragElement.getAttribute("index"));
+			
+			if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
+				tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
 
-		if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
-			tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
-			if(draging){
-				//deleting mode
-				VerifyAndDelete(linkage.roadSection, linkage.stopSection);
-				// save to temp storage
-				PushUndoStack(tempVariables.state);
-				
-			}else{
-				// adding mode
-				if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
+				if(draging){
+					//deleting mode
+					VerifyAndDelete(linkage.roadSection, linkage.stopSection, "cp");
+					// save to temp storage
 					PushUndoStack(tempVariables.state);
+				}else{
+					let isRoadComponent = startSection === "roadSection";
+					let isStopComponent = startSection === "stopSection";
+					// create mode
+					console.log(tempStorage);
+					if(VerifyComponentPointLink(isRoadComponent, isStopComponent, linkage.roadSection, linkage.stopSection, tempStorage)){
+						
+						roadSegmentRecord.push(
+							{
+								type:"cp",
+								roadLinkType: isRoadComponent? "component": "point",
+								stopLinkType: isStopComponent? "component": "point",
+								roadIndex: linkage.roadSection,
+								stopIndex: linkage.stopSection,
+								serialNumber: tempVariables.intermidiateSerialCounter,
+								overrideSerialNumber: 0,
+								roadSideRecord: isRoadComponent? JSON.stringify(tempStorage.road[linkage.roadSection]) : "[]",
+								stopSideRecord: isStopComponent? JSON.stringify(tempStorage.stop[linkage.stopSection]) : "[]"
+							}
+						);
+						++tempVariables.intermidiateSerialCounter;
+						
+						// save to temp storage
+						PushUndoStack(tempVariables.state);
+					}
+				}
+			}
+		}else{
+			//check hit in the component
+			hitComponent = hitElement.closest(".roadComponent");
+			if (hitComponent === null) return;
+	
+			//link process
+			linkage[hitSection] = parseInt(hitComponent.getAttribute("index"));
+			linkage[dragElement.closest(".roadScope").id] = parseInt(dragElement.getAttribute("index"));
+	
+			if(linkage.stopSection !== -1 && linkage.roadSection !== -1){
+				tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+				if(draging){
+					//deleting mode
+					VerifyAndDelete(linkage.roadSection, linkage.stopSection, "cc");
+					// save to temp storage
+					PushUndoStack(tempVariables.state);
+					
+				}else{
+					// adding mode
+					if(VerifyAndLink(linkage.roadSection, linkage.stopSection)){
+						PushUndoStack(tempVariables.state);
+					}
 				}
 			}
 		}
+
 	}
 	
 	
@@ -2547,7 +2594,7 @@ function OnIntermidiateDragEnd(event){//TODO:add cp link
 
 }
 
-function OnIntermidiateDragMove(event){//TODO: add cp link
+function OnIntermidiateDragMove(event){
 	let dragTempElement = document.getElementById("dragTemp");
 	let elementWidth = parseFloat(dragTempElement.getAttribute("halfwidth"));
 	let elementX = parseFloat(dragTempElement.getAttribute("x"));
