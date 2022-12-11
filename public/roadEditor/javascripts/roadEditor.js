@@ -1890,13 +1890,6 @@ function IntermidiateValidation( updateWarningPopup = false){
 			}
 		}
 	}
-	
-
-	if(check){
-		console.log("check pass");
-	}else{
-		console.log("check failed");
-	}
 	return check;
 }
 
@@ -2030,6 +2023,7 @@ window.OnSwitchSegment = function(isNext = true){
 	//switch to presentation page
 	if(currentStage === 2 && isNext){
 		//TODO: switch to present page
+		console.log("switch to present stage");
 		return;
 	}
 
