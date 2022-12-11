@@ -1624,9 +1624,11 @@ function StageVerify(updateWarningPopup = false){
 		
 	}else{
 		chkFlag = false;
-		if(updateWarningPopup){
-			WarningPopupAddMessage("not avaliable", 3);
-		}
+		
+		//if(updateWarningPopup){
+		//	WarningPopupAddMessage("not avaliable", 3);
+		//}
+		chkFlag = IntermidiateValidation(updateWarningPopup);
 	}
 
 	//check process
@@ -1769,6 +1771,91 @@ function TemplateVerify(template, entryConfig){
 	}
 
 	return true;
+}
+
+function IntermidiateValidation( updateWarningPopup = false){
+	
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+
+	let hasConnect = {
+		road:[],
+		stop:[]
+	};
+	let connectivity = {
+		road:{},
+		stop:{}
+	}
+	
+	let check = true;
+
+	if(updateWarningPopup){
+		InitWarningPopup();
+	}
+
+	//check all road, sidewalk has connection
+	
+	for(let i = 0;i<roadSegmentRecord.length; ++i){
+		let record = roadSegmentRecord[i];
+		if(record.type==="cc"){
+			if(!hasConnect.road.includes(record.roadIndex))hasConnect.road.push(record.roadIndex);
+			if(!hasConnect.stop.includes(record.stopIndex))hasConnect.stop.push(record.stopIndex);
+
+			if(connectivity.road[record.roadIndex]){
+				connectivity.road[record.roadIndex].push(record.stopIndex);
+			}else{
+				connectivity.road[record.roadIndex] = [record.stopIndex];
+			}
+
+			if(connectivity.stop[record.stopIndex]){
+				connectivity.stop[record.stopIndex].push(record.roadIndex);
+			}else{
+				connectivity.stop[record.stopIndex] = [record.roadIndex];
+			}
+		}
+	}
+
+	//checking road segment
+	for(let i = 0;i<tempStorage.road.length;++i){
+		let record = tempStorage.road[i];
+		if(record.type==="road" || record.type === "sidewalk"){
+			if(!hasConnect.road.includes(i)){
+				check = false;
+				if(updateWarningPopup){
+					if(record.type === "road"){
+						WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 需連結至儲車段`, 3);
+					}else{
+						WarningPopupAddMessage(`道路段第${i+1}個物件(人行道) 需連結至儲車段`, 3);
+					}
+				}
+			}
+		}
+	}
+	
+	//checking stop segment
+	for(let i = 0;i<tempStorage.stop.length;++i){
+		let record = tempStorage.stop[i];
+		if(record.type==="road" || record.type === "sidewalk"){
+			if(!hasConnect.stop.includes(i)){
+				if(updateWarningPopup){
+					if(record.type === "road"){
+						WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 需連結至道路段`, 3);
+					}else{
+						WarningPopupAddMessage(`儲車段第${i+1}個物件(人行道) 需連結至道路段`, 3);
+					}
+				}
+				check = false;
+			}
+		}
+	}
+
+	
+
+	if(check){
+		console.log("check pass");
+	}else{
+		console.log("check failed");
+	}
+	return check;
 }
 
 //-----------------------------
