@@ -1848,6 +1848,48 @@ function IntermidiateValidation( updateWarningPopup = false){
 		}
 	}
 
+
+	//check road section road exit direction connectivity
+	for(let i = 0;i< tempStorage.road.length;++i){
+		let record = tempStorage.road[i];
+		if(record.type === "road" && record.direction !== 3){
+			let temp = 0;
+			if(connectivity.road[i] !== undefined){
+				for(let j = 0;j< connectivity.road[i].length;++j){
+					temp |= tempStorage.stop[connectivity.road[i][j]].exitDirection;
+				}
+			}
+			
+
+			if(record.exitDirection - temp > 0){
+				if(updateWarningPopup){
+					WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 儲車段方向缺失`, 3);
+				}
+				check = false;
+			}
+		}
+	}
+
+	//check stop section road exit direction connectivity
+	for(let i = 0;i< tempStorage.stop.length;++i){
+		let record = tempStorage.stop[i];
+		if(record.type === "road" && record.direction !== 3){
+			let temp = 0;
+			if(connectivity.stop[i] !== undefined){
+				for(let j = 0;j< connectivity.stop[i].length;++j){
+					temp |= tempStorage.road[connectivity.stop[i][j]].exitDirection;
+				}
+			}
+			
+
+			if(record.exitDirection - temp > 0){
+				if(updateWarningPopup){
+					WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 車道段方向缺失`, 3);
+				}
+				check = false;
+			}
+		}
+	}
 	
 
 	if(check){
