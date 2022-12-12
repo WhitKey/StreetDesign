@@ -42,4 +42,11 @@ router.get("/entry", function(req, res, next){
 	});
 })
 
+router.get("/present", function(req, res, next){
+	res.render('present', {
+		title: 'Express',
+		layout: "layout/present_layout"
+	});
+})
+
 module.exports = router;

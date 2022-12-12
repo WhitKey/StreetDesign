@@ -1891,6 +1891,8 @@ function IntermidiateValidation( updateWarningPopup = false){
 		}
 	}
 	return check;
+
+
 }
 
 //-----------------------------
@@ -2024,6 +2026,7 @@ window.OnSwitchSegment = function(isNext = true){
 	if(currentStage === 2 && isNext){
 		//TODO: switch to present page
 		console.log("switch to present stage");
+		location.href = "/present";
 		return;
 	}
 
