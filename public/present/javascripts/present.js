@@ -4,8 +4,6 @@
 // Global Variables
 //
 //-----------------------------------------
-
-
 const EditorPath =  window.location.protocol + "//"+ window.location.host;
 const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
@@ -18,19 +16,49 @@ const componentLayout = {
 	'shoulder':[],
 }
 
+let workingAreaElement = document.getElementById("workingArea");
+
+
+//TODO:remove before publish
+//------------------------------------------
+//
+// Debug function 
+//
+//------------------------------------------
+window.unconfirm = function(){
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	tempStorage.confirm = 0;
+	localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+	location.reload();
+}
+
 //------------------------------------------
 //
 // Initialization Functions
 //
 //------------------------------------------
 window.onload = function(){
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
 	console.log("present Load");
 
 	//input validation
-	if(!InputValidation()){
+	if(!InputValidation(tempStorage)){
+		if(tempStorage.confirm === 1){
+			tempStorage.confirm = 0;
+			localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+		}
 		location.replace(EditorPath);
 	}
-	console.log("input validation pass");
+
+	workingAreaElement = document.getElementById("workingArea");
+
+	if(tempStorage.confirm !== 1){
+		document.getElementById("mainWindow").classList.add("confirm");
+		SwitchConfirmStage();
+		return;
+	}
+	
+	Switch2DRoad();
 }
 
 //------------------------------------------
@@ -44,13 +72,37 @@ window.OnReturnToEditor = function(){
 	location.replace(EditorPath);
 }
 
+window.OnConfirm = function (){
+	//change into present stage
+	document.getElementById("mainWindow").classList.remove("confirm");
+
+	//change tempStorage
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	tempStorage.confirm = 1;
+	localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+
+	//switch stage
+	Switch2DRoad();
+}
+
+window.OnTo3D = function (){
+	console.log("to 3d view");
+}
+
+window.OnToIntersection = function(){
+	console.log("to 2d intersection");
+}
+
+window.OnTo2DRoad = function(event){
+	console.log("to 2d road");
+}
+
 //------------------------------------------
 //
 // Validation Functions 
 //
 //------------------------------------------
-function InputValidation(){
-	let storageJSON;
+function InputValidation(storageJSON){
 	let keys;
 	try {
 		storageJSON = JSON.parse(localStorage.getItem("tempStorage"));
@@ -184,10 +236,55 @@ function InputValidation(){
 // Render Functions
 //
 //------------------------------------------
-function RenderConfirmStage(){
-
+function RenderRoad(id, direction){
+	//id: id of the svg component
+	//direction: 0->left, 1:top, 2:right, 3:bottom
+	console.log(`render at ${id}, ${direction}`);
+	console.log(document.getElementById(id));
 }
 
+//------------------------------------------
+//
+// Stage Switch function
+//
+//------------------------------------------
+function SwitchConfirmStage(){
+	//let render = RenderConfirmStage();
+	let svg;
+	console.log("switch confirm stage");
+	
 
+
+	//set working area
+	svg = document.createElement("svg");
+	svg.style.height="100%";
+	svg.style.width="100%";
+	svg.style.backgroundColor= "red";
+	svg.id = "roadRenderArea";
+	workingAreaElement.innerHTML = svg.outerHTML;
+	setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
+}
+
+function Switch2DRoad(){
+	console.log("switch 2d road");
+	if(document.getElementById("roadRenderArea") === null){
+		//render road
+		let svg = document.createElement("svg");
+		svg.style.height="100%";
+		svg.style.width="100%";
+		svg.style.backgroundColor= "red";
+		svg.id = "roadRenderArea";
+		workingAreaElement.innerHTML = svg.outerHTML;
+		setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
+	}
+}
+
+function Switch2DIntersection(){
+	console.log("switch 2d intersection");
+}
+
+function Switch3DVeiw(){
+	console.log("switch 3d view");
+}
 
 
