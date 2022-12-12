@@ -1784,7 +1784,7 @@ function IntermidiateValidation( updateWarningPopup = false){
 	let connectivity = {
 		road:{},
 		stop:{}
-	}
+	};
 	
 	let check = true;
 
