@@ -17,6 +17,9 @@ const componentLayout = {
 }
 
 let workingAreaElement = document.getElementById("workingArea");
+let stateNameElement = document.getElementById("stateName");
+let dimensionSwitchElement = document.getElementById("dimensionSwitch");
+let sectionSwitchElement = document.getElementById("sectionSwitch");
 
 let tempVariable = {
 	intermidiateLength: 0 ,
@@ -60,6 +63,7 @@ window.onload = function(){
 	}
 
 	workingAreaElement = document.getElementById("workingArea");
+	stateNameElement = document.getElementById("stateName");
 
 	if(tempStorage.confirm !== 1){
 		document.getElementById("mainWindow").classList.add("confirm");
@@ -104,6 +108,31 @@ window.OnToIntersection = function(){
 
 window.OnTo2DRoad = function(event){
 	console.log("to 2d road");
+}
+
+
+window.OnCrossEnable = function(){
+	console.log("enable cross section view");
+	let crossViewElement = document.createElement("div");
+	crossViewElement.id = "crossView";
+	crossViewElement.addEventListener("focusout", window.OnCrossDisable);
+	crossViewElement.tabIndex = 0;
+	workingAreaElement.appendChild(crossViewElement);
+	crossViewElement.focus();
+	crossViewElement.classList.add("active");
+
+	dimensionSwitchElement.disabled = true;
+}
+
+window.OnCrossDisable = function(){
+	console.log("disable cross section view");
+	let crossViewElement = document.getElementById("crossView");
+	crossViewElement.classList.remove("active");
+	dimensionSwitchElement.disabled = false;
+	
+	setTimeout((crossViewElement) => {
+		crossViewElement.remove();
+	}, 300, crossViewElement);
 }
 
 //------------------------------------------
@@ -275,6 +304,41 @@ function RenderRoad(id, direction){
 // Stage Switch function
 //
 //------------------------------------------
+function SetToolbar(sectionTarget, stateName, dimensionTarget){
+	//set section switch
+	if(sectionTarget === "road"){
+		sectionSwitchElement.disabled = false;
+		sectionSwitchElement.innerText = "切換道路顯示";
+	}else if(sectionTarget === "intersection"){
+		sectionSwitchElement.disabled = false;
+		sectionSwitchElement.innerText = "切換路口顯示";
+		
+	}else{
+		sectionSwitchElement.disabled = true;
+		sectionSwitchElement.innerText = "";
+	}
+
+	// set dimension switch
+	if(dimensionTarget === "2D"){
+		dimensionSwitchElement.disabled = false;
+		dimensionSwitchElement.innerText = "切換2D顯示";
+	}else if(dimensionTarget === "3D"){
+		dimensionSwitchElement.disabled = false;
+		dimensionSwitchElement.innerText = "切換3D顯示";
+		
+	}else if(dimensionTarget === "cross"){
+		dimensionSwitchElement.disabled = false;
+		dimensionSwitchElement.innerText = "展開斷面顯示";
+		dimensionSwitchElement.onclick = window.OnCrossEnable;
+	}else{
+		dimensionSwitchElement.disabled = true;
+		dimensionSwitchElement.innerText = "";
+	}
+	
+	stateNameElement.innerText = stateName;
+
+}
+
 function SwitchConfirmStage(){
 	//let render = RenderConfirmStage();
 	let svg;
@@ -286,7 +350,7 @@ function SwitchConfirmStage(){
 	svg = document.createElement("svg");
 	svg.style.height="100%";
 	svg.style.width="100%";
-	svg.style.backgroundColor= "red";
+	svg.style.backgroundColor= " rgb(161, 114, 43)";
 	svg.id = "roadRenderArea";
 	workingAreaElement.innerHTML = svg.outerHTML;
 	setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
@@ -299,11 +363,13 @@ function Switch2DRoad(){
 		let svg = document.createElement("svg");
 		svg.style.height="100%";
 		svg.style.width="100%";
-		svg.style.backgroundColor= "red";
+		svg.style.backgroundColor= " rgb(161, 114, 43)";
 		svg.id = "roadRenderArea";
 		workingAreaElement.innerHTML = svg.outerHTML;
 		setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
 	}
+
+	SetToolbar("intersection","2D 道路", "cross");
 }
 
 function Switch2DIntersection(){

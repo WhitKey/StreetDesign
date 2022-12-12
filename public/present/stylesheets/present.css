@@ -56,3 +56,16 @@
 }
 
 
+#crossView{
+	position:fixed;
+	bottom: 0px;
+	left:0px;
+	width: 100vw;
+	height: 0px;
+	background-color: gray;
+	transition-duration: 300ms;
+}
+
+#crossView.active{
+	height: 70vh;
+}
