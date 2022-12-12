@@ -99,15 +99,15 @@ window.OnConfirm = function (){
 }
 
 window.OnTo3D = function (){
-	console.log("to 3d view");
+	Switch3DView();
 }
 
 window.OnToIntersection = function(){
-	console.log("to 2d intersection");
+	Switch2DIntersection();
 }
 
-window.OnTo2DRoad = function(event){
-	console.log("to 2d road");
+window.OnTo2DRoad = function(){
+	Switch2DRoad();
 }
 
 
@@ -129,7 +129,7 @@ window.OnCrossDisable = function(){
 	let crossViewElement = document.getElementById("crossView");
 	crossViewElement.classList.remove("active");
 	dimensionSwitchElement.disabled = false;
-	
+
 	setTimeout((crossViewElement) => {
 		crossViewElement.remove();
 	}, 300, crossViewElement);
@@ -309,22 +309,27 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	if(sectionTarget === "road"){
 		sectionSwitchElement.disabled = false;
 		sectionSwitchElement.innerText = "切換道路顯示";
+		sectionSwitchElement.onclick = window.OnTo2DRoad;
 	}else if(sectionTarget === "intersection"){
 		sectionSwitchElement.disabled = false;
 		sectionSwitchElement.innerText = "切換路口顯示";
+		sectionSwitchElement.onclick = window.OnToIntersection;
 		
 	}else{
 		sectionSwitchElement.disabled = true;
 		sectionSwitchElement.innerText = "";
+		sectionSwitchElement.onclick = null;
 	}
 
 	// set dimension switch
 	if(dimensionTarget === "2D"){
 		dimensionSwitchElement.disabled = false;
 		dimensionSwitchElement.innerText = "切換2D顯示";
+		dimensionSwitchElement.onclick = window.OnToIntersection;
 	}else if(dimensionTarget === "3D"){
 		dimensionSwitchElement.disabled = false;
 		dimensionSwitchElement.innerText = "切換3D顯示";
+		dimensionSwitchElement.onclick = window.OnTo3D;
 		
 	}else if(dimensionTarget === "cross"){
 		dimensionSwitchElement.disabled = false;
@@ -333,6 +338,7 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	}else{
 		dimensionSwitchElement.disabled = true;
 		dimensionSwitchElement.innerText = "";
+		dimensionSwitchElement.onclick = null;
 	}
 	
 	stateNameElement.innerText = stateName;
@@ -374,10 +380,12 @@ function Switch2DRoad(){
 
 function Switch2DIntersection(){
 	console.log("switch 2d intersection");
+	SetToolbar("road","2D 路口", "3D");
 }
 
-function Switch3DVeiw(){
+function Switch3DView(){
 	console.log("switch 3d view");
+	SetToolbar(undefined,"3D 路口", "2D");
 }
 
 
