@@ -18,6 +18,15 @@ const componentLayout = {
 
 let workingAreaElement = document.getElementById("workingArea");
 
+let tempVariable = {
+	intermidiateLength: 0 ,
+	stopLength: 18,
+	landWidth: 0,
+	componentX : {
+		road: [],
+		stop: []
+	},
+}
 
 //TODO:remove before publish
 //------------------------------------------
@@ -107,6 +116,8 @@ function InputValidation(storageJSON){
 	try {
 		storageJSON = JSON.parse(localStorage.getItem("tempStorage"));
 
+		tempVariable.landWidth = storageJSON.landWidth;
+
 		//check stage integrity
 		Sections.forEach(section => {
 			if(storageJSON[section] === undefined)throw `${section} section missing`;
@@ -116,13 +127,14 @@ function InputValidation(storageJSON){
 			if(section !== "intermidiate"){
 				let records = storageJSON[section];
 				let widthSum = 0;
+				tempVariable.componentX[section] = [];
 				
 				//verify the components
 				records.forEach(component=>{
 					let layout = componentLayout[component.type];
 					
 					if(component.width === undefined)throw "component width missing";
-					
+					tempVariable.componentX[section].push(widthSum);
 					widthSum += component.width;
 
 					if(layout === undefined)throw "component not found";
@@ -130,6 +142,8 @@ function InputValidation(storageJSON){
 						if(component[attr] === undefined)throw "component attrbute not found";
 					})
 				});
+
+				tempVariable.componentX[section].push(tempVariable.landWidth);
 
 				if(widthSum !== storageJSON.landWidth)throw "land width miss match";
 			}else{
@@ -143,7 +157,7 @@ function InputValidation(storageJSON){
 					stop:{}
 				};
 
-				let check = true;
+				let maxDiv = 0;
 
 				//build lookup tables
 				for(let i = 0;i<storageJSON[section].length; ++i){
@@ -163,9 +177,20 @@ function InputValidation(storageJSON){
 						}else{
 							connectivity.stop[record.stopIndex] = [record.roadIndex];
 						}
+						
+						if(storageJSON.road[record.roadIndex].type === "road"){
+							let temp = Math.abs(
+								(tempVariable.componentX.road[record.roadIndex] + tempVariable.componentX.road[record.roadIndex + 1]) / 2 - 
+								(tempVariable.componentX.stop[record.stopIndex] + tempVariable.componentX.stop[record.stopIndex] + 1) / 2
+							);
+							if(temp > maxDiv){
+								maxDiv = temp;
+							}
+						}
 					}
 				}
-
+				tempVariable.intermidiateLength = 16 * maxDiv;
+				
 				//check all road, sidewalk has connection
 					//road section
 				for(let i = 0;i<storageJSON.road.length;++i){
@@ -174,6 +199,8 @@ function InputValidation(storageJSON){
 						if(!hasConnect.road.includes(i)){
 							throw "road section intermidiate connection missing";
 						}
+
+						
 					}
 				}
 
@@ -227,7 +254,7 @@ function InputValidation(storageJSON){
 		console.log(error);
 		return false;
 	}
-
+	console.log(tempVariable);
 	return true;
 }
 
