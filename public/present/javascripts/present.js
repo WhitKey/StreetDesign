@@ -7,8 +7,11 @@
 const EditorPath =  window.location.protocol + "//"+ window.location.host;
 const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
+const StopSectionLength = 18;
 
-//copy from editor.js
+const DefaultRoadRecord = '{\"intermidiateLength\":0,\"record\":{\"landWidth\":9,\"stage\":2,\"tempVersion\":\"1\",\"hasArcade\":false,\"roadType\":\"service\",\"road\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"stop\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"intermidiate\":[{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":2,\"stopIndex\":2,\"serialNumber\":1,\"overrideSerialNumber\":1,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":3,\"stopIndex\":3,\"serialNumber\":2,\"overrideSerialNumber\":2,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":1,\"stopIndex\":1,\"serialNumber\":3,\"overrideSerialNumber\":3,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":0,\"stopIndex\":0,\"serialNumber\":4,\"overrideSerialNumber\":4,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"}],\"confirm\":1}}';
+
+//copy from roadEditor.js
 const componentLayout = {
 	'road': ["direction", "exitDirection", "crossability"],
 	'bollard':[],
@@ -30,6 +33,11 @@ let tempVariable = {
 		stop: []
 	},
 }
+
+let intersectionRecord = {
+	primaryRoad: {},
+	intersection: [],
+};
 
 //TODO:remove before publish
 //------------------------------------------
@@ -86,6 +94,7 @@ window.onload = function(){
 		return;
 	}
 	
+	BuildIntersection();
 	Switch2DRoad();
 }
 
@@ -108,6 +117,9 @@ window.OnConfirm = function (){
 	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
 	tempStorage.confirm = 1;
 	localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+
+	// build intersection Record
+	BuildIntersection();
 
 	//switch stage
 	Switch2DRoad();
@@ -235,6 +247,8 @@ function InputValidation(storageJSON){
 				}
 				tempVariable.intermidiateLength = 16 * maxDiv;
 				
+				intersectionRecord.primaryRoad.intermidiateLength = tempVariable.intermidiateLength;
+
 				//check all road, sidewalk has connection
 					//road section
 				for(let i = 0;i<storageJSON.road.length;++i){
@@ -298,7 +312,6 @@ function InputValidation(storageJSON){
 		console.log(error);
 		return false;
 	}
-	console.log(tempVariable);
 	return true;
 }
 
@@ -307,11 +320,14 @@ function InputValidation(storageJSON){
 // Render Functions
 //
 //------------------------------------------
+function getRoadAspectRatio(roadRecord){
+	
+}
+
 function RenderRoad(id, direction){
 	//id: id of the svg component
 	//direction: 0->left, 1:top, 2:right, 3:bottom
 	console.log(`render at ${id}, ${direction}`);
-	console.log(document.getElementById(id));
 }
 
 //------------------------------------------
@@ -319,6 +335,19 @@ function RenderRoad(id, direction){
 // Stage Switch function
 //
 //------------------------------------------
+function BuildIntersection(){
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+
+	// build intersection Record
+	intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(tempStorage));
+	intersectionRecord.intersection = [];
+	intersectionRecord.intersection.push(JSON.parse(JSON.stringify(intersectionRecord.primaryRoad)));
+	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
+	intersectionRecord.intersection.push(JSON.parse(JSON.stringify(intersectionRecord.primaryRoad)));
+	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
+	console.log(intersectionRecord);
+}
+
 function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	//set section switch
 	if(sectionTarget === "road"){
@@ -365,8 +394,6 @@ function SwitchConfirmStage(){
 	let svg;
 	console.log("switch confirm stage");
 	
-
-
 	//set working area
 	svg = document.createElement("svg");
 	svg.style.height="100%";
