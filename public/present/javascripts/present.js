@@ -44,6 +44,21 @@ window.unconfirm = function(){
 	location.reload();
 }
 
+window.createTemplate = function(){
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	let output = {
+		roadType: tempStorage.roadType,
+		version: "1", //copy from roadEditor.js, tempStorageTemplate.version
+		section:{
+			road:tempStorage.road,
+			stop:tempStorage.stop,
+			intermidiate: tempStorage.intermidiate
+		}
+	}
+
+	console.log(JSON.stringify(output));
+}
+
 //------------------------------------------
 //
 // Initialization Functions

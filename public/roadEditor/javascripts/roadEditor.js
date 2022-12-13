@@ -1734,6 +1734,10 @@ function TemplateVerify(template, entryConfig){
 			throw "road type miss match";
 		}
 
+		//version check
+		if(templateJson.version !== TempStorageTemplate.tempVersion){
+			throw "version miss match";
+		}
 
 		keys = Object.keys(templateJson.section);
 		keys.forEach(key => {
