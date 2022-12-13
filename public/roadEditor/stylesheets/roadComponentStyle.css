@@ -69,7 +69,7 @@
 	display: flex;
 }
 
-polygon.road{
+svg .road{
 	fill: hsl(0, 0%, 11%);
 }
 
@@ -79,7 +79,7 @@ polygon.road{
 	display: flex;
 }
 
-polygon.shoulder{
+svg .shoulder{
 	fill: hsl(0, 0%, 11%);
 }
 
@@ -88,7 +88,7 @@ polygon.shoulder{
 	flex-shrink: 1;
 }
 
-polygon.sidewalk {
+svg .sidewalk {
 	fill: rgb(145, 39, 39);
 }
 
@@ -97,7 +97,7 @@ polygon.sidewalk {
 	flex-shrink: 1;
 }
 
-polygon.bollard {
+svg .bollard {
 	fill: rgb(143, 143, 143);
 }
 

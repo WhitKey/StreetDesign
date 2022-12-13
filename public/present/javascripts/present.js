@@ -333,6 +333,16 @@ function RenderRoad(roadRecord){
 	let roadLength = 0;
 	let M2PxFactor = 0;
 	let yOffset = 0;
+	let intermidiateStartX = 0;
+	let intermidiateEndX = 0;
+	let roadEndX = svgElement.clientWidth;
+
+	let componentX = {road:[], stop:[]};
+	let ccConnect = {};
+	let connectedLog = {
+		road:[],
+		stop:[]
+	};
 
 	//clear svg
 	svgElement.innerHTML = "";
@@ -346,8 +356,67 @@ function RenderRoad(roadRecord){
 		M2PxFactor = svgElement.clientHeight / roadRecord.record.landWidth;
 		roadLength = svgElement.clientWidth / M2PxFactor - StopSectionLength - roadRecord.intermidiateLength;
 	}
+	intermidiateStartX = roadLength * M2PxFactor;
+	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
 
+	//build lookup table
+	roadRecord.record.intermidiate.forEach(record=>{
+		if(ccConnect[record.roadIndex] === undefined){
+			ccConnect[record.roadIndex] = [record.stopIndex];
+		}else{
+			ccConnect[record.roadIndex].push(record.stopIndex);
+		}
+	});
+
+	let widthSum = 0;
+	console.log(roadLength);
+	roadRecord.record.road.forEach(record => {
+		componentX.road.push(widthSum * M2PxFactor + yOffset);
+		widthSum += record.width;
+		//TODO: center road calcuation
+	});
+	componentX.road.push(widthSum * M2PxFactor + yOffset);
 	
+	widthSum = 0;
+	roadRecord.record.stop.forEach(record => {
+		componentX.stop.push(widthSum * M2PxFactor + yOffset);
+		widthSum += record.width;
+	});
+	componentX.stop.push(widthSum* M2PxFactor + yOffset);
+
+	//build road side component
+	for(let i = 0;i<roadRecord.record.road.length;++i){
+		let record = roadRecord.record.road[i];
+		let component = `<polygon class=${record.type} points="0,${componentX.road[i]} ${intermidiateStartX},${componentX.road[i]} ${intermidiateStartX},${componentX.road[i+1]} 0,${componentX.road[i+1]}"/>`;
+		svgElement.innerHTML += component;
+	}
+	
+	//build stop side component
+	for(let i = 0;i<roadRecord.record.stop.length;++i){
+		let record = roadRecord.record.stop[i];
+		let component = `<polygon class=${record.type} points="${intermidiateEndX},${componentX.stop[i]} ${roadEndX},${componentX.stop[i]} ${roadEndX},${componentX.stop[i+1]} ${intermidiateEndX},${componentX.stop[i+1]}"/>`;
+		svgElement.innerHTML += component;
+	}
+	
+	//build intermidiate section component
+	for(let i = 0;i<roadRecord.record.intermidiate.length;++i){
+		let record = roadRecord.record.intermidiate[i];
+		let component = "";
+		if(record.type==="cc"){
+			//component - component connection
+			component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex+1]} ${intermidiateStartX},${componentX.road[record.roadIndex+1]}"/>`;
+		}else{
+			//component point connection
+			if(record.roadLinkType === "component"){
+				component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateStartX},${componentX.road[record.roadIndex+1]}"/>`;
+			}else{
+				component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex+1]}"/>`;
+			}
+			console.log(record);
+		}
+		svgElement.innerHTML += component;
+
+	}
 
 }
 
@@ -420,9 +489,13 @@ function SwitchConfirmStage(){
 }
 
 function Switch2DRoad(){
-	if(document.getElementById("roadRenderArea") === null){
+	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
 		RenderRoad(intersectionRecord.primaryRoad);
+	}else{
+		setTimeout((record) => {
+			RenderRoad(record);
+		}, 300, intersectionRecord.primaryRoad);
 	}
 
 	SetToolbar("intersection","2D 道路", "cross");
