@@ -238,7 +238,7 @@ function InputValidation(storageJSON){
 						if(storageJSON.road[record.roadIndex].type === "road"){
 							let temp = Math.abs(
 								(tempVariable.componentX.road[record.roadIndex] + tempVariable.componentX.road[record.roadIndex + 1]) / 2 - 
-								(tempVariable.componentX.stop[record.stopIndex] + tempVariable.componentX.stop[record.stopIndex] + 1) / 2
+								(tempVariable.componentX.stop[record.stopIndex] + tempVariable.componentX.stop[record.stopIndex + 1]) / 2
 							);
 							if(temp > maxDiv){
 								maxDiv = temp;
@@ -247,7 +247,7 @@ function InputValidation(storageJSON){
 					}
 				}
 				tempVariable.intermidiateLength = 16 * maxDiv;
-				
+
 				intersectionRecord.primaryRoad.intermidiateLength = tempVariable.intermidiateLength;
 				intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(storageJSON));
 
@@ -302,7 +302,6 @@ function InputValidation(storageJSON){
 							}
 						}
 						
-			
 						if(record.exitDirection - temp > 0){
 							throw "stop section road component exit direction miss match";
 						}
@@ -335,13 +334,14 @@ function RenderRoad(roadRecord){
 	let yOffset = 0;
 	let intermidiateStartX = 0;
 	let intermidiateEndX = 0;
+	let intermidiateMidX = 0;
 	let roadEndX = svgElement.clientWidth;
 
 	let componentX = {road:[], stop:[]};
 	let ccConnect = {};
 	let connectedLog = {
-		road:[],
-		stop:[]
+		road:{},
+		stop:{}
 	};
 
 	//clear svg
@@ -358,22 +358,26 @@ function RenderRoad(roadRecord){
 	}
 	intermidiateStartX = roadLength * M2PxFactor;
 	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
+	intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
 
 	//build lookup table
 	roadRecord.record.intermidiate.forEach(record=>{
-		if(ccConnect[record.roadIndex] === undefined){
-			ccConnect[record.roadIndex] = [record.stopIndex];
-		}else{
-			ccConnect[record.roadIndex].push(record.stopIndex);
+		if(record.type === "cc"){
+			if(ccConnect[record.roadIndex] === undefined){
+				ccConnect[record.roadIndex] = [record.stopIndex];
+			}else{
+				ccConnect[record.roadIndex].push(parseInt(record.stopIndex));
+			}
 		}
 	});
 
+	console.log(ccConnect);
+
 	let widthSum = 0;
-	console.log(roadLength);
 	roadRecord.record.road.forEach(record => {
 		componentX.road.push(widthSum * M2PxFactor + yOffset);
 		widthSum += record.width;
-		//TODO: center road calcuation
+		//TODO: center road calculation
 	});
 	componentX.road.push(widthSum * M2PxFactor + yOffset);
 	
@@ -383,41 +387,62 @@ function RenderRoad(roadRecord){
 		widthSum += record.width;
 	});
 	componentX.stop.push(widthSum* M2PxFactor + yOffset);
-
-	//build road side component
-	for(let i = 0;i<roadRecord.record.road.length;++i){
+	
+	//build component - component link
+	for(let i = 0;i< roadRecord.record.road.length;++i){
 		let record = roadRecord.record.road[i];
-		let component = `<polygon class=${record.type} points="0,${componentX.road[i]} ${intermidiateStartX},${componentX.road[i]} ${intermidiateStartX},${componentX.road[i+1]} 0,${componentX.road[i+1]}"/>`;
-		svgElement.innerHTML += component;
+		let roadT = componentX.road[i];
+		let roadB = componentX.road[i + 1];
+
+		if(ccConnect[i] === undefined)continue;
+
+		for(let j = 0;j < ccConnect[i].length; ++j){
+			let stopIndex = parseInt(ccConnect[i][j])
+			let stopT = componentX.stop[stopIndex];
+			let stopB = componentX.stop[stopIndex + 1];
+			
+			let component = `<path class=${record.type} d="M 0 ${roadT} L ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopT}, ${intermidiateEndX} ${stopT} L ${roadEndX} ${stopT} L ${roadEndX} ${stopB} L ${intermidiateEndX} ${stopB} C ${intermidiateMidX} ${stopB}, ${intermidiateMidX} ${roadB}, ${intermidiateStartX} ${roadB} L 0 ${roadB} Z"/>`;
+			connectedLog.road[i] = 1;
+			connectedLog.stop[stopIndex] = 1;
+			svgElement.innerHTML += component;
+		}
 	}
 	
-	//build stop side component
-	for(let i = 0;i<roadRecord.record.stop.length;++i){
-		let record = roadRecord.record.stop[i];
-		let component = `<polygon class=${record.type} points="${intermidiateEndX},${componentX.stop[i]} ${roadEndX},${componentX.stop[i]} ${roadEndX},${componentX.stop[i+1]} ${intermidiateEndX},${componentX.stop[i+1]}"/>`;
-		svgElement.innerHTML += component;
-	}
-	
-	//build intermidiate section component
-	for(let i = 0;i<roadRecord.record.intermidiate.length;++i){
-		let record = roadRecord.record.intermidiate[i];
+	//build component - point connection
+	for(let i = 0;i< roadRecord.record.intermidiate.length;++i){
+		let record = roadRecord.record.intermidiate[i];	
+		let roadT = componentX.road[record.roadIndex];
+		let stopT = componentX.stop[record.stopIndex];
 		let component = "";
-		if(record.type==="cc"){
-			//component - component connection
-			component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex+1]} ${intermidiateStartX},${componentX.road[record.roadIndex+1]}"/>`;
+		
+		if(record.type === "cc")continue;
+		
+		if(record.roadLinkType === "component"){
+			let roadB = componentX.road[record.roadIndex + 1];
+			component = `<path class=${roadRecord.record.road[record.roadIndex].type} d="M 0 ${roadT} L ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopT}, ${intermidiateEndX} ${stopT} C ${intermidiateMidX} ${stopT}, ${intermidiateMidX} ${roadB}, ${intermidiateStartX} ${roadB} L 0 ${roadB} Z"/>`;
+			connectedLog.road[record.roadIndex] = 1;
 		}else{
-			//component point connection
-			if(record.roadLinkType === "component"){
-				component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateStartX},${componentX.road[record.roadIndex+1]}"/>`;
-			}else{
-				component = `<polygon class=${roadRecord.record.road[record.roadIndex].type} points="${intermidiateStartX},${componentX.road[record.roadIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex]} ${intermidiateEndX},${componentX.stop[record.stopIndex+1]}"/>`;
-			}
-			console.log(record);
+			let stopB = componentX.stop[record.stopIndex + 1];
+			component = `<path class=${roadRecord.record.stop[record.stopIndex].type} d="M ${roadEndX} ${stopT} L ${intermidiateEndX} ${stopT} C ${intermidiateMidX} ${stopT}, ${intermidiateMidX} ${roadT}, ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopB}, ${intermidiateEndX} ${stopB} L ${roadEndX} ${stopB} Z"/>`;
+			connectedLog.stop[record.stopIndex] = 1;
 		}
 		svgElement.innerHTML += component;
-
 	}
-
+	
+	//build empty component
+	for(let i = 0;i< roadRecord.record.road.length;++i){
+		if(connectedLog.road[i] !== 1){
+			let component = `<path class=${roadRecord.record.road[i].type} d="M 0 ${componentX.road[i]} L ${intermidiateStartX} ${componentX.road[i]} L ${intermidiateStartX} ${componentX.road[i+1]} L 0 ${componentX.road[i+1]}Z"/>`;
+			svgElement.innerHTML += component;
+		}
+	}
+	
+	for(let i = 0;i< roadRecord.record.stop.length;++i){
+		if(connectedLog.stop[i] !== 1){
+			let component = `<path class=${roadRecord.record.stop[i].type} d="M ${roadEndX} ${componentX.stop[i]} L ${intermidiateEndX} ${componentX.stop[i]} L ${intermidiateEndX} ${componentX.stop[i+1]} L ${roadEndX} ${componentX.stop[i+1]}Z"/>`;
+			svgElement.innerHTML += component;
+		}
+	}
 }
 
 //------------------------------------------
