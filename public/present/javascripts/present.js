@@ -8,6 +8,7 @@ const EditorPath =  window.location.protocol + "//"+ window.location.host;
 const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
 const StopSectionLength = 18;
+const MinRoadSectionLength = 5;
 
 const DefaultRoadRecord = '{\"intermidiateLength\":0,\"record\":{\"landWidth\":9,\"stage\":2,\"tempVersion\":\"1\",\"hasArcade\":false,\"roadType\":\"service\",\"road\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"stop\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"intermidiate\":[{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":2,\"stopIndex\":2,\"serialNumber\":1,\"overrideSerialNumber\":1,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":3,\"stopIndex\":3,\"serialNumber\":2,\"overrideSerialNumber\":2,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":1,\"stopIndex\":1,\"serialNumber\":3,\"overrideSerialNumber\":3,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":0,\"stopIndex\":0,\"serialNumber\":4,\"overrideSerialNumber\":4,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"}],\"confirm\":1}}';
 
@@ -248,6 +249,7 @@ function InputValidation(storageJSON){
 				tempVariable.intermidiateLength = 16 * maxDiv;
 				
 				intersectionRecord.primaryRoad.intermidiateLength = tempVariable.intermidiateLength;
+				intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(storageJSON));
 
 				//check all road, sidewalk has connection
 					//road section
@@ -320,14 +322,33 @@ function InputValidation(storageJSON){
 // Render Functions
 //
 //------------------------------------------
-function getRoadAspectRatio(roadRecord){
-	
+function IntersectionSvgLayout(){
+
 }
 
-function RenderRoad(id, direction){
-	//id: id of the svg component
-	//direction: 0->left, 1:top, 2:right, 3:bottom
-	console.log(`render at ${id}, ${direction}`);
+
+function RenderRoad(roadRecord){
+	let svgElement = document.getElementById("roadRenderArea");
+	let minLength = roadRecord.intermidiateLength + StopSectionLength + MinRoadSectionLength;
+	let roadLength = 0;
+	let M2PxFactor = 0;
+	let yOffset = 0;
+
+	//clear svg
+	svgElement.innerHTML = "";
+
+	//get aspect ratio
+	if(svgElement.clientWidth / minLength * roadRecord.record.landWidth <  svgElement.clientHeight){
+		M2PxFactor = svgElement.clientWidth / minLength;
+		yOffset = (svgElement.clientHeight - roadRecord.record.landWidth * M2PxFactor) / 2;
+		roadLength = MinRoadSectionLength;
+	}else{
+		M2PxFactor = svgElement.clientHeight / roadRecord.record.landWidth;
+		roadLength = svgElement.clientWidth / M2PxFactor - StopSectionLength - roadRecord.intermidiateLength;
+	}
+
+	
+
 }
 
 //------------------------------------------
@@ -336,10 +357,10 @@ function RenderRoad(id, direction){
 //
 //------------------------------------------
 function BuildIntersection(){
-	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	//let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
 
 	// build intersection Record
-	intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(tempStorage));
+	//intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(tempStorage));
 	intersectionRecord.intersection = [];
 	intersectionRecord.intersection.push(JSON.parse(JSON.stringify(intersectionRecord.primaryRoad)));
 	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
@@ -347,6 +368,8 @@ function BuildIntersection(){
 	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
 	console.log(intersectionRecord);
 }
+
+
 
 function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	//set section switch
@@ -392,29 +415,14 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 function SwitchConfirmStage(){
 	//let render = RenderConfirmStage();
 	let svg;
-	console.log("switch confirm stage");
-	
 	//set working area
-	svg = document.createElement("svg");
-	svg.style.height="100%";
-	svg.style.width="100%";
-	svg.style.backgroundColor= " rgb(161, 114, 43)";
-	svg.id = "roadRenderArea";
-	workingAreaElement.innerHTML = svg.outerHTML;
-	setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
+	RenderRoad(intersectionRecord.primaryRoad);
 }
 
 function Switch2DRoad(){
-	console.log("switch 2d road");
 	if(document.getElementById("roadRenderArea") === null){
 		//render road
-		let svg = document.createElement("svg");
-		svg.style.height="100%";
-		svg.style.width="100%";
-		svg.style.backgroundColor= " rgb(161, 114, 43)";
-		svg.id = "roadRenderArea";
-		workingAreaElement.innerHTML = svg.outerHTML;
-		setTimeout(()=>{RenderRoad("roadRenderArea", 0), 100});
+		RenderRoad(intersectionRecord.primaryRoad);
 	}
 
 	SetToolbar("intersection","2D 道路", "cross");
