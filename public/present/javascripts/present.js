@@ -33,7 +33,8 @@ let tempVariable = {
 		road: [],
 		stop: []
 	},
-}
+	resizeFunction: undefined
+};
 
 let intersectionRecord = {
 	primaryRoad: {},
@@ -543,6 +544,21 @@ function RenderRoad(roadRecord){
 	}
 }
 
+window.ResizeTrigger = function(){
+	const timeWindow = 300;
+	console.log("resize");
+
+	if(tempVariable.resizeFunction === undefined)return;
+
+	if(tempVariable.timeout === undefined){
+		tempVariable.timeout = null;
+	}
+	if(tempVariable.timeout){
+		clearTimeout(tempVariable.timeout); 
+	}
+	tempVariable.timeout = setTimeout(()=>{tempVariable.resizeFunction(tempVariable.resizeVariable);}, timeWindow);
+}
+
 //------------------------------------------
 //
 // Stage Switch function
@@ -560,8 +576,6 @@ function BuildIntersection(){
 	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
 	console.log(intersectionRecord);
 }
-
-
 
 function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	//set section switch
@@ -608,13 +622,17 @@ function SwitchConfirmStage(){
 	//let render = RenderConfirmStage();
 	let svg;
 	//set working area
+	tempVariable.resizeFunction = RenderRoad;
+	tempVariable.resizeVariable = intersectionRecord.primaryRoad;
 	RenderRoad(intersectionRecord.primaryRoad);
 }
 
 function Switch2DRoad(){
+	tempVariable.resizeFunction = RenderRoad;
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
 		RenderRoad(intersectionRecord.primaryRoad);
+		tempVariable.resizeVariable = intersectionRecord.primaryRoad;
 	}else{
 		setTimeout((record) => {
 			RenderRoad(record);
@@ -626,11 +644,13 @@ function Switch2DRoad(){
 
 function Switch2DIntersection(){
 	console.log("switch 2d intersection");
+	tempVariable.resizeFunction = undefined;
 	SetToolbar("road","2D 路口", "3D");
 }
 
 function Switch3DView(){
 	console.log("switch 3d view");
+	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
 }
 
