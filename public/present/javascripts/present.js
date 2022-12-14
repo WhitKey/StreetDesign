@@ -389,6 +389,7 @@ function RenderRoad(roadRecord){
 	componentX.stop.push(widthSum* M2PxFactor + yOffset);
 	
 	//build component - component link
+	let markingSpace = "";
 	for(let i = 0;i< roadRecord.record.road.length;++i){
 		let record = roadRecord.record.road[i];
 		let roadT = componentX.road[i];
@@ -401,13 +402,110 @@ function RenderRoad(roadRecord){
 			let stopT = componentX.stop[stopIndex];
 			let stopB = componentX.stop[stopIndex + 1];
 			
-			let component = `<path class=${record.type} d="M 0 ${roadT} L ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopT}, ${intermidiateEndX} ${stopT} L ${roadEndX} ${stopT} L ${roadEndX} ${stopB} L ${intermidiateEndX} ${stopB} C ${intermidiateMidX} ${stopB}, ${intermidiateMidX} ${roadB}, ${intermidiateStartX} ${roadB} L 0 ${roadB} Z"/>`;
+			let component = `<path class=${record.type} d="M 0 ${roadT} L ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopT}, ${intermidiateEndX} ${stopT} L ${roadEndX} ${stopT} L ${roadEndX} ${stopB} L ${intermidiateEndX} ${stopB} C ${intermidiateMidX} ${stopB}, ${intermidiateMidX} ${roadB}, ${intermidiateStartX} ${roadB} L 0 ${roadB} Z"></path>`;
+			svgElement.innerHTML += component;
+			
+			//add image
+			if(record.type === "road"){
+				let imageElement = "<image />";
+				let padding = 1 * M2PxFactor;
+				let imgSrc = "";
+				let transform;
+				let deg = 0;
+				//road
+				if(connectedLog.road[i] !== 1){
+					if(record.direction === 3){
+						deg = 90;
+						imgSrc = "/roadEditor/images/double_arrow.svg";
+					}else{
+						if(record.direction === 2){
+							deg = 90;
+						}else{
+							deg = -90;
+						}
+						
+						switch(record.exitDirection){
+							case 1:
+								imgSrc = "/roadEditor/images/left_arrow.svg";
+								break;
+							case 2:
+								imgSrc = "/roadEditor/images/straight_arrow.svg";
+								break;
+							case 3:
+								imgSrc = "/roadEditor/images/straight_left_arrow.svg";
+								break;
+							case 4:
+								imgSrc = "/roadEditor/images/right_arrow.svg";
+								break;
+							case 5:
+								imgSrc = "/roadEditor/images/left_right_arrow.svg";
+								break;
+							case 6:
+								imgSrc = "/roadEditor/images/straight_right_arrow.svg";
+								break;
+							case 7:
+								imgSrc = "/roadEditor/images/three_way_arrow.svg";
+								break;
+						}
+					}
+					
+					let roadWidth = componentX.road[i + 1] - componentX.road[i];
+					transform = `rotate(${deg}, ${padding + roadWidth / 2}, ${componentX.road[i] + roadWidth / 2})`;
+
+					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${padding}" y="${componentX.road[i]}"/>`;
+				}
+				
+				//stop
+				if(connectedLog.stop[stopIndex] !== 1){
+					let stopRecord = roadRecord.record.stop[stopIndex];
+					if(stopRecord.direction === 3){
+						deg = 90;
+						imgSrc = "/roadEditor/images/double_arrow.svg";
+					}else{
+						if(stopRecord.direction === 2){
+							deg = 90;
+						}else{
+							deg = -90;
+						}
+	
+						switch(stopRecord.exitDirection){
+							case 1:
+								imgSrc = "/roadEditor/images/left_arrow.svg";
+								break;
+							case 2:
+								imgSrc = "/roadEditor/images/straight_arrow.svg";
+								break;
+							case 3:
+								imgSrc = "/roadEditor/images/straight_left_arrow.svg";
+								break;
+							case 4:
+								imgSrc = "/roadEditor/images/right_arrow.svg";
+								break;
+							case 5:
+								imgSrc = "/roadEditor/images/left_right_arrow.svg";
+								break;
+							case 6:
+								imgSrc = "/roadEditor/images/straight_right_arrow.svg";
+								break;
+							case 7:
+								imgSrc = "/roadEditor/images/three_way_arrow.svg";
+								break;
+						}
+					}
+					
+					let roadWidth = componentX.stop[stopIndex + 1] - componentX.stop[stopIndex];
+					transform = `rotate(${deg}, ${roadEndX - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
+	
+					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${roadEndX - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
+					markingSpace += imageElement;
+				}
+			}
 			connectedLog.road[i] = 1;
 			connectedLog.stop[stopIndex] = 1;
-			svgElement.innerHTML += component;
 		}
 	}
-	
+	svgElement.innerHTML += markingSpace;
+
 	//build component - point connection
 	for(let i = 0;i< roadRecord.record.intermidiate.length;++i){
 		let record = roadRecord.record.intermidiate[i];	
