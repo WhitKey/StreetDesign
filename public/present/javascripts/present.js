@@ -326,7 +326,7 @@ function IntersectionSvgLayout(){
 
 }
 
-function CreateLineMarking(lineProp, points, yOffsetDir = 1){
+function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = undefined){
 	let rtn = "";
 	let linePaths = [];
 	let lineWidth = lineProp.width * tempVariable.M2PxFactor;
@@ -342,10 +342,14 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1){
 		
 		if(lineProp.width === 0.15){
 			yOffset = yOffsetDir * lineWidth / 2;
+			color = "white";
 		}else if(!lineProp.sameDir){
 			color = "yellow";
 		}
 
+		if(coloroverride !== undefined){
+			color = coloroverride;
+		}
 
 		for(let i = 0;i<points.length;++i){
 			let item = points[i];
@@ -362,10 +366,10 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1){
 		}
 
 		if(lineProp.width === 0.15){
-			return `<path stroke="white" d="${temp}" stroke-width="${lineWidth}"/>`;
+			return `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}"/>`;
 		}
 		
-		return `<path stroke="${color}" d="${temp}" stroke-width="${lineWidth}" stroke-dasharray="${dashLength}"/>`;
+		return `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}" stroke-dasharray="${dashLength}"/>`;
 	}
 
 
@@ -387,7 +391,10 @@ function RenderRoad(roadRecord){
 
 	let componentX = {road:[], stop:[]};
 	let ccConnect = {};
-	let centerIndex = {};
+	let intermidiateConnectTable = {
+		road:{},
+		stop:{}
+	};
 	let connectedLog = {
 		road:{},
 		stop:{}
@@ -419,14 +426,17 @@ function RenderRoad(roadRecord){
 				ccConnect[record.roadIndex].push(parseInt(record.stopIndex));
 			}
 
-			//get center road connection 
 			if(roadRecord.record.road[record.roadIndex].type === "road"){
-				if(centerIndex[record.roadIndex] === undefined){
-					centerIndex[record.roadIndex] = record;
-				}else if(centerIndex[record.roadIndex].overrideSerialNumber < record.overrideSerialNumber){
-					centerIndex[record.roadIndex] = record;
-				}else if(centerIndex[record.roadIndex].overrideSerialNumber === record.overrideSerialNumber && record.serialNumber < centerIndex[record.roadIndex].serialNumber){
-					centerIndex[record.roadIndex] = record;
+				if(intermidiateConnectTable.road[record.roadIndex] === undefined){
+					intermidiateConnectTable.road[record.roadIndex] = [record];
+				}else{
+					intermidiateConnectTable.road[record.roadIndex].push(record);
+				}
+
+				if(intermidiateConnectTable.stop[record.stopIndex] === undefined){
+					intermidiateConnectTable.stop[record.stopIndex] = [record];
+				}else{
+					intermidiateConnectTable.stop[record.stopIndex].push(record);
 				}
 			}
 		}
@@ -436,6 +446,14 @@ function RenderRoad(roadRecord){
 		if(ccConnect[i] === undefined)continue;
 		ccConnect[i].sort((a,b)=>{return a-b;});
 	}
+
+	Object.keys(intermidiateConnectTable.road).forEach(key=>{
+		intermidiateConnectTable.road[key].sort((a, b)=>{return a.stopIndex - b.stopIndex;});
+	});
+
+	Object.keys(intermidiateConnectTable.stop).forEach(key=>{
+		intermidiateConnectTable.stop[key].sort((a, b)=>{return a.roadIndex - b.roadIndex;});
+	});
 
 	let widthSum = 0;
 	roadRecord.record.road.forEach(record => {
@@ -465,7 +483,7 @@ function RenderRoad(roadRecord){
 			let stopIndex = parseInt(ccConnect[i][j])
 			let stopT = componentX.stop[stopIndex];
 			let stopB = componentX.stop[stopIndex + 1];
-			
+			let stopRecord = roadRecord.record.stop[stopIndex];
 			let component = `<path class=${record.type} d="M 0 ${roadT} L ${intermidiateStartX} ${roadT} C ${intermidiateMidX} ${roadT}, ${intermidiateMidX} ${stopT}, ${intermidiateEndX} ${stopT} L ${roadEndX} ${stopT} L ${roadEndX} ${stopB} L ${intermidiateEndX} ${stopB} C ${intermidiateMidX} ${stopB}, ${intermidiateMidX} ${roadB}, ${intermidiateStartX} ${roadB} L 0 ${roadB} Z"></path>`;
 			svgElement.innerHTML += component;
 			
@@ -475,6 +493,7 @@ function RenderRoad(roadRecord){
 				let imgSrc = "";
 				let transform;
 				let deg = 0;
+				//let color = undefined;
 
 				//add direction marking
 				//road
@@ -564,177 +583,222 @@ function RenderRoad(roadRecord){
 				}
 
 				//add marking
-				//left (direction road->stop)
-				let marking = "";
-				let points = [];
-				let lineProp = {
-					width:0,
-					left: 0,
-					right: 0,
-					sameDir: false,
-				};
+				{
+					let points = [];
+					let lineProp = {
+						left: 0,
+						right: 0,
+						sameDir: false,
+						width: 0
+					};
 
-				let check = false;
-
-				if(i === 0 || stopIndex === 0 || centerIndex[i].stopIndex === stopIndex) check = true;
-				if(!check ){
-					if(roadRecord.record.road[i - 1].type !== "road" || roadRecord.record.stop[stopIndex - 1].type !== "road"){
-						check = true;
-					}
-				} 
-
-				if(check){
-					if(connectedLog.road[i] !== 1){
-						points.push([0, componentX.road[i]]);
-						points.push([intermidiateStartX, componentX.road[i]]);
-						if(i === 0){
+					let tempLineProp = {
+						left: 0,
+						right: 0,
+						sameDir: false,
+						width: 0
+					};
+					let check;
+					//left
+					
+					//stopSection
+					if(connectedLog.stop[stopIndex] !== 0){
+						if(stopIndex === 0){
 							lineProp.width = 0.15;
-						}else if(roadRecord.record.road[i - 1].type !== "road"){
+						}else if(roadRecord.record.stop[stopIndex - 1].type !== "road"){
 							lineProp.width = 0.15;
 						}else{
-							let tempRecord = roadRecord.record.road[i - 1];
+							let tempRecord = roadRecord.record.stop[stopIndex - 1];
+							
 							lineProp.width = 0.1;
-							lineProp.left = (tempRecord.crossability & 0b10) === 0 ? 0 : 1; 
-							lineProp.right = (record.crossability & 0b1) === 0 ? 0 : 1;
-							lineProp.sameDir = tempRecord.direction === record.direction;
+							lineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							lineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+							lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
 						}
+
+						points.push([roadEndX, componentX.stop[stopIndex]]);
+						points.push([intermidiateEndX, componentX.stop[stopIndex]]);
 					}
-					
-					//intermidiate section
-					if(centerIndex[i].stopIndex === stopIndex || j === 0){
-						check = false;
-						{
-							let left = 1;
-							let right = 1;
-							let sameDirection = false;
-							let width = 0.15;
-							if(stopIndex !== 0){
-								let tempRecord = roadRecord.record.stop[stopIndex - 1];
-								
-								if(i === 0){
-									left = ((tempRecord.crossability & 0b10) === 0)? 0: 1;
-									width = (tempRecord.type === "road") ? 0.1:0.15;
-								}else{
-									left = ((tempRecord.crossability & 0b10) === 0) || ((roadRecord.record.road[i - 1].crossability & 0b10) === 0)? 0: 1;
-									width = (tempRecord.type === "road") && (roadRecord.record.road[i - 1].type === "road")? 0.1:0.15;
+
+					//check cover
+					check = false;
+					if(i === 0 || stopIndex === 0){
+						check = true;
+						tempLineProp.width = 0.15;
+					}else if(stopIndex !== 0){
+						if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road"){
+							tempLineProp.width = 0.15;
+							check = true;
+						}else{
+							let serial, overrideSerial;
+							for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+								if(intermidiateConnectTable.road[i][k].stopIndex === stopIndex){
+									let temp = intermidiateConnectTable.road[i][k];
+									serial = temp.serialNumber;
+									overrideSerial = temp.overrideSerialNumber;
+									break;
 								}
-								right = ((roadRecord.record.stop[stopIndex].crossability & 0b1) === 0 ) ||  ((record.crossability & 0b1) === 0)? 0 : 1;
-								sameDirection =  tempRecord.direction === record.direction;
-								
-								if(j !== 0){
-									if(ccConnect[i][j-1] === stopIndex - 1){
-										width = 0.1
-										left = 1;
-										right = 1;
-										sameDirection = true;
+							}
+							
+							//check for spliting
+							for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+								if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
+									let temp = intermidiateConnectTable.road[i][k]
+									check = true;
+									if(overrideSerial > temp.overrideSerialNumber){
+										tempLineProp.width = 0.1;
+										tempLineProp.left = 1;
+										tempLineProp.right = 1;
+										tempLineProp.sameDir = true;
+									}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+										tempLineProp.width = 0.1;
+										tempLineProp.left = 1;
+										tempLineProp.right = 1;
+										tempLineProp.sameDir = true;
+									}else{
+										tempLineProp.width = 0;
 									}
 								}
-
-
-								if(
-									width !==  lineProp.width||
-									(
-										width !== 0.15&&(
-											left !==  lineProp.left||
-											right !==  lineProp.right||
-											sameDirection !== lineProp.sameDir
-										)
-									)
-								){
-									check = true;
+							}
+							if(!check){
+								for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
+									if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
+										let temp = intermidiateConnectTable.stop[stopIndex][k]
+										check = true;
+										if(overrideSerial > temp.overrideSerialNumber){
+											tempLineProp.width = 0.1;
+											tempLineProp.left = 1;
+											tempLineProp.right = 1;
+											tempLineProp.sameDir = true;
+										}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+											tempLineProp.width = 0.1;
+											tempLineProp.left = 1;
+											tempLineProp.right = 1;
+											tempLineProp.sameDir = true;
+										}else{
+											tempLineProp.width = 0;
+										}
+									}
 								}
 							}
-							if(check||points.length === 0){
-								if(points.length !== 0){
-									marking += CreateLineMarking(lineProp, points);
+							
+
+							//check for parallel
+							if(! check && roadRecord.record.road[i -1].type === "road"){
+								for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
+									if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
+										let connection = intermidiateConnectTable.road[i-1][k];
+										let tempRoadRecord = roadRecord.record.road[connection.roadIndex];
+										let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
+
+										check = true;
+										tempLineProp.width = 0.1;
+										tempLineProp.sameDir = record.direction === tempStopRecord.direction;
+										tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 0:1) + ((tempStopRecord.crossability & 0b10) === 0? 0:1)) === 0? 0: 1;
+										tempLineProp.right = (((record.crossability & 0b1) === 0? 0:1) + ((stopRecord.crossability & 0b1) === 0? 0:1)) === 0? 0: 1;
+									}
 								}
-								lineProp.left = left;
-								lineProp.right = right;
-								lineProp.sameDir = sameDirection;
-								lineProp.width = width;
-								console.log(width);
-								points = [];
+							}
+							
+							//else
+							if(!check){
+								tempLineProp.width = 0.15;
+								check = true;
 							}
 						}
-
-						if(points.length === 0){
-							points.push([intermidiateStartX, componentX.road[i]]);
-						}
-						points.push([
-							[intermidiateMidX, componentX.road[i]],
-							[intermidiateMidX, componentX.stop[stopIndex]],
-							[intermidiateEndX, componentX.stop[stopIndex]]
-						]);
-						
-					}else if(points.length !== 0){
-						marking += CreateLineMarking(lineProp, points);
-						points = [];
-					}
-					
-					check = false;
-					if(stopIndex === 0 && lineProp.width !== 0.15){
+					}else{
+						tempLineProp.width = 0.15;
 						check = true;
 					}
-					
-					if(!check && stopIndex !== 0){
-						if((roadRecord.record.stop[stopIndex - 1].type !== "road" && lineProp.width !== 0.15) ||(roadRecord.record.stop[stopIndex - 1].type === "road" && lineProp.width !== 0.1)){
+
+					//check for diff line property
+					check = false;
+					if(lineProp.width !== tempLineProp.width){
+						check = true;
+					}else if(lineProp.width === 0.1){
+						if(
+							lineProp.left !==tempLineProp.left||
+							lineProp.right !==tempLineProp.right||
+							lineProp.sameDir !==tempLineProp.sameDir
+						){
 							check = true;
 						}
 					}
 
-					{
-						let left = 0;
-						let right = 0;
-						let sameDirection = false;
-						let width = 0.15;
-						if(stopIndex !== 0){
-							let tempRecord = roadRecord.record.stop[stopIndex - 1];
-							left = (tempRecord.crossability & 0b10) === 0 ? 0: 1;
-							right = (roadRecord.record.stop[stopIndex].crossability & 0b1) === 0 ? 0 : 1;
-							sameDirection =  tempRecord.direction === record.direction;
-							width = tempRecord.type === "road" ? 0.1:0.15;
+					if(check || tempLineProp.width === 0){
+						if(points.length !== 0){
+							markingSpace += CreateLineMarking(lineProp, points);
+						}
+						points = [];
+						lineProp.width = tempLineProp.width;
+						lineProp.left = tempLineProp.left;
+						lineProp.right = tempLineProp.right;
+						lineProp.sameDir = tempLineProp.sameDir;
+					}
 
+					//intermidiate stage
+					if(lineProp.width !== 0){
+						if(points.length === 0){
+							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
+						}
+						points.push([[intermidiateMidX, componentX.stop[stopIndex]], [intermidiateMidX, componentX.road[i]], [intermidiateStartX, componentX.road[i]]]);
+						//markingSpace += CreateLineMarking(lineProp, points, 1);
+					}
+					
+					
+					if(connectedLog.road[i] !== 1){
+						//road stage line prop
+						if(i === 0){
+							tempLineProp.width = 0.15;
+						}else if(roadRecord.record.road[i - 1].type !== "road"){
+							tempLineProp.width = 0.15;
+						}else{
+							let tempRecord = roadRecord.record.road[i -1];
+							tempLineProp.width = 0.1;
+							tempLineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+							tempLineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+						}
+
+						//line prop diff check
+						check = false;
+						if(lineProp.width !== tempLineProp.width){
+							check = true;
+						}else if(lineProp.width === 0.1){
 							if(
-								width !==  lineProp.width||
-								(
-									width !== 0.15&&(
-										left !==  lineProp.left||
-										right !==  lineProp.right||
-										sameDirection !== lineProp.sameDir
-									)
-								)
+								lineProp.left !==tempLineProp.left||
+								lineProp.right !==tempLineProp.right||
+								lineProp.sameDir !==tempLineProp.sameDir
 							){
 								check = true;
 							}
 						}
-						if(check){
+
+						if(check || tempLineProp.width === 0){
 							if(points.length !== 0){
-								marking += CreateLineMarking(lineProp, points);
+								markingSpace += CreateLineMarking(lineProp, points);
 							}
-							lineProp.left = left;
-							lineProp.right = right;
-							lineProp.sameDir = sameDirection;
-							lineProp.width = width;
 							points = [];
+							lineProp.width = tempLineProp.width;
+							lineProp.left = tempLineProp.left;
+							lineProp.right = tempLineProp.right;
+							lineProp.sameDir = tempLineProp.sameDir;
 						}
-					}
 
-
-					if(connectedLog.stop[i] !== 1){
+						//push point
 						if(points.length === 0){
-							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
+							points.push([intermidiateStartX, componentX.road[i]]);
 						}
-						points.push([roadEndX, componentX.stop[stopIndex]]);
+						points.push([0, componentX.road[i]]);
 					}
-
+					
 					if(points.length !== 0){
-						marking += CreateLineMarking(lineProp, points);
+						markingSpace += CreateLineMarking(lineProp, points, 1);
 					}
+
 				}
-				markingSpace += marking;
 
 
-				//right
 			}
 			connectedLog.road[i] = 1;
 			connectedLog.stop[stopIndex] = 1;
