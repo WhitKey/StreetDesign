@@ -459,7 +459,6 @@ function RenderRoad(roadRecord){
 	roadRecord.record.road.forEach(record => {
 		componentX.road.push(widthSum * M2PxFactor + yOffset);
 		widthSum += record.width;
-		//TODO: center road calculation
 	});
 	componentX.road.push(widthSum * M2PxFactor + yOffset);
 	
@@ -493,6 +492,17 @@ function RenderRoad(roadRecord){
 				let imgSrc = "";
 				let transform;
 				let deg = 0;
+
+				let serial, overrideSerial;
+				for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+					if(intermidiateConnectTable.road[i][k].stopIndex === stopIndex){
+						let temp = intermidiateConnectTable.road[i][k];
+						serial = temp.serialNumber;
+						overrideSerial = temp.overrideSerialNumber;
+						break;
+					}
+				}
+
 				//let color = undefined;
 
 				//add direction marking
@@ -630,16 +640,6 @@ function RenderRoad(roadRecord){
 							tempLineProp.width = 0.15;
 							check = true;
 						}else{
-							let serial, overrideSerial;
-							for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
-								if(intermidiateConnectTable.road[i][k].stopIndex === stopIndex){
-									let temp = intermidiateConnectTable.road[i][k];
-									serial = temp.serialNumber;
-									overrideSerial = temp.overrideSerialNumber;
-									break;
-								}
-							}
-							
 							//check for spliting
 							for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
 								if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
@@ -774,6 +774,7 @@ function RenderRoad(roadRecord){
 							}
 						}
 
+						//road section marking
 						if(check || tempLineProp.width === 0){
 							if(points.length !== 0){
 								markingSpace += CreateLineMarking(lineProp, points);
@@ -795,7 +796,156 @@ function RenderRoad(roadRecord){
 					if(points.length !== 0){
 						markingSpace += CreateLineMarking(lineProp, points, 1);
 					}
+					
+					//right
+					{
+						//stop section
+						check = false;
+						lineProp.width = 0;
+						points = [];
+						if(stopIndex === roadRecord.record.stop.length - 1){
+							check = true;
+						}else if(roadRecord.record.stop[stopIndex + 1].type !== "road"){
+							check = true;
+						}
+						
+						if(check){
+							lineProp.width = 0.15;
+							points.push([roadEndX, componentX.stop[stopIndex + 1]]);
+							points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+						}
+						
+						//build intermidiate section line property
+						check = false;
+						if(i < roadRecord.record.road.length - 1){
+							tempLineProp.width = 0;
+							if(stopIndex === roadRecord.record.stop.length - 1){
+								check = true;
+							}
+							else{
+								//road side branch out
+								if(roadRecord.record.stop[stopIndex + 1].type === "road"){
+									for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+										if(intermidiateConnectTable.road[i][k].stopIndex > stopIndex){
+											let temp = intermidiateConnectTable.road[i][k]
+											check = true;
+											if(overrideSerial > temp.overrideSerialNumber){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+											}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+											}else{
+												tempLineProp.width = 0;
+											}
+										}
+									}
+								}
+								
+								//stop side brabnch out
+								if(!check && roadRecord.record.road[i + 1].type === "road"){
+									for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
+										if(intermidiateConnectTable.stop[stopIndex][k].roadIndex > i){
+											let temp = intermidiateConnectTable.stop[stopIndex][k]
+											check = true;
+											if(overrideSerial > temp.overrideSerialNumber){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+											}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+											}else{
+												tempLineProp.width = 0;
+											}
+										}
+									}
+								}
+								
+								if(check){
+									check = false;
+								}else if(roadRecord.record.road[i + 1].type !== "road" || roadRecord.record.stop[stopIndex + 1].type !== "road"){
+									check = true;
+								}
+							}
+						}else{
+							check = true;
+						}
 
+						if(check){
+							tempLineProp.width = 0.15;
+						}
+
+						//check line prop diff
+						check = false;
+						if(lineProp.width !== tempLineProp.width || tempLineProp.width === 0){
+							check = true;
+						}else if(lineProp.width === 0.1){
+							if(
+								lineProp.left !== tempLineProp.left||
+								lineProp.right !== tempLineProp.right||
+								lineProp.sameDir !== tempLineProp.sameDir
+							){
+								check = true;
+							}
+						}
+
+						if(check){
+							if(points.length !== 0){
+								markingSpace += CreateLineMarking(lineProp, points, -1);
+							}
+							points = [];
+							
+							lineProp.width = tempLineProp.width;
+							lineProp.left = tempLineProp.left;
+							lineProp.right = tempLineProp.right;
+							lineProp.sameDir = tempLineProp.sameDir;
+						}
+
+						//intermidiate section
+						if(lineProp.width !== 0){
+							if(points.length === 0){
+								points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+							}
+							
+							points.push([[intermidiateMidX, componentX.stop[stopIndex + 1]], [intermidiateMidX, componentX.road[i + 1]], [intermidiateStartX, componentX.road[i + 1]]]);
+						}
+
+
+						// create road lineProp
+						check = false;
+						if(i === roadRecord.record.road.length - 1){
+							check = true;
+						}else if(roadRecord.record.road[i + 1].type !== "road"){
+							check = true;
+						}
+						
+						if(lineProp.width !== 0.15){
+							if(points.length !== 0){
+								markingSpace += CreateLineMarking(lineProp, points, -1);
+								points = [];
+							}
+						}
+						lineProp.width = 0.15;
+						
+						if(check){
+							points.push([intermidiateStartX, componentX.road[i + 1]]);
+							points.push([0, componentX.road[i + 1]]);
+						}
+
+
+						if(points.length !== 0){
+							markingSpace += CreateLineMarking(lineProp, points, -1);
+						}
+
+					}
 				}
 
 
