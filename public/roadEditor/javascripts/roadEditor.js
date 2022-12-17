@@ -1690,12 +1690,25 @@ function IntermidiateStageTempStorageRefit(){
 				}
 			}
 		}else if(record.type === "cp"){
-			//TODO: add component-point link refit
-			//check index range
-				
-			//check component type
 			
-			//check point type
+			if(record.roadLinkType === "component"){
+				if(record.roadIndex >= tempStorage.road.length){
+					removeList.push(i);
+				}else if(roadConnectionRecord.type !== tempStorage.road[record.roadIndex].type){
+					removeList.push(i);
+				}else if(record.stopIndex > tempStorage.stop.length){
+					removeList.push(i);
+				}
+				
+			}else{
+				if(record.stopIndex >= tempStorage.stop.length){
+					removeList.push(i);
+				}else if(stopConnectionRecord.type !== tempStorage.stop[record.stopIndex].type){
+					removeList.push(i);
+				}else if(record.roadIndex > tempStorage.road.length){
+					removeList.push(i);
+				}
+			}
 
 		}
 	}
