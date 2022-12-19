@@ -9,6 +9,7 @@ const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
 const StopSectionLength = 18;
 const MinRoadSectionLength = 5;
+const MinIntermidiateSectionLength = 1;
 
 const DefaultRoadRecord = '{\"intermidiateLength\":0,\"record\":{\"landWidth\":9,\"stage\":2,\"tempVersion\":\"1\",\"hasArcade\":false,\"roadType\":\"service\",\"road\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"stop\":[{\"type\":\"sidewalk\",\"width\":1.5},{\"type\":\"road\",\"width\":3,\"direction\":1,\"exitDirection\":7,\"crossability\":3},{\"type\":\"road\",\"width\":3,\"direction\":2,\"exitDirection\":7,\"crossability\":3},{\"type\":\"sidewalk\",\"width\":1.5}],\"intermidiate\":[{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":2,\"stopIndex\":2,\"serialNumber\":1,\"overrideSerialNumber\":1,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":2,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":3,\"stopIndex\":3,\"serialNumber\":2,\"overrideSerialNumber\":2,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":1,\"stopIndex\":1,\"serialNumber\":3,\"overrideSerialNumber\":3,\"roadSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\",\"stopSideRecord\":\"{\\"type\\":\\"road\\",\\"width\\":3,\\"direction\\":1,\\"exitDirection\\":7,\\"crossability\\":3}\"},{\"type\":\"cc\",\"roadLinkType\":\"component\",\"stopLinkType\":\"component\",\"roadIndex\":0,\"stopIndex\":0,\"serialNumber\":4,\"overrideSerialNumber\":4,\"roadSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\",\"stopSideRecord\":\"{\\"type\\":\\"sidewalk\\",\\"width\\":1.5}\"}],\"confirm\":1}}';
 
@@ -248,6 +249,9 @@ function InputValidation(storageJSON){
 					}
 				}
 				tempVariable.intermidiateLength = 16 * maxDiv;
+				if(tempVariable.intermidiateLength < MinIntermidiateSectionLength){
+					tempVariable.intermidiateLength = MinIntermidiateSectionLength;
+				}
 
 				intersectionRecord.primaryRoad.intermidiateLength = tempVariable.intermidiateLength;
 				intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(storageJSON));
@@ -319,7 +323,7 @@ function InputValidation(storageJSON){
 
 //------------------------------------------
 //
-// Render Functions
+// svg Functions
 //
 //------------------------------------------
 function IntersectionSvgLayout(){
@@ -423,12 +427,9 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	}
 	
 	return rtn;
-	if(!lineProp.sameDir) return `<circle cx="${points[0][0]}" cy="${points[0][1]}" r="2" fill="yellow"/>`;
-
-	return `<circle cx="${points[0][0]}" cy="${points[0][1]}" r="2" fill="red"/>`;
 }
 
-function RenderRoad(roadRecord){
+function BuildRoadSvg(roadRecord){
 	let svgElement = document.getElementById("roadRenderArea");
 	let minLength = roadRecord.intermidiateLength + StopSectionLength + MinRoadSectionLength;
 	let roadLength = 0;
@@ -1005,7 +1006,7 @@ function RenderRoad(roadRecord){
 			connectedLog.stop[stopIndex] = 1;
 		}
 	}
-	svgElement.innerHTML += markingSpace;
+	
 
 	//build component - point connection
 	for(let i = 0;i< roadRecord.record.intermidiate.length;++i){
@@ -1036,12 +1037,67 @@ function RenderRoad(roadRecord){
 		}
 	}
 	
+	let startX = -1;
+	let endX = -1;
+	let stopMarkingWidth = 0.4 * M2PxFactor;
+
+	let lineX = roadEndX - stopMarkingWidth / 2;
+	let marking15cm = 0.15 * M2PxFactor;
+	let marking10cm = 0.1 * M2PxFactor;
 	for(let i = 0;i< roadRecord.record.stop.length;++i){
+		let record = roadRecord.record.stop[i];
+		let check;
 		if(connectedLog.stop[i] !== 1){
 			let component = `<path class=${roadRecord.record.stop[i].type} d="M ${roadEndX} ${componentX.stop[i]} L ${intermidiateEndX} ${componentX.stop[i]} L ${intermidiateEndX} ${componentX.stop[i+1]} L ${roadEndX} ${componentX.stop[i+1]}Z"/>`;
 			svgElement.innerHTML += component;
 		}
+
+		//build stop marking
+		if(record.type === "road" && (record.direction & 0b10) !== 0){
+			if(i === 0 || startX === -1){
+				if(i === 0){
+					startX = componentX.stop[i] + marking15cm;
+				}else if(roadRecord.record.stop[i - 1].type === "road"){
+					if((record.crossability & 0b1) === 0 || (roadRecord.record.stop[i - 1].crossability & 0b10) === 0){
+						startX = componentX.stop[i] + marking10cm * 1.5;
+					}else{
+						startX = componentX.stop[i] + marking10cm * 0.5;
+					}
+				}else{
+					startX = componentX.stop[i] + marking15cm;
+				}
+			}
+
+			
+			check = false;
+			if(i === roadRecord.record.stop.length - 1){
+				check = true;
+				endX = componentX.stop[i + 1] - marking15cm;
+			}else{
+				let nextComponent = roadRecord.record.stop[i + 1];
+				check = true;
+				if(nextComponent.type !== "road"){
+					endX = componentX.stop[i + 1] - marking15cm;
+				}else if((nextComponent.direction & 0b10) === 0){
+					if((record.crossability & 0b10) === 0 || (nextComponent.crossability & 0b1) === 0){
+						endX = componentX.stop[i + 1] - marking10cm * 1.5;
+					}else {
+						endX = componentX.stop[i + 1] - marking10cm * 0.5;
+					}
+				}else{
+					check = false;
+				}
+			}
+
+			if(check){
+				
+				markingSpace += `<path d="M ${lineX} ${startX} L ${lineX} ${endX}" stroke-width="${stopMarkingWidth}" stroke="white"/>`
+				startX = -1;
+				endX = -1;
+			}
+		}
 	}
+	svgElement.innerHTML += markingSpace;
 }
 
 window.ResizeTrigger = function(){
@@ -1122,20 +1178,20 @@ function SwitchConfirmStage(){
 	//let render = RenderConfirmStage();
 	let svg;
 	//set working area
-	tempVariable.resizeFunction = RenderRoad;
+	tempVariable.resizeFunction = BuildRoadSvg;
 	tempVariable.resizeVariable = intersectionRecord.primaryRoad;
-	RenderRoad(intersectionRecord.primaryRoad);
+	BuildRoadSvg(intersectionRecord.primaryRoad);
 }
 
 function Switch2DRoad(){
-	tempVariable.resizeFunction = RenderRoad;
+	tempVariable.resizeFunction = BuildRoadSvg;
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
-		RenderRoad(intersectionRecord.primaryRoad);
+		BuildRoadSvg(intersectionRecord.primaryRoad);
 		tempVariable.resizeVariable = intersectionRecord.primaryRoad;
 	}else{
 		setTimeout((record) => {
-			RenderRoad(record);
+			BuildRoadSvg(record);
 		}, 300, intersectionRecord.primaryRoad);
 	}
 
