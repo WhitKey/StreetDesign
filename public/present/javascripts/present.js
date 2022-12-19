@@ -332,13 +332,14 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	let lineWidth = lineProp.width * tempVariable.M2PxFactor;
 	let dashLength = 3 * tempVariable.M2PxFactor;
 	let color = "white";
+	let totalWidth;
+	let temp = "";
+	let yOffset = 0;
 
 	console.log(points);
 	console.log(lineProp);
 	
 	if((lineProp.width === 0.15) || (lineProp.left === 1 && lineProp.right === 1)){
-		let temp = "";
-		let yOffset = 0;
 		
 		if(lineProp.width === 0.15){
 			yOffset = yOffsetDir * lineWidth / 2;
@@ -372,7 +373,56 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 		return `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}" stroke-dasharray="${dashLength}"/>`;
 	}
 
+	totalWidth = lineWidth * 3;
+	yOffset = yOffsetDir * lineWidth /2 - yOffsetDir * totalWidth / 2;
+	if(!lineProp.sameDir){
+		color = "yellow";
+	}
 
+	//left
+	for(let i = 0;i<points.length;++i){
+		let item = points[i];
+		if(i === 0){
+			temp += `M ${item[0]} ${item[1] + yOffset} `;
+			continue;
+		}
+		
+		if(item.length === 3){
+			temp += `C ${item[0][0]} ${item[0][1] + yOffset}, ${item[1][0]} ${item[1][1] + yOffset}, ${item[2][0]} ${item[2][1] + yOffset} `;
+		}else{
+			temp += `L ${item[0]} ${item[1] + yOffset} `;
+		}
+	}
+	if(lineProp.left === 0){
+		rtn += `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}"/>`;
+	}else{
+		rtn +=  `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}" stroke-dasharray="${dashLength}"/>`;
+	}
+
+	//right
+	yOffset += yOffsetDir * totalWidth;
+	temp = "";
+	for(let i = 0;i<points.length;++i){
+		let item = points[i];
+		if(i === 0){
+			temp += `M ${item[0]} ${item[1] + yOffset} `;
+			continue;
+		}
+		
+		if(item.length === 3){
+			temp += `C ${item[0][0]} ${item[0][1] + yOffset}, ${item[1][0]} ${item[1][1] + yOffset}, ${item[2][0]} ${item[2][1] + yOffset} `;
+		}else{
+			temp += `L ${item[0]} ${item[1] + yOffset} `;
+		}
+	}
+
+	if(lineProp.right === 0){
+		rtn += `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}"/>`;
+	}else{
+		rtn +=  `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}" stroke-dasharray="${dashLength}"/>`;
+	}
+	
+	return rtn;
 	if(!lineProp.sameDir) return `<circle cx="${points[0][0]}" cy="${points[0][1]}" r="2" fill="yellow"/>`;
 
 	return `<circle cx="${points[0][0]}" cy="${points[0][1]}" r="2" fill="red"/>`;
@@ -694,8 +744,9 @@ function RenderRoad(roadRecord){
 										check = true;
 										tempLineProp.width = 0.1;
 										tempLineProp.sameDir = record.direction === tempStopRecord.direction;
-										tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 0:1) + ((tempStopRecord.crossability & 0b10) === 0? 0:1)) === 0? 0: 1;
-										tempLineProp.right = (((record.crossability & 0b1) === 0? 0:1) + ((stopRecord.crossability & 0b1) === 0? 0:1)) === 0? 0: 1;
+										tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
+										tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
+										break;
 									}
 								}
 							}
@@ -755,9 +806,9 @@ function RenderRoad(roadRecord){
 						}else{
 							let tempRecord = roadRecord.record.road[i -1];
 							tempLineProp.width = 0.1;
-							tempLineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							tempLineProp.sameDir = record.direction === tempRecord.direction;
 							tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
-							tempLineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+							tempLineProp.right = (record.crossability & 0b1) === 0? 0:1;
 						}
 
 						//line prop diff check
