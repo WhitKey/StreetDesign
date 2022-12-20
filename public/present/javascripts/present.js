@@ -25,6 +25,7 @@ let workingAreaElement = document.getElementById("workingArea");
 let stateNameElement = document.getElementById("stateName");
 let dimensionSwitchElement = document.getElementById("dimensionSwitch");
 let sectionSwitchElement = document.getElementById("sectionSwitch");
+let crossViewElement = document.getElementById("crossView");
 
 let tempVariable = {
 	intermidiateLength: 0 ,
@@ -90,6 +91,7 @@ window.onload = function(){
 
 	workingAreaElement = document.getElementById("workingArea");
 	stateNameElement = document.getElementById("stateName");
+	crossViewElement = document.getElementById("crossView");
 
 	if(tempStorage.confirm !== 1){
 		document.getElementById("mainWindow").classList.add("confirm");
@@ -143,11 +145,9 @@ window.OnTo2DRoad = function(){
 
 window.OnCrossEnable = function(){
 	console.log("enable cross section view");
-	let crossViewElement = document.createElement("div");
-	crossViewElement.id = "crossView";
+	
 	crossViewElement.addEventListener("focusout", window.OnCrossDisable);
 	crossViewElement.tabIndex = 0;
-	workingAreaElement.appendChild(crossViewElement);
 	crossViewElement.focus();
 	crossViewElement.classList.add("active");
 
@@ -156,13 +156,8 @@ window.OnCrossEnable = function(){
 
 window.OnCrossDisable = function(){
 	console.log("disable cross section view");
-	let crossViewElement = document.getElementById("crossView");
 	crossViewElement.classList.remove("active");
 	dimensionSwitchElement.disabled = false;
-
-	setTimeout((crossViewElement) => {
-		crossViewElement.remove();
-	}, 300, crossViewElement);
 }
 
 //------------------------------------------
