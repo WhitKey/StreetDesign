@@ -44,4 +44,24 @@
 	height: 90%;
 	border-left: 1px solid magenta;
 	border-right: 1px solid magenta;
+	display:flex;
+	flex-direction: column;
+}
+
+.crossViewComponent .name{
+	height:30%;
+	width:100%;
+	text-align: center;
+}
+.crossViewComponent .component{
+	height:10%;
+	width:100%;
+}
+.crossViewComponent .lowerIcon{
+	height:35%;
+	width:100%;
+}
+.crossViewComponent .upperIcon{
+	height:25%;
+	width:100%;
 }
