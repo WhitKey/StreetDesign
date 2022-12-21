@@ -64,10 +64,35 @@
 	left:0px;
 	width: 100vw;
 	height: 0px;
-	background-color: gray;
+	padding: 5px;
+	background-color: lightgray;
 	transition-duration: 300ms;
 }
 
 #crossView.active{
 	height: 70vh;
+}
+
+.crossSectionView{
+	background-color: white;
+	height: 30vh;
+	width: 100%;
+	border-radius: 5px;
+	margin-bottom: 5px;
+	display: flex;
+	flex-direction: column;
+	padding: 5px;
+}
+
+.crossSectionView .title{
+	height: 4vh; 
+	line-height: 4vh;
+	font-size: 3vh;
+	width: 100%;
+	border-bottom: solid lightgray 1px;
+}
+
+.crossSectionView .view{
+	flex-grow:1;
+	width:100%;
 }

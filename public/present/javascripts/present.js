@@ -71,6 +71,17 @@ window.createTemplate = function(){
 	console.log(JSON.stringify(output));
 }
 
+window.toggleCrossViewDisable = function(){
+	//remember to modify OnCrossDisable
+	if(tempVariable.crossViewDisable === undefined){
+		tempVariable.crossViewDisable = 1;
+		console.log("disable cross view disable function");
+	}else{
+		tempVariable.crossViewDisable = undefined;
+		console.log("enable cross view disable function");
+	}
+}
+
 //------------------------------------------
 //
 // Initialization Functions
@@ -156,7 +167,9 @@ window.OnCrossEnable = function(){
 
 window.OnCrossDisable = function(){
 	console.log("disable cross section view");
-	crossViewElement.classList.remove("active");
+	if(tempVariable.crossViewDisable === undefined){
+		crossViewElement.classList.remove("active");
+	}
 	dimensionSwitchElement.disabled = false;
 }
 
