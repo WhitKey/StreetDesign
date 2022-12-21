@@ -104,6 +104,7 @@ window.onload = function(){
 	stateNameElement = document.getElementById("stateName");
 	crossViewElement = document.getElementById("crossView");
 
+	BuildCrossSectionView(tempStorage);
 	if(tempStorage.confirm !== 1){
 		document.getElementById("mainWindow").classList.add("confirm");
 		SwitchConfirmStage();
@@ -348,8 +349,8 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	let temp = "";
 	let yOffset = 0;
 
-	console.log(points);
-	console.log(lineProp);
+	//console.log(points);
+	//console.log(lineProp);
 	
 	if((lineProp.width === 0.15) || (lineProp.left === 1 && lineProp.right === 1)){
 		
@@ -1123,6 +1124,30 @@ window.ResizeTrigger = function(){
 	tempVariable.timeout = setTimeout(()=>{tempVariable.resizeFunction(tempVariable.resizeVariable);}, timeWindow);
 }
 
+function BuildCrossSectionView(tempStorage){
+	//stop section
+	BuildSectionCrossSection(tempStorage, tempStorage.stop, document.getElementById("stopSectionCrossSection").getElementsByClassName("view")[0])
+	
+	//road section
+	BuildSectionCrossSection(tempStorage, tempStorage.road, document.getElementById("roadSectionCrossSection").getElementsByClassName("view")[0])
+}
+
+function BuildCrossSectionComponent(record, M2PercentFactor){
+	console.log(record);
+	return `<div class="crossViewComponent " style="width:${record.width * M2PercentFactor}%"></div>`;
+}
+
+function BuildSectionCrossSection(tempStorage, record, element){
+	const M2PercentFactor = 100 / tempStorage.landWidth;
+	element.innerHTML = "";
+
+	for(let i = 0; i<record.length;++i){
+		let component = record[i];
+		element.innerHTML += BuildCrossSectionComponent(component, M2PercentFactor);
+	}
+
+}
+
 //------------------------------------------
 //
 // Stage Switch function
@@ -1138,7 +1163,7 @@ function BuildIntersection(){
 	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
 	intersectionRecord.intersection.push(JSON.parse(JSON.stringify(intersectionRecord.primaryRoad)));
 	intersectionRecord.intersection.push(JSON.parse(DefaultRoadRecord));
-	console.log(intersectionRecord);
+	//console.log(intersectionRecord);
 }
 
 function SetToolbar(sectionTarget, stateName, dimensionTarget){
