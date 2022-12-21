@@ -171,6 +171,7 @@ window.OnCrossEnable = function(){
 	crossViewElement.classList.add("active");
 
 	dimensionSwitchElement.disabled = true;
+	dimensionSwitchElement.style.pointerEvents = "none";
 }
 
 window.OnCrossDisable = function(){
@@ -179,6 +180,7 @@ window.OnCrossDisable = function(){
 		crossViewElement.classList.remove("active");
 	}
 	dimensionSwitchElement.disabled = false;
+	dimensionSwitchElement.style.pointerEvents = "unset";
 }
 
 //------------------------------------------
@@ -1139,15 +1141,15 @@ function BuildCrossSectionView(tempStorage){
 	BuildSectionCrossSection(tempStorage, tempStorage.road, document.getElementById("roadSectionCrossSection").getElementsByClassName("view")[0])
 }
 
-function BuildCrossSectionComponent(record, M2PercentFactor){
+function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 	console.log(record);
 	//TODO: add icon
 	return `
-	<div class="crossViewComponent " style="width:${record.width * M2PercentFactor}%">
+	<div class="crossViewComponent " style="width:${record.width * M2PercentFactor}%; ${isLast? "border-right: 2px solid magenta" : ""}">
 		<div class="upperIcon"></div>
 		<div class="lowerIcon"></div>
 		<div class="component ${record.type}"></div>
-		<div class="name">${ComponentType2Name[record.type]}</div>
+		<div class="name">${ComponentType2Name[record.type]}<br>${record.width} m</div>
 	</div>`;
 }
 
@@ -1157,7 +1159,7 @@ function BuildSectionCrossSection(tempStorage, record, element){
 
 	for(let i = 0; i<record.length;++i){
 		let component = record[i];
-		element.innerHTML += BuildCrossSectionComponent(component, M2PercentFactor);
+		element.innerHTML += BuildCrossSectionComponent(component, M2PercentFactor, i=== record.length - 1);
 	}
 
 }

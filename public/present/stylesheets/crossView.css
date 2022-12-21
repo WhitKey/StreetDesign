@@ -42,8 +42,7 @@
 
 .crossViewComponent{
 	height: 90%;
-	border-left: 1px solid magenta;
-	border-right: 1px solid magenta;
+	border-left: 2px solid magenta;
 	display:flex;
 	flex-direction: column;
 }
@@ -52,6 +51,7 @@
 	height:30%;
 	width:100%;
 	text-align: center;
+	font-size: 1%;
 }
 .crossViewComponent .component{
 	height:10%;
