@@ -331,7 +331,7 @@ function InputValidation(storageJSON){
 
 //------------------------------------------
 //
-// svg Functions
+// image Functions
 //
 //------------------------------------------
 function IntersectionSvgLayout(){
