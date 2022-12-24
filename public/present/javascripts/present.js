@@ -1143,11 +1143,40 @@ function BuildCrossSectionView(tempStorage){
 
 function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 	console.log(record);
+	let upperIcon = "";
+	let lowerIcon = "";
+
+	if(record.type === "road"){
+		if(record.direction === 3){
+			upperIcon = `<img src="images/outline_double_arrow.svg" style="height:100%;pointer-events: none;color:red;">`;
+		}else{
+			let auxStyle = "";
+			let iconSrc = "";
+			
+			if(record.direction === 1){
+				auxStyle = `transform:rotate(180deg);`;
+			}
+			
+			if(record.exitDirection === 1) iconSrc = "images/outline_left_arrow.svg";
+			else if(record.exitDirection === 2) iconSrc = "images/outline_straight_arrow.svg";
+			else if(record.exitDirection === 3) iconSrc = "images/outline_straight_left_arrow.svg";
+			else if(record.exitDirection === 4) iconSrc = "images/outline_right_arrow.svg";
+			else if(record.exitDirection === 5) iconSrc = "images/outline_left_right_arrow.svg";
+			else if(record.exitDirection === 6) iconSrc = "images/outline_straight_right_arrow.svg";
+			else if(record.exitDirection === 7) iconSrc = "images/outline_three_way_arrow.svg";
+
+			upperIcon = `<img src="${iconSrc}" style="height:100%;pointer-events: none;color:red;${auxStyle}">`;
+		}
+	}
+
+
 	//TODO: add icon
+
+
 	return `
 	<div class="crossViewComponent " style="width:${record.width * M2PercentFactor}%; ${isLast? "border-right: 2px solid magenta" : ""}">
-		<div class="upperIcon"></div>
-		<div class="lowerIcon"></div>
+		<div class="upperIcon">${upperIcon}</div>
+		<div class="lowerIcon">${lowerIcon}</div>
 		<div class="component ${record.type}"></div>
 		<div class="name">${ComponentType2Name[record.type]}<br>${record.width} m</div>
 	</div>`;
