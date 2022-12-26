@@ -304,6 +304,10 @@ function LoadPrevSession(){
 		if(temp.tempVersion !== tempStorage.tempVersion){
 			console.log("temp storage version mismatch");
 			localStorage.setItem("tempStorage", JSON.stringify(temp));
+		}else if(tempStorage.confirm === 1){
+			console.log("tempStorage confirmed");
+			location.href = "/present";
+			return null;
 		}else{
 			console.log("temp storage match");
 			currentStage = tempStorage.stage;
