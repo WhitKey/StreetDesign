@@ -940,7 +940,7 @@ function BuildRoadSvg(roadRecord, svgElementId){
 									}
 								}
 							}
-							
+
 							if(check){
 								check = false;
 							}else if(roadRecord.record.road[i + 1].type !== "road" || roadRecord.record.stop[stopIndex + 1].type !== "road"){
@@ -1144,7 +1144,7 @@ function BuildCrossSectionView(tempStorage){
 }
 
 function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
-	console.log(record);
+	//console.log(record);
 	let upperIcon = "";
 	let lowerIcon = "";
 
@@ -1255,14 +1255,14 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 }
 
 function SwitchConfirmStage(){
-	//let render = RenderConfirmStage();
-	let svg;
+	console.log("switch confirm stage");
 	//set working area
 	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 }
 
 function Switch2DRoad(){
+	console.log("switch 2d road");
 	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road

@@ -33,6 +33,7 @@
 	border-radius: 5px;
 	background-color: lightgray;
 	transition-duration: 300ms;
+	min-width: 120px;
 }
 
 #toolbar * button:hover{
