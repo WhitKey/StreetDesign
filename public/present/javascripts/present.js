@@ -1256,13 +1256,22 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 
 function SwitchConfirmStage(){
 	console.log("switch confirm stage");
+	
 	//set working area
+	workingAreaElement.classList.add("road");
+	workingAreaElement.classList.remove("intersection");
+
 	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 }
 
 function Switch2DRoad(){
 	console.log("switch 2d road");
+
+	//set working area
+	workingAreaElement.classList.add("road");
+	workingAreaElement.classList.remove("intersection");
+
 	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
@@ -1279,6 +1288,11 @@ function Switch2DRoad(){
 
 function Switch2DIntersection(){
 	console.log("switch 2d intersection");
+
+	//set working area
+	workingAreaElement.classList.add("intersection");
+	workingAreaElement.classList.remove("road");
+
 	tempVariable.resizeFunction = undefined;
 	SetToolbar("road","2D 路口", "3D");
 }
@@ -1288,5 +1302,12 @@ function Switch3DView(){
 	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
 }
+
+//----------------------------------------
+//
+// Layout Change Function
+//
+//----------------------------------------
+
 
 
