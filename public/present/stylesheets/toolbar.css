@@ -22,7 +22,7 @@
 }
 
 #sectionCntlGroup{
-	width: 10%;
+	width:  fit-content;
 	height: 100%;
 }
 
@@ -49,5 +49,6 @@
 }
 
 #dimensionCntlGroup{
-	width: 10%;
+	width: fit-content;
+	height:100%;
 }

@@ -7,15 +7,19 @@
 	padding: 5px;
 	background-color: lightgray;
 	transition-duration: 300ms;
+	opacity: 0;
 }
 
 #crossView.active{
-	height: 70vh;
+	max-height: 70vh;
+	height: 550px;
+	opacity: 1;
+	overflow-y:auto;
 }
 
 .crossSectionView{
 	background-color: white;
-	height: 30vh;
+	height: 250px;
 	width: 100%;
 	border-radius: 5px;
 	margin-bottom: 5px;
@@ -25,9 +29,7 @@
 }
 
 .crossSectionView .title{
-	height: 4vh; 
-	line-height: 4vh;
-	font-size: 3vh;
+	font-size: medium;
 	width: 100%;
 	margin-bottom: 5px;
 	border-bottom: solid lightgray 1px;
@@ -41,24 +43,24 @@
 }
 
 .crossViewComponent{
-	height: 90%;
+	height: 100%;
 	border-left: 2px solid magenta;
 	display:flex;
 	flex-direction: column;
 }
 
 .crossViewComponent .name{
-	height:30%;
+	height:20%;
 	width:100%;
 	text-align: center;
-	font-size: 1%;
+	font-size: x-small;
 }
 .crossViewComponent .component{
 	height:10%;
 	width:100%;
 }
 .crossViewComponent .lowerIcon{
-	height:35%;
+	height:45%;
 	width:100%;
 }
 .crossViewComponent .upperIcon{
