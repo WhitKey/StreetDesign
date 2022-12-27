@@ -91,6 +91,26 @@ window.toggleCrossViewDisable = function(){
 
 //------------------------------------------
 //
+// Utilities Functions
+//
+//------------------------------------------
+window.ResizeTrigger = function(){
+	const timeWindow = 300;
+	console.log("resize");
+
+	if(tempVariable.resizeFunction === undefined)return;
+
+	if(tempVariable.timeout === undefined){
+		tempVariable.timeout = null;
+	}
+	if(tempVariable.timeout){
+		clearTimeout(tempVariable.timeout); 
+	}
+	tempVariable.timeout = setTimeout(()=>{tempVariable.resizeFunction(tempVariable.resizeVariable);}, timeWindow);
+}
+
+//------------------------------------------
+//
 // Initialization Functions
 //
 //------------------------------------------
@@ -160,7 +180,6 @@ window.OnToIntersection = function(){
 window.OnTo2DRoad = function(){
 	Switch2DRoad();
 }
-
 
 window.OnCrossEnable = function(){
 	console.log("enable cross section view");
@@ -341,13 +360,9 @@ function InputValidation(storageJSON){
 
 //------------------------------------------
 //
-// image Functions
+// Road Section Functions
 //
 //------------------------------------------
-function IntersectionSvgLayout(){
-
-}
-
 function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = undefined){
 	let rtn = "";
 	let linePaths = [];
@@ -1120,21 +1135,11 @@ function BuildRoadSvg(roadRecord, svgElementId){
 	svgElement.innerHTML += markingSpace;
 }
 
-window.ResizeTrigger = function(){
-	const timeWindow = 300;
-	console.log("resize");
-
-	if(tempVariable.resizeFunction === undefined)return;
-
-	if(tempVariable.timeout === undefined){
-		tempVariable.timeout = null;
-	}
-	if(tempVariable.timeout){
-		clearTimeout(tempVariable.timeout); 
-	}
-	tempVariable.timeout = setTimeout(()=>{tempVariable.resizeFunction(tempVariable.resizeVariable);}, timeWindow);
-}
-
+//------------------------------------------
+//
+// Cross View function
+//
+//------------------------------------------
 function BuildCrossSectionView(tempStorage){
 	//stop section
 	BuildSectionCrossSection(tempStorage, tempStorage.stop, document.getElementById("stopSectionCrossSection").getElementsByClassName("view")[0])
@@ -1192,6 +1197,15 @@ function BuildSectionCrossSection(tempStorage, record, element){
 		let component = record[i];
 		element.innerHTML += BuildCrossSectionComponent(component, M2PercentFactor, i=== record.length - 1);
 	}
+
+}
+
+//----------------------------------------
+//
+// Layout Change Function
+//
+//----------------------------------------
+function IntersectionSvgLayout(){
 
 }
 
@@ -1302,12 +1316,6 @@ function Switch3DView(){
 	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
 }
-
-//----------------------------------------
-//
-// Layout Change Function
-//
-//----------------------------------------
 
 
 

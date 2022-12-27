@@ -1,6 +1,7 @@
 @import url("../../roadEditor/stylesheets/roadComponentStyle.css");
 @import url("toolbar.css");
 @import url("crossView.css");
+@import url("2dIntersectionView.css");
 
 #mainWindow{
 	height: 100%;
@@ -82,7 +83,3 @@
 	height:100%;
 	display: block;
 }
-
-
-
-
