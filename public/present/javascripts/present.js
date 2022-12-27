@@ -447,8 +447,8 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	return rtn;
 }
 
-function BuildRoadSvg(roadRecord){
-	let svgElement = document.getElementById("roadRenderArea");
+function BuildRoadSvg(roadRecord, svgElementId){
+	let svgElement = document.getElementById(svgElementId);
 	let minLength = roadRecord.intermidiateLength + StopSectionLength + MinRoadSectionLength;
 	let roadLength = 0;
 	let M2PxFactor = 0;
@@ -472,6 +472,7 @@ function BuildRoadSvg(roadRecord){
 	//clear svg
 	svgElement.innerHTML = "";
 
+	//TODO: put aspect ratio into another function
 	//get aspect ratio
 	if(svgElement.clientWidth / minLength * roadRecord.record.landWidth <  svgElement.clientHeight){
 		M2PxFactor = svgElement.clientWidth / minLength;
@@ -887,13 +888,11 @@ function BuildRoadSvg(roadRecord){
 						
 						//build intermidiate section line property
 						check = false;
-						if(i < roadRecord.record.road.length - 1){
+						if(i < roadRecord.record.road.length - 1 || stopIndex < roadRecord.record.stop.length - 1){
 							tempLineProp.width = 0;
-							if(stopIndex === roadRecord.record.stop.length - 1){
-								check = true;
-							}
-							else{
-								//road side branch out
+							
+							//road side branch out
+							if(stopIndex < roadRecord.record.stop.length - 1){
 								if(roadRecord.record.stop[stopIndex + 1].type === "road"){
 									for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
 										if(intermidiateConnectTable.road[i][k].stopIndex > stopIndex){
@@ -915,8 +914,10 @@ function BuildRoadSvg(roadRecord){
 										}
 									}
 								}
-								
-								//stop side brabnch out
+							}
+							
+							//stop side branch out
+							if(i < roadRecord.record.road.length - 1){
 								if(!check && roadRecord.record.road[i + 1].type === "road"){
 									for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
 										if(intermidiateConnectTable.stop[stopIndex][k].roadIndex > i){
@@ -938,13 +939,14 @@ function BuildRoadSvg(roadRecord){
 										}
 									}
 								}
-								
-								if(check){
-									check = false;
-								}else if(roadRecord.record.road[i + 1].type !== "road" || roadRecord.record.stop[stopIndex + 1].type !== "road"){
-									check = true;
-								}
 							}
+							
+							if(check){
+								check = false;
+							}else if(roadRecord.record.road[i + 1].type !== "road" || roadRecord.record.stop[stopIndex + 1].type !== "road"){
+								check = true;
+							}
+
 						}else{
 							check = true;
 						}
@@ -1170,7 +1172,7 @@ function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 	}
 
 
-	//TODO: add icon
+	//TODO: add lower icon
 
 
 	return `
@@ -1256,20 +1258,19 @@ function SwitchConfirmStage(){
 	//let render = RenderConfirmStage();
 	let svg;
 	//set working area
-	tempVariable.resizeFunction = BuildRoadSvg;
-	tempVariable.resizeVariable = intersectionRecord.primaryRoad;
-	BuildRoadSvg(intersectionRecord.primaryRoad);
+	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
+	BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 }
 
 function Switch2DRoad(){
-	tempVariable.resizeFunction = BuildRoadSvg;
+	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
-		BuildRoadSvg(intersectionRecord.primaryRoad);
+		BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 		tempVariable.resizeVariable = intersectionRecord.primaryRoad;
 	}else{
 		setTimeout((record) => {
-			BuildRoadSvg(record);
+			BuildRoadSvg(record,  "roadRenderArea");
 		}, 300, intersectionRecord.primaryRoad);
 	}
 
