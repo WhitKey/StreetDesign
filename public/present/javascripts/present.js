@@ -1259,7 +1259,7 @@ function CalculateIntersectionRoadSetting(){
 
 }
 
-function IntersectionSvgLayout(){
+function BuildIntersectionSvg(){
 	CalculateIntersectionSetting();
 }
 
@@ -1427,9 +1427,9 @@ function Switch2DIntersection(){
 	workingAreaElement.classList.add("intersection");
 	workingAreaElement.classList.remove("road");
 
-	IntersectionSvgLayout();
+	BuildIntersectionSvg();
 
-	tempVariable.resizeFunction = undefined;
+	tempVariable.resizeFunction = ()=>{BuildIntersectionSvg()};
 	SetToolbar("road","2D 路口", "3D");
 }
 
