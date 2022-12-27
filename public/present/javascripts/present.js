@@ -386,8 +386,6 @@ function CalculateRoadSetting(roadRecord, svgElementId){
 	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
 	intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
 
-	tempVariable.M2PxFactor = M2PxFactor;
-
 	return {
 		"yOffset": yOffset,
 		"intermidiateStartX": intermidiateStartX,
@@ -512,6 +510,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		stop:{}
 	};
 
+	tempVariable.M2PxFactor = M2PxFactor;
+
 	//clear svg
 	svgElement.innerHTML = "";
 
@@ -566,7 +566,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		widthSum += record.width;
 	});
 	componentX.stop.push(widthSum* M2PxFactor + yOffset);
-	
+
 	//build component - component link
 	let markingSpace = "";
 	for(let i = 0;i< roadRecord.record.road.length;++i){
@@ -1159,7 +1159,6 @@ function BuildRoadStageSvg(roadRecord, svgElementId){
 //
 //-----------------------------------------
 function CalculateIntersectionSetting(){
-	console.log(intersectionRecord.intersection);
 	let areaElement = document.getElementById("intersectionRenderArea");
 	let horiMinLength = 0;
 	let vertMinLength = 0;
@@ -1205,8 +1204,6 @@ function CalculateIntersectionSetting(){
 
 		let elementLength = (MinRoadSectionLength + StopSectionLength + ((i & 1) === 0 ? horiRoadExcessLength : vertRoadExcessLength) + (intersectionRecord.intersection[i].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[i].intermidiateLength));
 		elementLength *= M2PxFactor;
-
-		console.log(elementLength);
 		
 		let roadLength = MinRoadSectionLength + ((i & 1) === 0 ? horiRoadExcessLength : vertRoadExcessLength);
 		let intermidiateStartX = roadLength * M2PxFactor;
@@ -1250,8 +1247,9 @@ function CalculateIntersectionSetting(){
 		centerPiece.style.height = `${rtn.roads[0].roadWidth}px`
 	}
 
+	rtn.M2PxFactor = M2PxFactor;
 
-	console.log(horiMinLength, vertMinLength, M2PxFactor);
+	return rtn;
 	
 }
 
@@ -1260,7 +1258,12 @@ function CalculateIntersectionRoadSetting(){
 }
 
 function BuildIntersectionSvg(){
-	CalculateIntersectionSetting();
+	let intersectionSetting = CalculateIntersectionSetting();
+	for(let i = 0;i< 4;++i){
+		let roadSetting= intersectionSetting.roads[i];
+		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX);
+	}
+	
 }
 
 
