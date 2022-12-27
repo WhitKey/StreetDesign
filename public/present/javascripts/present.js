@@ -381,6 +381,7 @@ function CalculateRoadSetting(roadRecord, svgElementId){
 		M2PxFactor = svgElement.clientHeight / roadRecord.record.landWidth;
 		roadLength = svgElement.clientWidth / M2PxFactor - StopSectionLength - roadRecord.intermidiateLength;
 	}
+
 	intermidiateStartX = roadLength * M2PxFactor;
 	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
 	intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
@@ -1152,6 +1153,117 @@ function BuildRoadStageSvg(roadRecord, svgElementId){
 	BuildRoadSvg(roadRecord, svgElementId, roadSetting.M2PxFactor, roadSetting.yOffset, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX);
 }
 
+//-----------------------------------------
+//
+// Intersection Function
+//
+//-----------------------------------------
+function CalculateIntersectionSetting(){
+	console.log(intersectionRecord.intersection);
+	let areaElement = document.getElementById("intersectionRenderArea");
+	let horiMinLength = 0;
+	let vertMinLength = 0;
+	let horiRoadExcessLength = 0;
+	let vertRoadExcessLength = 0;
+	let M2PxFactor = 0;
+
+	let rtn = {
+		M2PxFactor: 0,
+		roads:[]
+	}
+
+	horiMinLength = 2 * (MinRoadSectionLength + StopSectionLength) 
+		+ ( intersectionRecord.intersection[0].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[0].intermidiateLength)
+		+ ( intersectionRecord.intersection[2].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[2].intermidiateLength)
+		+ ( intersectionRecord.intersection[1].record.landWidth < intersectionRecord.intersection[3].record.landWidth ? intersectionRecord.intersection[3].record.landWidth : intersectionRecord.intersection[1].record.landWidth);
+		
+	vertMinLength = 2 * (MinRoadSectionLength + StopSectionLength) 
+	+ ( intersectionRecord.intersection[1].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[1].intermidiateLength)
+	+ ( intersectionRecord.intersection[3].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[3].intermidiateLength)
+	+ ( intersectionRecord.intersection[2].record.landWidth < intersectionRecord.intersection[0].record.landWidth ? intersectionRecord.intersection[0].record.landWidth : intersectionRecord.intersection[2].record.landWidth);
+
+
+	//get min M2PxFactor
+	{
+		let hori = 0;
+		let vert = 0;
+
+		hori = areaElement.clientWidth / horiMinLength;
+		vert = areaElement.clientHeight / vertMinLength;
+		M2PxFactor = hori < vert? hori:vert;
+
+		horiRoadExcessLength = (areaElement.clientWidth / M2PxFactor) - horiMinLength;
+		vertRoadExcessLength = (areaElement.clientHeight / M2PxFactor) - vertMinLength;
+
+		horiRoadExcessLength /= 2;
+		vertRoadExcessLength /= 2;
+	}
+
+	//init road svg element
+	for(let i = 0;i<4;++i){
+		let svg = document.getElementById(`intersectionRoad_${i}`);
+
+		let elementLength = (MinRoadSectionLength + StopSectionLength + ((i & 1) === 0 ? horiRoadExcessLength : vertRoadExcessLength) + (intersectionRecord.intersection[i].intermidiateLength < MinIntermidiateSectionLength ? MinIntermidiateSectionLength : intersectionRecord.intersection[i].intermidiateLength));
+		elementLength *= M2PxFactor;
+
+		console.log(elementLength);
+		
+		let roadLength = MinRoadSectionLength + ((i & 1) === 0 ? horiRoadExcessLength : vertRoadExcessLength);
+		let intermidiateStartX = roadLength * M2PxFactor;
+		let intermidiateEndX = elementLength - StopSectionLength * M2PxFactor;
+		let intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
+
+		// build road setting
+		rtn.roads.push({
+			"intermidiateStartX": intermidiateStartX,
+			"intermidiateMidX": intermidiateMidX,
+			"intermidiateEndX": intermidiateEndX,
+			"elementLength":elementLength,
+			"roadWidth": intersectionRecord.intersection[i].record.landWidth * M2PxFactor,
+		});
+
+
+		svg.style.width = `${elementLength}px`;
+		svg.style.height = `${intersectionRecord.intersection[i].record.landWidth * M2PxFactor}px`;
+		svg.innerHTML = "";
+
+		if(i === 0){
+			svg.style.left = "0px";
+		}else if(i === 1){
+			svg.style.top = `${(elementLength - intersectionRecord.intersection[i].record.landWidth * M2PxFactor) / 2}px`;
+			svg.style.left = `${rtn.roads[0].elementLength - (elementLength - intersectionRecord.intersection[i].record.landWidth * M2PxFactor) / 2}px`;
+		}else if(i === 2){
+			svg.style.top = `${(rtn.roads[1].elementLength)}px`;
+			svg.style.left = `${rtn.roads[0].elementLength + rtn.roads[1].roadWidth}px`;
+		}else if(i === 3){
+			svg.style.top = `${rtn.roads[2].roadWidth + (rtn.roads[1].elementLength) + (elementLength - intersectionRecord.intersection[i].record.landWidth * M2PxFactor) / 2}px`;
+			svg.style.left = `${rtn.roads[0].elementLength - (elementLength - intersectionRecord.intersection[i].record.landWidth * M2PxFactor) / 2}px`;
+		}
+	}
+
+	{
+		let centerPiece = document.getElementById("intersectionRoad_center");
+		document.getElementById("intersectionRoad_0").style.top =  `${(rtn.roads[1].elementLength)}px`;
+		centerPiece.style.top =  `${(rtn.roads[1].elementLength)}px`;
+		centerPiece.style.left =  `${rtn.roads[0].elementLength}px`;
+		centerPiece.style.width = `${rtn.roads[1].roadWidth}px`
+		centerPiece.style.height = `${rtn.roads[0].roadWidth}px`
+	}
+
+
+	console.log(horiMinLength, vertMinLength, M2PxFactor);
+	
+}
+
+function CalculateIntersectionRoadSetting(){
+
+}
+
+function IntersectionSvgLayout(){
+	CalculateIntersectionSetting();
+}
+
+
 //------------------------------------------
 //
 // Cross View function
@@ -1214,15 +1326,6 @@ function BuildSectionCrossSection(tempStorage, record, element){
 		let component = record[i];
 		element.innerHTML += BuildCrossSectionComponent(component, M2PercentFactor, i=== record.length - 1);
 	}
-
-}
-
-//----------------------------------------
-//
-// Layout Change Function
-//
-//----------------------------------------
-function IntersectionSvgLayout(){
 
 }
 
@@ -1323,6 +1426,8 @@ function Switch2DIntersection(){
 	//set working area
 	workingAreaElement.classList.add("intersection");
 	workingAreaElement.classList.remove("road");
+
+	IntersectionSvgLayout();
 
 	tempVariable.resizeFunction = undefined;
 	SetToolbar("road","2D 路口", "3D");

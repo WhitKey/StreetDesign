@@ -1,0 +1,24 @@
+.intersectionRoad{
+	background-color: aqua;
+	position:absolute;
+}
+
+#intersectionRoad_1{
+	background-color: red;
+	transform-origin: center;
+	transform: rotate(90deg);
+}
+#intersectionRoad_2{
+	background-color: blue;
+	transform-origin: center;
+	transform: rotate(180deg);
+}
+#intersectionRoad_3{
+	background-color: green;
+	transform-origin: center;
+	transform: rotate(270deg);
+}
+
+#intersectionRoad_center{
+	background-color: black;
+}
