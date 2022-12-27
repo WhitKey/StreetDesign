@@ -363,6 +363,40 @@ function InputValidation(storageJSON){
 // Road Section Functions
 //
 //------------------------------------------
+function CalculateRoadSetting(roadRecord, svgElementId){
+	let svgElement = document.getElementById(svgElementId);
+	let minLength = roadRecord.intermidiateLength + StopSectionLength + MinRoadSectionLength;
+	let roadLength = 0;
+	let M2PxFactor = 0;
+	let yOffset = 0;
+	let intermidiateStartX = 0;
+	let intermidiateEndX = 0;
+	let intermidiateMidX = 0;
+
+	if(svgElement.clientWidth / minLength * roadRecord.record.landWidth <  svgElement.clientHeight){
+		M2PxFactor = svgElement.clientWidth / minLength;
+		yOffset = (svgElement.clientHeight - roadRecord.record.landWidth * M2PxFactor) / 2;
+		roadLength = MinRoadSectionLength;
+	}else{
+		M2PxFactor = svgElement.clientHeight / roadRecord.record.landWidth;
+		roadLength = svgElement.clientWidth / M2PxFactor - StopSectionLength - roadRecord.intermidiateLength;
+	}
+	intermidiateStartX = roadLength * M2PxFactor;
+	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
+	intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
+
+	tempVariable.M2PxFactor = M2PxFactor;
+
+	return {
+		"yOffset": yOffset,
+		"intermidiateStartX": intermidiateStartX,
+		"intermidiateMidX": intermidiateMidX,
+		"intermidiateEndX": intermidiateEndX,
+		"M2PxFactor":M2PxFactor
+	};
+
+}
+
 function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = undefined){
 	let rtn = "";
 	let linePaths = [];
@@ -462,15 +496,8 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	return rtn;
 }
 
-function BuildRoadSvg(roadRecord, svgElementId){
+function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX){
 	let svgElement = document.getElementById(svgElementId);
-	let minLength = roadRecord.intermidiateLength + StopSectionLength + MinRoadSectionLength;
-	let roadLength = 0;
-	let M2PxFactor = 0;
-	let yOffset = 0;
-	let intermidiateStartX = 0;
-	let intermidiateEndX = 0;
-	let intermidiateMidX = 0;
 	let roadEndX = svgElement.clientWidth;
 
 	let componentX = {road:[], stop:[]};
@@ -486,21 +513,6 @@ function BuildRoadSvg(roadRecord, svgElementId){
 
 	//clear svg
 	svgElement.innerHTML = "";
-
-	//TODO: put aspect ratio into another function
-	//get aspect ratio
-	if(svgElement.clientWidth / minLength * roadRecord.record.landWidth <  svgElement.clientHeight){
-		M2PxFactor = svgElement.clientWidth / minLength;
-		yOffset = (svgElement.clientHeight - roadRecord.record.landWidth * M2PxFactor) / 2;
-		roadLength = MinRoadSectionLength;
-	}else{
-		M2PxFactor = svgElement.clientHeight / roadRecord.record.landWidth;
-		roadLength = svgElement.clientWidth / M2PxFactor - StopSectionLength - roadRecord.intermidiateLength;
-	}
-	intermidiateStartX = roadLength * M2PxFactor;
-	intermidiateEndX = svgElement.clientWidth - StopSectionLength * M2PxFactor;
-	intermidiateMidX = (intermidiateEndX + intermidiateStartX) / 2;
-	tempVariable.M2PxFactor = M2PxFactor;
 
 	//build lookup table
 	roadRecord.record.intermidiate.forEach(record=>{
@@ -1135,6 +1147,11 @@ function BuildRoadSvg(roadRecord, svgElementId){
 	svgElement.innerHTML += markingSpace;
 }
 
+function BuildRoadStageSvg(roadRecord, svgElementId){
+	let roadSetting = CalculateRoadSetting(roadRecord, svgElementId);
+	BuildRoadSvg(roadRecord, svgElementId, roadSetting.M2PxFactor, roadSetting.yOffset, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX);
+}
+
 //------------------------------------------
 //
 // Cross View function
@@ -1275,8 +1292,8 @@ function SwitchConfirmStage(){
 	workingAreaElement.classList.add("road");
 	workingAreaElement.classList.remove("intersection");
 
-	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
-	BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
+	tempVariable.resizeFunction = ()=>{BuildRoadStageSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
+	BuildRoadStageSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 }
 
 function Switch2DRoad(){
@@ -1286,14 +1303,14 @@ function Switch2DRoad(){
 	workingAreaElement.classList.add("road");
 	workingAreaElement.classList.remove("intersection");
 
-	tempVariable.resizeFunction = ()=>{BuildRoadSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
+	tempVariable.resizeFunction = ()=>{BuildRoadStageSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
 	if(document.getElementById("roadRenderArea").innerHTML === ""){
 		//render road
-		BuildRoadSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
+		BuildRoadStageSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 		tempVariable.resizeVariable = intersectionRecord.primaryRoad;
 	}else{
 		setTimeout((record) => {
-			BuildRoadSvg(record,  "roadRenderArea");
+			BuildRoadStageSvg(record,  "roadRenderArea");
 		}, 300, intersectionRecord.primaryRoad);
 	}
 
