@@ -496,6 +496,8 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 }
 
 function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX){
+	//TODO: add road backing
+
 	let svgElement = document.getElementById(svgElementId);
 	let roadEndX = svgElement.clientWidth;
 
@@ -1257,6 +1259,65 @@ function CalculateIntersectionRoadSetting(){
 
 }
 
+function BuildIntersectionCenter(){
+	let M2PxFactor = tempVariable.M2PxFactor;
+	let centerElement = document.getElementById("intersectionRoad_center");
+	let elementWidth = centerElement.clientWidth;
+	let elementHeight = centerElement.clientHeight;
+
+	//build sidewalk connection
+	{
+		let recordLeft;
+		let recordRight;
+		let leftSidewalkWidth;
+		let rightSidewalkWidth;
+		
+		//top left
+		recordLeft = intersectionRecord.intersection[0].record.stop;
+		recordRight = intersectionRecord.intersection[1].record.stop;
+		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
+			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
+			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
+
+			centerElement.innerHTML+= `<path d="M 0 0 L ${rightSidewalkWidth} 0 C ${rightSidewalkWidth} ${leftSidewalkWidth}, ${rightSidewalkWidth} ${leftSidewalkWidth}, 0 ${leftSidewalkWidth} L 0 0" class="sidewalk"/>`;
+		}
+		
+		//top right
+		recordLeft = intersectionRecord.intersection[1].record.stop;
+		recordRight = intersectionRecord.intersection[2].record.stop;
+		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
+			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
+			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
+
+			centerElement.innerHTML+= `<path d="M ${elementWidth} 0 L ${elementWidth - leftSidewalkWidth} 0 C ${elementWidth - leftSidewalkWidth} ${rightSidewalkWidth}, ${elementWidth - leftSidewalkWidth} ${rightSidewalkWidth}, ${elementWidth} ${rightSidewalkWidth} L ${elementWidth} 0" class="sidewalk"/>`;
+		}
+		
+		//bottom right
+		recordLeft = intersectionRecord.intersection[2].record.stop;
+		recordRight = intersectionRecord.intersection[3].record.stop;
+		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
+			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
+			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
+
+			centerElement.innerHTML+= `<path d="M ${elementWidth} ${elementHeight} L ${elementWidth} ${elementHeight - leftSidewalkWidth} C ${elementWidth - rightSidewalkWidth} ${elementHeight - leftSidewalkWidth}, ${elementWidth - rightSidewalkWidth} ${elementHeight - leftSidewalkWidth}, ${elementWidth - rightSidewalkWidth} ${elementHeight} L ${elementWidth} ${elementHeight}" class="sidewalk"/>`;
+		}
+		
+		//bottom left
+		recordLeft = intersectionRecord.intersection[3].record.stop;
+		recordRight = intersectionRecord.intersection[0].record.stop;
+		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
+			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
+			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
+
+			centerElement.innerHTML+= `<path d="M 0 ${elementHeight} L 0 ${elementHeight - rightSidewalkWidth} C ${leftSidewalkWidth} ${elementHeight - rightSidewalkWidth}, ${leftSidewalkWidth} ${elementHeight - rightSidewalkWidth}, ${leftSidewalkWidth} ${elementHeight} L 0 ${elementHeight}" class="sidewalk"/>`;
+		}
+	
+	}
+
+	//TODO: build zebra line
+
+}
+
 function BuildIntersectionSvg(){
 	let intersectionSetting = CalculateIntersectionSetting();
 	for(let i = 0;i< 4;++i){
@@ -1264,6 +1325,7 @@ function BuildIntersectionSvg(){
 		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX);
 	}
 	
+	BuildIntersectionCenter();
 }
 
 
