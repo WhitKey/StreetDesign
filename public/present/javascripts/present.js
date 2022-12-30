@@ -1327,7 +1327,7 @@ function BuildIntersectionCenter(){
 		
 	}
 
-	//TODO: build zebra line
+	//build zebra line
 	{
 		let recordA, recordB;
 		let componentA, componentB;
