@@ -1265,6 +1265,15 @@ function BuildIntersectionCenter(){
 	let elementWidth = centerElement.clientWidth;
 	let elementHeight = centerElement.clientHeight;
 
+	let sidewalkCorner = [];
+
+	let zebraLineDashWidth = 0.5 * M2PxFactor;
+
+
+	for(let i = 0;i<4;++i){
+		sidewalkCorner.push([0, 0]);
+	}
+
 	//build sidewalk connection
 	{
 		let recordLeft;
@@ -1278,8 +1287,9 @@ function BuildIntersectionCenter(){
 		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
 			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
 			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
-
 			centerElement.innerHTML+= `<path d="M 0 0 L ${rightSidewalkWidth} 0 C ${rightSidewalkWidth} ${leftSidewalkWidth}, ${rightSidewalkWidth} ${leftSidewalkWidth}, 0 ${leftSidewalkWidth} L 0 0" class="sidewalk"/>`;
+			
+			sidewalkCorner[0] = [rightSidewalkWidth, leftSidewalkWidth];
 		}
 		
 		//top right
@@ -1288,8 +1298,9 @@ function BuildIntersectionCenter(){
 		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
 			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
 			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
-
+			
 			centerElement.innerHTML+= `<path d="M ${elementWidth} 0 L ${elementWidth - leftSidewalkWidth} 0 C ${elementWidth - leftSidewalkWidth} ${rightSidewalkWidth}, ${elementWidth - leftSidewalkWidth} ${rightSidewalkWidth}, ${elementWidth} ${rightSidewalkWidth} L ${elementWidth} 0" class="sidewalk"/>`;
+			sidewalkCorner[1] = [leftSidewalkWidth, rightSidewalkWidth];
 		}
 		
 		//bottom right
@@ -1298,8 +1309,9 @@ function BuildIntersectionCenter(){
 		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
 			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
 			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
-
+			
 			centerElement.innerHTML+= `<path d="M ${elementWidth} ${elementHeight} L ${elementWidth} ${elementHeight - leftSidewalkWidth} C ${elementWidth - rightSidewalkWidth} ${elementHeight - leftSidewalkWidth}, ${elementWidth - rightSidewalkWidth} ${elementHeight - leftSidewalkWidth}, ${elementWidth - rightSidewalkWidth} ${elementHeight} L ${elementWidth} ${elementHeight}" class="sidewalk"/>`;
+			sidewalkCorner[2] = [rightSidewalkWidth, leftSidewalkWidth];
 		}
 		
 		//bottom left
@@ -1308,13 +1320,73 @@ function BuildIntersectionCenter(){
 		if(recordLeft[0].type=== "sidewalk" && recordRight[recordRight.length - 1].type === "sidewalk"){
 			leftSidewalkWidth = recordLeft[0].width * M2PxFactor;
 			rightSidewalkWidth = recordRight[recordRight.length - 1].width * M2PxFactor;
-
+			
 			centerElement.innerHTML+= `<path d="M 0 ${elementHeight} L 0 ${elementHeight - rightSidewalkWidth} C ${leftSidewalkWidth} ${elementHeight - rightSidewalkWidth}, ${leftSidewalkWidth} ${elementHeight - rightSidewalkWidth}, ${leftSidewalkWidth} ${elementHeight} L 0 ${elementHeight}" class="sidewalk"/>`;
+			sidewalkCorner[3] = [leftSidewalkWidth,rightSidewalkWidth];
 		}
-	
+		
 	}
 
 	//TODO: build zebra line
+	{
+		let recordA, recordB;
+		let componentA, componentB;
+		let sidewalkWidth;
+		let zebraLineOffset;
+
+		recordA = intersectionRecord.intersection[1].record.stop;
+		recordB = intersectionRecord.intersection[3].record.stop;
+		//left
+		componentA = recordA[recordA.length - 1];
+		componentB = recordB[0];
+		if(componentA.type === "sidewalk" && componentB.type === "sidewalk"){
+			let pointA, pointB;
+			sidewalkWidth = componentA.width > componentB.width ? componentB.width : componentA.width;
+			zebraLineOffset = 0.4 * sidewalkWidth * M2PxFactor;
+			pointA = [0, sidewalkCorner[0][1]];
+			pointB = [0, elementHeight - sidewalkCorner[3][1]];
+			centerElement.innerHTML += `<path d="M ${pointA[0] + zebraLineOffset} ${pointA[1]} L ${pointB[0] + zebraLineOffset} ${pointB[1]}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+		}
+		
+		//right
+		componentA = recordA[0];
+		componentB = recordB[recordB.length -1];
+		if(componentA.type === "sidewalk" && componentB.type === "sidewalk"){
+			let pointA, pointB;
+			sidewalkWidth = componentA.width > componentB.width ? componentB.width : componentA.width;
+			zebraLineOffset = 0.4 * sidewalkWidth * M2PxFactor;
+			pointA = [elementWidth, sidewalkCorner[1][1]];
+			pointB = [elementWidth, elementHeight - sidewalkCorner[2][1]];
+			centerElement.innerHTML += `<path d="M ${pointA[0] - zebraLineOffset} ${pointA[1]} L ${pointB[0] - zebraLineOffset} ${pointB[1]}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+		}
+		
+		
+		recordA = intersectionRecord.intersection[0].record.stop;
+		recordB = intersectionRecord.intersection[2].record.stop;
+		//top
+		componentA = recordA[0];
+		componentB = recordB[recordB.length - 1];
+		if(componentA.type === "sidewalk" && componentB.type === "sidewalk"){
+			let pointA, pointB;
+			sidewalkWidth = componentA.width > componentB.width ? componentB.width : componentA.width;
+			zebraLineOffset = 0.4 * sidewalkWidth * M2PxFactor;
+			pointA = [sidewalkCorner[0][0], 0];
+			pointB = [elementWidth - sidewalkCorner[1][0], 0];
+			centerElement.innerHTML += `<path d="M ${pointA[0]} ${pointA[1] + zebraLineOffset} L ${pointB[0] } ${pointB[1] + zebraLineOffset}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+		}
+		
+		//bottom
+		componentA = recordA[recordA.length -1];
+		componentB = recordB[0];
+		if(componentA.type === "sidewalk" && componentB.type === "sidewalk"){
+			let pointA, pointB;
+			sidewalkWidth = componentA.width > componentB.width ? componentB.width : componentA.width;
+			zebraLineOffset = 0.4 * sidewalkWidth * M2PxFactor;
+			pointA = [sidewalkCorner[3][0], elementHeight];
+			pointB = [elementWidth - sidewalkCorner[2][0], elementHeight];
+			centerElement.innerHTML += `<path d="M ${pointA[0]} ${pointA[1] - zebraLineOffset} L ${pointB[0]} ${pointB[1] - zebraLineOffset}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+		}
+	}
 
 }
 
