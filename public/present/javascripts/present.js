@@ -1491,6 +1491,7 @@ function Switch2DIntersection(){
 	//set working area
 	workingAreaElement.classList.add("intersection");
 	workingAreaElement.classList.remove("road");
+	workingAreaElement.classList.remove("intersection3d");
 
 	BuildIntersectionSvg();
 
@@ -1500,6 +1501,11 @@ function Switch2DIntersection(){
 
 function Switch3DView(){
 	console.log("switch 3d view");
+
+	workingAreaElement.classList.add("intersection3d");
+	workingAreaElement.classList.remove("intersection");
+
+
 	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
 }
