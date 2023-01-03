@@ -1110,7 +1110,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	highPriortyMarking[0].forEach(marking => {
 		markingSpace+= marking;
 	});
-	console.log(highPriortyMarking);
+	//console.log(highPriortyMarking);
 	
 
 	//build component - point connection
