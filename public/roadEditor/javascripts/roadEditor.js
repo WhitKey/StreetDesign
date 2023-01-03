@@ -361,6 +361,8 @@ window.OnLoad = function() {
 	targetSection.classList.remove("unusedSection");
 	targetSection.classList.add("usingSection");
 
+	//TODO: add info bar update
+
 	if(currentStage === 2){
 		EnterIntermidiateStage();
 	}
@@ -2023,6 +2025,8 @@ function SwitchEditorRoadSegment(fromStage, toStage){
 			sectionSvgElement[j].remove();
 		}
 	}
+
+	//TODO: add info bar update
 }
 
 function UpdatePrevButtonVis(){
@@ -2045,7 +2049,6 @@ window.OnSwitchSegment = function(isNext = true){
 	}
 	//switch to presentation page
 	if(currentStage === 2 && isNext){
-		//TODO: switch to present page
 		console.log("switch to present stage");
 		location.href = "/present";
 		return;
@@ -2178,6 +2181,9 @@ function EnterIntermidiateStage(){
 		tempVariables.componentXCoord.stop.push(widthSum);
 	}
 
+	//update info bar
+	//TODO: add disable width info
+
 	console.log("enter imtermidiate stage");
 }
 
@@ -2193,6 +2199,9 @@ function ExitIntremidiateStage(){
 		components[i].removeAttribute("onmousedown");
 		components[i].removeAttribute("index");
 	}
+
+	// update info bar
+	//TODO: add enable width info
 
 	console.log("exit intermidate stage");
 }

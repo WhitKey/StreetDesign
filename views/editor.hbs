@@ -18,7 +18,20 @@
 	<div id="editor" class="window" style="margin:2px;">
 		<div style="position: absolute; height:100%;width:90%;background-color:rgb(161, 114, 43);left:5%;z-index:-1;"></div>
 		<div id="trashcan" class="roadScope" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
-		<div id="designInfo" class="unusedSection roadScope" style="background-color: white;">一些設計資訊</div>
+		<div id="designInfo" class="unusedSection roadScope" style="background-color: white;">
+			<div id="rightInfo"></div>
+			<div id="stageNameInfo" >
+				<span id="stageName">測試段</span>
+			</div>
+			<div id="leftInfo">
+				<div id="widthInfo">
+					<span id="designedWidthIndicator">test</span>
+					<span>m/</span>
+					<span id="landWidthIndicator">test</span>
+					<span>m</span>
+				</div>
+			</div>
+		</div>
 		<div id="stopSection" class="unusedSection roadScope" style=""></div>
 		<div id="intermidiateSection" class="roadScope unusedSection" style="background-color:dimgray;height:20px;"></div>
 		<div id="roadSection" class="unusedSection roadScope "></div>

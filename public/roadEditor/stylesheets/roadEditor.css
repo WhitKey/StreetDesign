@@ -3,6 +3,7 @@
 @import url("roadComponentStyle.css");
 @import url("propertyEditorStyle.css");
 @import url("warningPopupStyle.css");
+@import url("infoBarStyle.css");
 
 .window {
 	border-radius: 5px;
@@ -82,12 +83,6 @@
 	transition-duration:  0ms, 300ms;
 	padding: 10px;
 	left: 0;
-}
-
-#designInfo{
-	border-width: 3px;
-	border-bottom: solid;
-	border-color: gray;
 }
 
 #land {
