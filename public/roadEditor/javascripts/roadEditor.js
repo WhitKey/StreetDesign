@@ -44,7 +44,12 @@ let maxStackStep = 50;
 let tempVariables = {};
 
 //stage indecator
-let currentStage = 0
+let currentStage = 0;
+const StageName = {
+	0:"道路段",
+	1:"儲車段",
+	2:"漸變段",
+}
 
 //conponent default data
 let componentMinWidth = {
@@ -2182,8 +2187,8 @@ function EnterIntermidiateStage(){
 	}
 
 	//update info bar
-	//TODO: add disable width info
-
+	document.getElementById("widthInfo").style.display = "none";
+	
 	console.log("enter imtermidiate stage");
 }
 
@@ -2191,7 +2196,7 @@ function ExitIntremidiateStage(){
 	let roadSectionElement = document.getElementById("roadSection");
 	let stopSectionElement = document.getElementById("stopSection");
 	let components;
-
+	
 	//process road section
 	components = roadSectionElement.getElementsByClassName("roadComponent");
 	for(let i = 0;i<components.length;++i){
@@ -2199,9 +2204,9 @@ function ExitIntremidiateStage(){
 		components[i].removeAttribute("onmousedown");
 		components[i].removeAttribute("index");
 	}
-
+	
 	// update info bar
-	//TODO: add enable width info
+	document.getElementById("widthInfo").style.display = "flex";
 
 	console.log("exit intermidate stage");
 }
