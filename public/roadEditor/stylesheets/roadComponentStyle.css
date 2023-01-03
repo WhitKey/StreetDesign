@@ -138,3 +138,8 @@ polygon.fail{
 polygon.accept{
 	fill: rgb(0, 255, 0);
 }
+
+.markingFiller{
+	fill:transparent;
+	stroke: hsl(0, 0%, 11%);;
+}

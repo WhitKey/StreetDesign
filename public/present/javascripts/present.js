@@ -398,16 +398,12 @@ function CalculateRoadSetting(roadRecord, svgElementId){
 
 function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = undefined){
 	let rtn = "";
-	let linePaths = [];
 	let lineWidth = lineProp.width * tempVariable.M2PxFactor;
 	let dashLength = 3 * tempVariable.M2PxFactor;
 	let color = "white";
 	let totalWidth;
 	let temp = "";
 	let yOffset = 0;
-
-	//console.log(points);
-	//console.log(lineProp);
 	
 	if((lineProp.width === 0.15) || (lineProp.left === 1 && lineProp.right === 1)){
 		
@@ -449,7 +445,26 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 		color = "yellow";
 	}
 
+	//filler
+	temp = "";
+	for(let i = 0;i<points.length;++i){
+		let item = points[i];
+		if(i === 0){
+			temp += `M ${item[0]} ${item[1]} `;
+			continue;
+		}
+		
+		if(item.length === 3){
+			temp += `C ${item[0][0]} ${item[0][1]}, ${item[1][0]} ${item[1][1]}, ${item[2][0]} ${item[2][1]} `;
+		}else{
+			temp += `L ${item[0]} ${item[1]} `;
+		}
+	}
+	
+	rtn += `<path class="markingFiller" d="${temp}" stroke-width="${totalWidth}"/>`;
+	
 	//left
+	temp = "";
 	for(let i = 0;i<points.length;++i){
 		let item = points[i];
 		if(i === 0){
@@ -470,7 +485,7 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	}
 
 	//right
-	yOffset += yOffsetDir * totalWidth;
+	yOffset += yOffsetDir * totalWidth - yOffsetDir * lineWidth / 2;
 	temp = "";
 	for(let i = 0;i<points.length;++i){
 		let item = points[i];
@@ -496,6 +511,14 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 }
 
 function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX){
+	function MarkingPriorty(markingProp){
+		if((markingProp.width === 0.15) || (markingProp.left === 1 && markingProp.right === 1))return -1;
+		
+		if(markingProp.sameDir) return 1;
+		return 0;
+	}
+
+
 	//TODO: add road backing
 
 	let svgElement = document.getElementById(svgElementId);
@@ -511,6 +534,12 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		road:{},
 		stop:{}
 	};
+
+	let highPriortyMarking = {
+		0:[],
+		1:[],
+	};
+
 
 	tempVariable.M2PxFactor = M2PxFactor;
 
@@ -828,7 +857,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 					if(check || tempLineProp.width === 0){
 						if(points.length !== 0){
-							markingSpace += CreateLineMarking(lineProp, points);
+							let markingPriorty = MarkingPriorty(lineProp);
+							let marking =  CreateLineMarking(lineProp, points);
+							if(markingPriorty === -1) markingSpace += marking;
+							else highPriortyMarking[markingPriorty].push(marking);
 						}
 						points = [];
 						lineProp.width = tempLineProp.width;
@@ -843,7 +875,6 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
 						}
 						points.push([[intermidiateMidX, componentX.stop[stopIndex]], [intermidiateMidX, componentX.road[i]], [intermidiateStartX, componentX.road[i]]]);
-						//markingSpace += CreateLineMarking(lineProp, points, 1);
 					}
 					
 					
@@ -878,7 +909,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						//road section marking
 						if(check || tempLineProp.width === 0){
 							if(points.length !== 0){
-								markingSpace += CreateLineMarking(lineProp, points);
+								let markingPriorty = MarkingPriorty(lineProp);
+								let marking =  CreateLineMarking(lineProp, points);
+								if(markingPriorty === -1) markingSpace += marking;
+								else highPriortyMarking[markingPriorty].push(marking);
 							}
 							points = [];
 							lineProp.width = tempLineProp.width;
@@ -895,7 +929,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					}
 					
 					if(points.length !== 0){
-						markingSpace += CreateLineMarking(lineProp, points, 1);
+						let markingPriorty = MarkingPriorty(lineProp);
+						let marking =  CreateLineMarking(lineProp, points);
+						if(markingPriorty === -1) markingSpace += marking;
+						else highPriortyMarking[markingPriorty].push(marking);
 					}
 					
 					//right
@@ -1001,7 +1038,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 						if(check){
 							if(points.length !== 0){
-								markingSpace += CreateLineMarking(lineProp, points, -1);
+								let markingPriorty = MarkingPriorty(lineProp);
+								let marking =  CreateLineMarking(lineProp, points);
+								if(markingPriorty === -1) markingSpace += marking;
+								else highPriortyMarking[markingPriorty].push(marking);
 							}
 							points = [];
 							
@@ -1031,7 +1071,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						
 						if(lineProp.width !== 0.15){
 							if(points.length !== 0){
-								markingSpace += CreateLineMarking(lineProp, points, -1);
+								let markingPriorty = MarkingPriorty(lineProp);
+								let marking =  CreateLineMarking(lineProp, points);
+								if(markingPriorty === -1) markingSpace += marking;
+								else highPriortyMarking[markingPriorty].push(marking);
 								points = [];
 							}
 						}
@@ -1044,7 +1087,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 
 						if(points.length !== 0){
-							markingSpace += CreateLineMarking(lineProp, points, -1);
+							let markingPriorty = MarkingPriorty(lineProp);
+							let marking =  CreateLineMarking(lineProp, points);
+							if(markingPriorty === -1) markingSpace += marking;
+							else highPriortyMarking[markingPriorty].push(marking);
 						}
 
 					}
@@ -1056,6 +1102,15 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			connectedLog.stop[stopIndex] = 1;
 		}
 	}
+
+	//build high priority marking
+	highPriortyMarking[1].forEach(marking => {
+		markingSpace+= marking;
+	});
+	highPriortyMarking[0].forEach(marking => {
+		markingSpace+= marking;
+	});
+	console.log(highPriortyMarking);
 	
 
 	//build component - point connection
