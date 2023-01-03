@@ -85,7 +85,15 @@ const Pages = {
 		content:`
 <div class = "pageinner" >
 	<div class="questionContainer">
-		<span class="question">請輸入腹地寬度</span>
+		<div style="justify-content:space-between;height:80px;width:80%;align-self:center;display:flex;">
+			<img height=80 width=80 style="color:gray;" src="entryPage/images/house.svg">
+			<div style="flex-grow:1;height:100%;position:relative;flex-direction:column;">
+			<hr style="top:80%;position:absolute;margin:0px;width:100%;">
+			<span style="top:55%;position:absolute;left:50%;display:block;">? m</span>
+			</div>
+			<img height=80 width=80 style="color:gray;" src="entryPage/images/house.svg">
+		</div>
+		<span class="question" style="margin-bottom:10px;">請輸入腹地寬度</span>
 		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
 			<input id="roadWidthInput" onchange="OnChangeLandWidth(event);" type="number" class="form-control" value="15" min="1" max="100" step="0.1" aria-describedby="basic-addon1" onchange="OnChangeLandWidth(event);" config="landWidth">
 			<span class="input-group-text" id="basic-addon1">m</span>
