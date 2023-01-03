@@ -27,7 +27,7 @@ const Pages = {
 	<div class = "questionContainer">
 		<span class="question">載入之前的存檔?</span>
 		<div class="flowArea">
-			<button class="next" onclick="OnSwitchPage(1, 'selectRoadType')">新的道路</button>
+			<button class="next" onclick="OnSwitchPage(1, 'inputRoadWidth')">新的道路</button>
 			<button class="next" onclick="OnSwitchPage(-1, 'ToEditor')">載入存檔</button>
 		</div>
 	</div>
@@ -85,19 +85,19 @@ const Pages = {
 		content:`
 <div class = "pageinner" >
 	<div class="questionContainer">
-		<span class="question">請選擇入腹地寬度</span>
+		<span class="question">請輸入腹地寬度</span>
 		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
-			<input id="roadWidthInput" onchange="OnChangeLandWidth(event);" type="number" class="form-control" value="15" min="1" max="100" step="0.1" aria-describedby="basic-addon1" onchange="OnChangeLandWidth(event);">
+			<input id="roadWidthInput" onchange="OnChangeLandWidth(event);" type="number" class="form-control" value="15" min="1" max="100" step="0.1" aria-describedby="basic-addon1" onchange="OnChangeLandWidth(event);" config="landWidth">
 			<span class="input-group-text" id="basic-addon1">m</span>
 		</div>
 		<div class="flowArea">
-			<button class="prev" onclick="OnSwitchPage(-1, 'selectRoadSide')">上一步</button>
+			<button class="prev" onclick="OnSwitchPage(-1, 'loadLocal')">上一步</button>
 			<button class="next" onclick="OnSwitchoutRoadWidth('getTemplate')">下一步</button>
 		</div>
 	</div>
 </div>
 		`,
-		onload:()=>{RestoreValue("roadSideSelect")},
+		onload:OnLoadLandWidth,
 	},
 
 	getTemplate:{
@@ -152,7 +152,7 @@ window.OnLoad = function(){
 		setTimeout(()=>{LoadPage(1, "loadLocal");}, 500);
 		hasTempStorage = true;
 	}else{
-		setTimeout(()=>{LoadPage(1, "selectRoadType");}, 500);
+		setTimeout(()=>{LoadPage(1, "inputRoadWidth");}, 500);
 
 	}
 }
@@ -292,6 +292,20 @@ window.OnSwitchoutRoadSide = function(nextPage){
 	entryConfig.hasArcade = document.getElementById("roadSideSelect").value;
 	LoadPage(1, nextPage);
 }
+
+//--------------------------
+//
+// road width functions
+//
+//--------------------------
+function OnLoadLandWidth(page){
+	console.log(page);
+	RestoreValue("roadWidthInput");
+	if(hasTempStorage)return;
+	page.getElementsByClassName("prev")[0].remove();
+}
+
+
 
 //--------------------------
 //
