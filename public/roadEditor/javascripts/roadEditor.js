@@ -1059,6 +1059,8 @@ window.PropertySettingChange = function(event, type){
 		console.log("update width");
 		componentElement.style.width = (refPercent * parseFloat(newWidth)).toString() + "%";
 		roadSegmentRecord[compIdx].width = parseFloat(newWidth);
+
+		UpdateWidthInfo();
 	}
 
 	if(type === "crossability" || type==="width"){
@@ -2144,12 +2146,18 @@ function UpdateWidthInfo(){
 	if(currentStage === 2)return;
 
 	let totalWidth = 0;
-
+	let indicator = document.getElementById("designedWidthIndicator");
 	roadSegmentRecord.forEach(record => {
 		totalWidth += record.width;
 	});
 
-	document.getElementById("designedWidthIndicator").innerText = totalWidth.toString();
+	if(totalWidth !== landWidth){
+		indicator.style.color = "red";
+	}else{
+		indicator.style.color = "black";
+	}
+
+	indicator.innerText = totalWidth.toString();
 }
 
 function UpdateStageName(){
