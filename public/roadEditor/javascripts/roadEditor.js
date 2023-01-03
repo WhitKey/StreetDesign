@@ -366,8 +366,6 @@ window.OnLoad = function() {
 	targetSection.classList.remove("unusedSection");
 	targetSection.classList.add("usingSection");
 
-	//TODO: add info bar update
-
 	if(currentStage === 2){
 		EnterIntermidiateStage();
 	}
@@ -400,6 +398,14 @@ window.OnLoad = function() {
 		}
 		UpdatePrevButtonVis();
 	}
+
+		
+	//initialize landwidth indicator
+	document.getElementById("landWidthIndicator").innerText = landWidth.toString();
+
+
+	//info bar update(stage name, width info)
+	InfoBarSectionSwitch();
 }
 
 function ImportRoadSegmentRecordJSON(json, updateMarking = true){
@@ -1487,6 +1493,9 @@ window.OnRedo = function(){
 				redoButtonElement.classList.remove("active");
 				redoButtonElement.removeEventListener("click", OnRedo);
 			}
+					
+			//update width info
+			UpdateWidthInfo();
 		}
 	);
 	
@@ -1507,6 +1516,9 @@ window.OnUndo = function(){
 				undoButtonElement.classList.remove("active");
 				undoButtonElement.removeEventListener("click", OnUndo);
 			}
+			
+			//update width info
+			UpdateWidthInfo();
 		}
 	);
 	console.log("undo");
@@ -1540,6 +1552,11 @@ function PushUndoStack(state, clearRedo = true){
 		undoButtonElement.classList.add("active");
 		undoButtonElement.addEventListener("click", OnUndo);
 	}
+
+	
+	//update width info
+	UpdateWidthInfo();
+
 	console.log("push undo stack");
 }
 
@@ -1552,6 +1569,10 @@ function PushRedoStack(state){
 		redoButtonElement.classList.add("active");
 		redoButtonElement.addEventListener("click", OnRedo);
 	}
+
+	//update width info
+	UpdateWidthInfo();
+
 	console.log("push redo stack");
 }
 
@@ -2030,8 +2051,6 @@ function SwitchEditorRoadSegment(fromStage, toStage){
 			sectionSvgElement[j].remove();
 		}
 	}
-
-	//TODO: add info bar update
 }
 
 function UpdatePrevButtonVis(){
@@ -2105,6 +2124,9 @@ window.OnSwitchSegment = function(isNext = true){
 		}
 	}
 	
+	//info bar update
+	InfoBarSectionSwitch();
+	
 	// update unused marking space
 	setTimeout(()=>{
 		UnusedMarkingSpaceInit(true, currentStage===2);
@@ -2116,6 +2138,31 @@ window.OnSwitchSegment = function(isNext = true){
 	}
 	SaveTempStorage();
 
+}
+
+function UpdateWidthInfo(){
+	if(currentStage === 2)return;
+
+	let totalWidth = 0;
+
+	roadSegmentRecord.forEach(record => {
+		totalWidth += record.width;
+	});
+
+	document.getElementById("designedWidthIndicator").innerText = totalWidth.toString();
+}
+
+function UpdateStageName(){
+	document.getElementById("stageName").innerText = StageName[currentStage];
+}
+
+function InfoBarSectionSwitch(){
+	if(currentStage !== 2){
+		UpdateWidthInfo();
+	}
+
+	//TODO: add design progress bar
+	UpdateStageName();
 }
 
 //-------------------------------
