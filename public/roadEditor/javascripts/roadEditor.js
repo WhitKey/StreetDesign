@@ -2975,6 +2975,9 @@ function RenderIntermidiateStageMarking(tempStorage){
 		let xOffset = width * (dashLengthList.length * 2 - 1) * offset + width / 2;
 		let rtn = "";
 
+		if(dashLengthList.length > 1){
+			rtn += `<path class="markingFiller" d = "M ${startPoint[0]} ${startPoint[1]} L ${endPoint[0]} ${endPoint[1]}"  stroke-width="${ width * (dashLengthList.length * 2 - 1)}" />`;
+		}
 		for (let i = 0;i< dashLengthList.length;++i){
 			if(dashLengthList[i] === 0){
 				rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" />`;
@@ -2989,6 +2992,7 @@ function RenderIntermidiateStageMarking(tempStorage){
 	let roadRecordMap = {};
 	let stopRecordMap = {};
 	let maxY = markingSpaceElement.clientHeight;
+	let highPriorityMarking = [];
 	
 
 	//create record entry map
@@ -3287,7 +3291,12 @@ function RenderIntermidiateStageMarking(tempStorage){
 				}
 			}
 
-			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, markingList, -0.5);
+			let marking = CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), color, markingList, -0.5);
+			if(markingList.length > 1){
+				highPriorityMarking.push(marking);
+			}else{
+				markingSpaceElement.innerHTML += marking;
+			}
 		}else{
 			if(!rightMarkingSetting.road.isCover && !rightMarkingSetting.stop.isCover){
 				//if crossing at roadSide
@@ -3353,6 +3362,10 @@ function RenderIntermidiateStageMarking(tempStorage){
 			}
 		}
 	}
+
+	highPriorityMarking.forEach(marking => {
+		markingSpaceElement.innerHTML += marking;
+	});
 }
 
 window.OnIntermidiateDragStart  = function(event){
