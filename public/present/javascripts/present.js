@@ -1324,6 +1324,8 @@ function BuildIntersectionCenter(){
 
 	let zebraLineDashWidth = 0.5 * M2PxFactor;
 
+	centerElement.innerHTML = "";
+
 
 	for(let i = 0;i<4;++i){
 		sidewalkCorner.push([0, 0]);
