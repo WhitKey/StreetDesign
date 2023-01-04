@@ -403,6 +403,8 @@ window.OnLoad = function() {
 	//initialize landwidth indicator
 	document.getElementById("landWidthIndicator").innerText = landWidth.toString();
 
+	//initialize total stage count
+	document.getElementById("totalStageCount").innerText = "3";
 
 	//info bar update(stage name, width info)
 	InfoBarSectionSwitch();
@@ -2164,12 +2166,17 @@ function UpdateStageName(){
 	document.getElementById("stageName").innerText = StageName[currentStage];
 }
 
+function UpdateStageProgressBar(){
+	document.getElementById("currentStageCount").innerText = (currentStage + 1).toString();
+	document.getElementById("stageProgress").style.width = `${(currentStage + 1) / 3 * 100}%`;
+}
+
 function InfoBarSectionSwitch(){
 	if(currentStage !== 2){
 		UpdateWidthInfo();
 	}
-
-	//TODO: add design progress bar
+	
+	UpdateStageProgressBar();
 	UpdateStageName();
 }
 
