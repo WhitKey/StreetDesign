@@ -94,7 +94,7 @@ const Pages = {
 			<img height=80 width=80 style="color:gray;" src="entryPage/images/house.svg">
 		</div>
 		<span class="question" style="margin-bottom:10px;">請輸入腹地寬度</span>
-		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
+		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;width:100px;">
 			<input id="roadWidthInput" onchange="OnChangeLandWidth(event);" type="number" class="form-control" value="15" min="1" max="100" step="0.1" aria-describedby="basic-addon1" onchange="OnChangeLandWidth(event);" config="landWidth">
 			<span class="input-group-text" id="basic-addon1">m</span>
 		</div>
@@ -112,7 +112,7 @@ const Pages = {
 		content:`
 <div class = "pageinner" >
 	<div class="questionContainer">
-		<span class="question">輸入模板</span>
+		<span class="question">輸入模板 (optional)</span>
 		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
 			<input id="roadTemplateInput" type="text" class="form-control" aria-describedby="basic-addon1" onchange="SaveOnChange(event);" config ="template">
 		</div>
