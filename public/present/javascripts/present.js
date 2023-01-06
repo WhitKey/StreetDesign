@@ -1,5 +1,5 @@
 
-import "./present3d.js";
+import * as present3d from "./present3d.js";
 
 //-----------------------------------------
 //
@@ -1312,10 +1312,6 @@ function CalculateIntersectionSetting(){
 	
 }
 
-function CalculateIntersectionRoadSetting(){
-
-}
-
 function BuildIntersectionCenter(){
 	let M2PxFactor = tempVariable.M2PxFactor;
 	let centerElement = document.getElementById("intersectionRoad_center");
@@ -1639,6 +1635,10 @@ function Switch3DView(){
 
 	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
+	setTimeout(() => {
+		present3d.init3D();
+		tempVariable.resizeFunction = ()=>{present3d.onWindowResize()};
+	}, 300); 
 }
 
 
