@@ -8,7 +8,7 @@
 const LandMaxWidth = 100;
 const LandMinWidth = 1;
 const SessionStorageName = "entryConfig";
-const editorLocation = "/";
+const editorLocation = "/editor";
 const editorLoadingTime = 1000;
 
 const Pages = {

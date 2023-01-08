@@ -3,7 +3,11 @@ var router = express.Router();
 
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/', function(req, res){ 
+	res.redirect('/entry'); 
+});
+
+router.get('/editor', function(req, res, next) {
 	const components = [
 		{
 			tag: "road",
