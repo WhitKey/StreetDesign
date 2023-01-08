@@ -1625,6 +1625,48 @@ window.OnClearLand = function(){
 	UpdateMarkingSpace();
 }
 
+window.OnClickDebugButton = function(){
+	let debugInfo={
+		"timestamp":Date.now(),
+		"roadSegmentRecord": roadSegmentRecord,
+		"currentStage":currentStage,
+		"tempVariables": tempVariables,
+		"redoStack": redoStack,
+		"undoStack": undoStack,
+		"tempStorage": JSON.parse(localStorage.getItem("tempStorage")),
+	};
+	console.log("debug button triggered");
+
+	let xhr = new XMLHttpRequest();
+	xhr.open("POST", "/debug_msg");
+	xhr.setRequestHeader("Accept", "application/json");
+	xhr.setRequestHeader("Content-Type", "application/json");
+
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState === 4) {
+		let status = xhr.status;
+		console.log(xhr.status);
+		if(status === 200){
+			let res = JSON.parse(xhr.responseText);
+			alert("前往編輯器bug回報表單");
+			window.open(`https://docs.google.com/forms/d/e/1FAIpQLSfcmrK1N7RQugoIt7KU1-Rcst2BELiy_sgjG2OIkiuZTY49rA/viewform?usp=pp_url&entry.1386551480=${res.id}`, '_blank');
+		}else{
+			console.log(xhr.responseText);
+		}
+	}};
+
+	let data = JSON.stringify(debugInfo);
+
+	xhr.send(data);
+
+
+
+	
+}
+
+
+
+
 //------------------------------
 //
 // Validation functions

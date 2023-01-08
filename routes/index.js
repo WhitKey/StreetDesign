@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 var express = require('express');
 var router = express.Router();
 
@@ -52,5 +54,21 @@ router.get("/present", function(req, res, next){
 		layout: "layout/present_layout"
 	});
 })
+
+router.post('/debug_msg', function(req, res) {
+	//console.log(req.body);
+	let timestamp = Date.now();
+	let rtn = {
+		"id": `bug_report_${timestamp}`
+	};
+
+	fs.writeFile(`./bug_report/bug_report_${timestamp}.json`, JSON.stringify(req.body, null, "\t"), err => {
+		if (err) {
+			console.error(err);
+		}
+		// file written successfully
+	});
+	res.send(JSON.stringify(rtn));
+});
 
 module.exports = router;
