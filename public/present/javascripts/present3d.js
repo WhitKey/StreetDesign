@@ -1,15 +1,13 @@
 import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { ConvexGeometry } from 'three/addons/geometries/ConvexGeometry.js';
-import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 
 let group, camera, scene, renderer;
 let present3dWindow = document.getElementById("intersectionRenderArea3d");;
 let inited = false;
 
 
-function init() {
+function init(modelParameter) {
 	if(inited)return;
 	inited = true;
 
@@ -71,47 +69,10 @@ function init() {
 		scene.add( helper );
 	}
 
-	// points
-	let dodecahedronGeometry = new THREE.DodecahedronGeometry( 10 );
-
-	// if normal and uv attributes are not removed, mergeVertices() can't consolidate indentical vertices with different normal/uv data
-	dodecahedronGeometry.deleteAttribute( 'normal' );
-	dodecahedronGeometry.deleteAttribute( 'uv' );
-
-	dodecahedronGeometry = BufferGeometryUtils.mergeVertices( dodecahedronGeometry );
-
-	const vertices = [];
-	const positionAttribute = dodecahedronGeometry.getAttribute( 'position' );
-
-	for ( let i = 0; i < positionAttribute.count; i ++ ) {
-
-		const vertex = new THREE.Vector3();
-		vertex.fromBufferAttribute( positionAttribute, i );
-		vertices.push( vertex );
-
+	//build model
+	{
+		console.log(modelParameter);
 	}
-
-	// convex hull
-	const meshMaterial = new THREE.MeshLambertMaterial( {
-		color: 0x00ffff,
-		opacity: 0.5,
-		transparent: true
-	} );
-
-	group = new THREE.Group();
-	scene.add( group );
-
-	const meshGeometry = new ConvexGeometry( vertices );
-
-	const mesh1 = new THREE.Mesh( meshGeometry, meshMaterial );
-	mesh1.material.side = THREE.BackSide; // back faces
-	mesh1.renderOrder = 0;
-	group.add( mesh1 );
-
-	const mesh2 = new THREE.Mesh( meshGeometry, meshMaterial.clone() );
-	mesh2.material.side = THREE.FrontSide; // front faces
-	mesh2.renderOrder = 1;
-	group.add( mesh2 );
 
 }
 
@@ -131,9 +92,6 @@ export function onWindowResize() {
 function animate() {
 
 	requestAnimationFrame( animate );
-
-	group.rotation.y += 0.005;
-
 	render();
 
 }
@@ -144,8 +102,8 @@ function render() {
 
 }
 
-export function init3D(){
+export function init3D(modelParameter){
 	console.log("three initialize");
-	init();
+	init(modelParameter);
 	animate();
 }
