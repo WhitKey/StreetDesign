@@ -533,7 +533,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	let intermidiateStart3d = intermidiateStartX / M2PxFactor;
 	let intermidiateEnd3d = intermidiateEndX / M2PxFactor;
 	let intermidiateMid3d = intermidiateMidX / M2PxFactor;
-	let roadEnd3d = roadExtend + roadEndX / M2PxFactor;
+	let roadEnd3d = roadEndX / M2PxFactor;
 	let model = [];
 	
 	let componentX = {road:[], stop:[]};
@@ -1175,7 +1175,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				model.push(
 					{
 						"type": "component",
-						"componentType" : record.type,
+						"componentType" : roadRecord.record.road[record.roadIndex].type,
 						"path":[
 							[-roadExtend, roadT3d],
 							[intermidiateStart3d, roadT3d],
@@ -1201,7 +1201,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				model.push(
 					{
 						"type": "component",
-						"componentType" : record.type,
+						"componentType" : roadRecord.record.stop[record.stopIndex].type,
 						"path":[
 							[roadEnd3d, stopT3d],
 							[intermidiateEnd3d, stopT3d],
@@ -1231,7 +1231,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				model.push(
 					{
 						"type": "component",
-						"componentType" : record.type,
+						"componentType" : roadRecord.record.road[i].type,
 						"path":[
 							[-roadExtend, roadT3d],
 							[intermidiateStart3d, roadT3d],
@@ -1269,7 +1269,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				model.push(
 					{
 						"type": "component",
-						"componentType" : record.type,
+						"componentType" : roadRecord.record.stop[i].type,
 						"path":[
 							[roadEnd3d, stopT3d],
 							[intermidiateEnd3d, stopT3d],
@@ -1328,9 +1328,13 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			}
 		}
 	}
+
 	svgElement.innerHTML += markingSpace;
 	if(build3dFlag){
-		modelParameter[roadSection] = model;
+		modelParameter[roadSection] = {
+			"model":model,
+			"roadLength": roadEnd3d + roadExtend,
+		};
 	}
 }
 
@@ -1652,11 +1656,18 @@ function BuildIntersectionCenter(build3dFlag = false){
 function BuildIntersectionSvg(){
 	let intersectionSetting = CalculateIntersectionSetting();
 	let build3dFlag = (currentStage === 2) && modelParameter === null;
+	if(build3dFlag){
+		modelParameter = {};
+	}
 
-	modelParameter = {};
 	for(let i = 0;i< 4;++i){
 		let roadSetting= intersectionSetting.roads[i];
 		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX, build3dFlag, i);
+		
+		if(build3dFlag){
+			modelParameter[i].roadWidth = intersectionRecord.intersection[i].record.landWidth;
+		}
+	
 	}
 	
 	BuildIntersectionCenter(build3dFlag);
@@ -1823,6 +1834,10 @@ function Switch2DRoad(){
 
 function Switch2DIntersection(){
 	console.log("switch 2d intersection");
+	if(currentStage === 3){
+		present3d.Exit3d();
+	}
+
 	currentStage = 2;
 	//set working area
 	workingAreaElement.classList.add("intersection");
@@ -1846,7 +1861,7 @@ function Switch3DView(){
 	tempVariable.resizeFunction = undefined;
 	SetToolbar(undefined,"3D 路口", "2D");
 	setTimeout((modelParameter) => {
-		present3d.init3D(modelParameter);
+		present3d.Trigger3d(modelParameter);
 		tempVariable.resizeFunction = ()=>{present3d.onWindowResize()};
 	}, 300, modelParameter); 
 

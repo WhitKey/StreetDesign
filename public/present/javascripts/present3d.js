@@ -2,11 +2,138 @@ import * as THREE from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-let group, camera, scene, renderer;
+
+const M2CoordFactor = 0.5;
+const RoadLevel = 0.01;
+const MarkingLevel = RoadLevel + 0.001;
+
+let roadGroup, camera, scene, renderer;
 let present3dWindow = document.getElementById("intersectionRenderArea3d");;
 let inited = false;
+let showing = false;
 
 
+//---------------------------------------
+//
+// model function
+//
+//---------------------------------------
+function CoordRotationY(coord, rotDeg){
+	rotDeg *= 180 / Math.PI;
+
+	let c = Math.cos(rotDeg);
+	let s = Math.sin(rotDeg);
+
+	return [
+		coord[0] * c - coord[1] * s,
+		coord[0] * s + coord[1] * c
+	];
+}
+
+function CoordTransform(coord, rotDeg, centerOffsetY, xOffset){
+	let newCoord = [
+		coord[0] + xOffset ,
+		-(coord[1] - centerOffsetY)
+	];
+	newCoord[0] *= M2CoordFactor;
+	newCoord[1] *= M2CoordFactor;
+
+	//return CoordRotationY(newCoord, rotDeg);
+	return newCoord;
+}
+
+function AddShape(shape, compType, xOffset, yOffset, rotate){
+	let color;
+	let geometry = new THREE.ShapeGeometry( shape );
+	let material;
+
+	if(compType === "road"){
+		color = 0x00ffff;
+	}else if(compType === "sidewalk"){
+		color = 0xff0000;
+	}else if(compType === "bollard"){
+		color = 0xffff00;
+	}else if(compType === "shoulder"){
+		color = 0x00ff00;
+	}else{
+		color = 0x0f0f0f;
+	}
+
+	material = new THREE.MeshBasicMaterial( { "color": color } );
+	let mesh = new THREE.Mesh( geometry, material ) ;
+	mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
+	mesh.position.set (0,RoadLevel, 0);
+	mesh.rotation.set (-Math.PI / 2, 0, -rotate);
+	roadGroup.add(mesh);
+}
+
+function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
+	let xOffset = -model.roadLength - model.model[0].path[0][0] - centerOffsetX//model.model[0].path[0][0]+ centerOffsetX - model.roadLength ;
+	
+	model.model.forEach(element => {
+		//build component
+		if(element.type === "component"){
+			let moveFlag = true;
+			let shape = new THREE.Shape();
+			//build shape
+			element.path.forEach(point => {
+				//b curve
+				if(point.length > 2){
+
+					let newPoint = [];
+					for(let i = 0;i<3;++i){
+						newPoint.push(CoordTransform(point[i], rotDeg, centerOffsetY, xOffset));
+					}
+
+					shape.bezierCurveTo(
+						newPoint[0][0], newPoint[0][1],
+						newPoint[1][0], newPoint[1][1],
+						newPoint[2][0], newPoint[2][1],
+					);
+					return;
+				}
+
+				let newPoint = CoordTransform(point, rotDeg, centerOffsetY, xOffset);
+				if(moveFlag){
+					shape.moveTo(newPoint[0], newPoint[1]);
+					moveFlag = false;
+					return;
+				}
+				shape.lineTo(newPoint[0], newPoint[1]);
+			});
+			AddShape(shape, element.componentType, xOffset,centerOffsetY, rotDeg *Math.PI / 180 );
+		}
+	});
+}
+
+function BuildIntersection(modelParameter){
+	let xLength;
+	let zLength;
+
+	roadGroup = new THREE.Group();
+	xLength = modelParameter[0].roadWidth > modelParameter[2].roadWidth? modelParameter[0].roadWidth : modelParameter[2].roadWidth;
+	zLength = modelParameter[1].roadWidth > modelParameter[3].roadWidth? modelParameter[1].roadWidth : modelParameter[3].roadWidth;
+
+	xLength /= 2 ;
+	zLength /= 2 ;
+
+	//BuildRoad(modelParameter[0], 90, zLength, xLength);
+	BuildRoad(modelParameter[0], 0, zLength, xLength);
+	BuildRoad(modelParameter[1], 90, xLength, zLength);
+	BuildRoad(modelParameter[2], 180, zLength, xLength);
+	BuildRoad(modelParameter[3], 270, xLength, zLength);
+
+	//build center
+
+	//console.log(modelParameter);
+}
+
+
+//----------------------------------
+//
+// utility functions
+//
+//----------------------------------
 function init(modelParameter) {
 	if(inited)return;
 	inited = true;
@@ -62,7 +189,7 @@ function init(modelParameter) {
 
 	// helper
 	{
-		scene.add( new THREE.AxesHelper( 20 ) );
+		scene.add( new THREE.AxesHelper( 200 ) );
 
 		const plane = new THREE.Plane( new THREE.Vector3( 0, 1, 0 ),0 );
 		const helper = new THREE.PlaneHelper( plane, 100, 0x00f0f0 );
@@ -70,12 +197,17 @@ function init(modelParameter) {
 	}
 
 	//build model
-	{
-		console.log(modelParameter);
-	}
+	BuildIntersection(modelParameter);
 
+	scene.add(roadGroup);
 }
 
+
+//---------------------------------------
+//
+// render utility functions
+//
+//---------------------------------------
 function resize(){
 	camera.aspect = present3dWindow.clientWidth / present3dWindow.clientHeight;
 	camera.updateProjectionMatrix();
@@ -84,26 +216,34 @@ function resize(){
 
 }
 
+function render() {
+	if(showing){
+		requestAnimationFrame( render );
+	}
+	renderer.render( scene, camera );
+	
+}
+
+
+//-------------------------------------
+//
+// export functions
+//
+//-------------------------------------
+
 export function onWindowResize() {
 	resize();
 
 }
 
-function animate() {
-
-	requestAnimationFrame( animate );
-	render();
-
-}
-
-function render() {
-
-	renderer.render( scene, camera );
-
-}
-
-export function init3D(modelParameter){
-	console.log("three initialize");
+export function Trigger3d(modelParameter){
+	console.log("3d triggered");
+	showing = true;
 	init(modelParameter);
-	animate();
+	render();
+}
+
+export function Exit3d(){
+	console.log("exit 3d");
+	showing = false;
 }
