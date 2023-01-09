@@ -21,45 +21,60 @@ function init() {
 	present3dWindow.appendChild( renderer.domElement );
 
 	// camera
-
-	camera = new THREE.PerspectiveCamera( 40, present3dWindow.clientWidth / present3dWindow.clientHeight, 1, 1000 );
-	camera.position.set( 15, 20, 30 );
-	scene.add( camera );
+	{	
+		let aspect =  present3dWindow.clientWidth / present3dWindow.clientHeight;
+		let frustumSize = 600;
+		camera = new THREE.PerspectiveCamera( 40, aspect, 1, 1000 );
+		//camera = new THREE.OrthographicCamera( 0.5 * frustumSize * aspect / - 2, 0.5 * frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 0, 1000 );
+		camera.position.set( 15, 20, 30 );
+		scene.add( camera );
+	}
 
 	// controls
-
 	const controls = new OrbitControls( camera, renderer.domElement );
 	controls.minDistance = 20;
-	controls.maxDistance = 50;
-	controls.maxPolarAngle = Math.PI / 2;
+	controls.maxDistance = 1000;
+	controls.maxPolarAngle = Math.PI;
 
-	// ambient light
+	//background
+	{
+		//const loader = new THREE.CubeTextureLoader();
+		//loader.setPath( './images/3dPresent/skybox/');
+		//
+		//const textureCube = loader.load( [
+		//	'right.jpg', 'left.jpg',
+		//	'top.jpg', 'bottom.jpg',
+		//	'front.jpg', 'back.jpg',
+		//] );
+		//scene.background = textureCube;
 
-	scene.add( new THREE.AmbientLight( 0x222222 ) );
+		scene.background = new THREE.Color(0xffffff);
+	}
 
-	// point light
 
-	const light = new THREE.PointLight( 0xffffff, 1 );
-	camera.add( light );
+	//light
+	{
+		// ambient light
+		scene.add( new THREE.AmbientLight( 0x222222 ) );
+		
+		// point light
+		const light = new THREE.PointLight( 0xffffff, 1 );
+		camera.add( light );
+	}
 
 	// helper
+	{
+		scene.add( new THREE.AxesHelper( 20 ) );
 
-	scene.add( new THREE.AxesHelper( 20 ) );
-
-	// textures
-
-	const loader = new THREE.TextureLoader();
-	const texture = loader.load( );
-
-	group = new THREE.Group();
-	scene.add( group );
+		const plane = new THREE.Plane( new THREE.Vector3( 0, 1, 0 ),0 );
+		const helper = new THREE.PlaneHelper( plane, 100, 0x00f0f0 );
+		scene.add( helper );
+	}
 
 	// points
-
 	let dodecahedronGeometry = new THREE.DodecahedronGeometry( 10 );
 
 	// if normal and uv attributes are not removed, mergeVertices() can't consolidate indentical vertices with different normal/uv data
-
 	dodecahedronGeometry.deleteAttribute( 'normal' );
 	dodecahedronGeometry.deleteAttribute( 'uv' );
 
@@ -76,27 +91,15 @@ function init() {
 
 	}
 
-	const pointsMaterial = new THREE.PointsMaterial( {
-
-		color: 0x0080ff,
-		map: texture,
-		size: 1,
-		alphaTest: 0.5
-
-	} );
-
-	const pointsGeometry = new THREE.BufferGeometry().setFromPoints( vertices );
-
-	const points = new THREE.Points( pointsGeometry, pointsMaterial );
-	group.add( points );
-
 	// convex hull
-
 	const meshMaterial = new THREE.MeshLambertMaterial( {
-		color: 0xffffff,
+		color: 0x00ffff,
 		opacity: 0.5,
 		transparent: true
 	} );
+
+	group = new THREE.Group();
+	scene.add( group );
 
 	const meshGeometry = new ConvexGeometry( vertices );
 
@@ -113,12 +116,9 @@ function init() {
 }
 
 function resize(){
-	console.log(present3dWindow);
 	camera.aspect = present3dWindow.clientWidth / present3dWindow.clientHeight;
 	camera.updateProjectionMatrix();
 	
-	console.log(present3dWindow.clientHeight);
-	console.log(present3dWindow.clientWidth);
 	renderer.setSize( present3dWindow.clientWidth, present3dWindow.clientHeight );
 
 }
