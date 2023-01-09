@@ -36,6 +36,9 @@ let dimensionSwitchElement = document.getElementById("dimensionSwitch");
 let sectionSwitchElement = document.getElementById("sectionSwitch");
 let crossViewElement = document.getElementById("crossView");
 
+let currentStage = 0;
+
+
 let tempVariable = {
 	intermidiateLength: 0 ,
 	stopLength: 18,
@@ -1582,7 +1585,8 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 
 function SwitchConfirmStage(){
 	console.log("switch confirm stage");
-	
+	currentStage = 0;
+
 	//set working area
 	workingAreaElement.classList.add("road");
 	workingAreaElement.classList.remove("intersection");
@@ -1593,7 +1597,7 @@ function SwitchConfirmStage(){
 
 function Switch2DRoad(){
 	console.log("switch 2d road");
-
+	currentStage = 1;
 	//set working area
 	workingAreaElement.classList.add("road");
 	workingAreaElement.classList.remove("intersection");
@@ -1610,11 +1614,12 @@ function Switch2DRoad(){
 	}
 
 	SetToolbar("intersection","2D 道路", "cross");
+	
 }
 
 function Switch2DIntersection(){
 	console.log("switch 2d intersection");
-
+	currentStage = 2;
 	//set working area
 	workingAreaElement.classList.add("intersection");
 	workingAreaElement.classList.remove("road");
@@ -1624,11 +1629,12 @@ function Switch2DIntersection(){
 
 	tempVariable.resizeFunction = ()=>{BuildIntersectionSvg()};
 	SetToolbar("road","2D 路口", "3D");
+	
 }
 
 function Switch3DView(){
 	console.log("switch 3d view");
-
+	currentStage = 3;
 	workingAreaElement.classList.add("intersection3d");
 	workingAreaElement.classList.remove("intersection");
 
@@ -1639,6 +1645,8 @@ function Switch3DView(){
 		present3d.init3D();
 		tempVariable.resizeFunction = ()=>{present3d.onWindowResize()};
 	}, 300); 
+
+	
 }
 
 
