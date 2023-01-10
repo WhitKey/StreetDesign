@@ -1,8 +1,0 @@
-<div id="hitboxTemplate" class="hitbox" onmouseenter="EnterHitbox(event);" onmouseleave="LeaveHitbox(event);"></div>
-<div id="emptyRoadComponentTemplate" class="emptyRoadComponent"></div>
-<div id="roadComponentTemplate" class="roadComponent drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)"></div>
-{{#each componentList as | component |}}
-	<div id="{{component.tag}}Template" class="{{component.tag}} component">
-		<div class = "roadComponentIcon" draggable="false"></div>
-	</div>
-{{/each}}

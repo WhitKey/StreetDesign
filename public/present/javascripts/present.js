@@ -6,7 +6,7 @@ import * as present3d from "./present3d.js";
 // Global Variables
 //
 //-----------------------------------------
-const EditorPath =  window.location.protocol + "//"+ window.location.host+ "/editor";
+const EditorPath =  window.location.protocol + "//"+ window.location.host+ "/roadEditor";
 const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
 const StopSectionLength = 18;
