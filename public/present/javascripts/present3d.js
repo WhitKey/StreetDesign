@@ -3,9 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
-const M2CoordFactor = 0.5;
+const M2CoordFactor = 5;
 const RoadLevel = 0.01;
 const MarkingLevel = RoadLevel + 0.001;
+const ExtrudeHeight = 0.2;
 
 let roadGroup, camera, scene, renderer;
 let present3dWindow = document.getElementById("intersectionRenderArea3d");;
@@ -18,35 +19,12 @@ let showing = false;
 // model function
 //
 //---------------------------------------
-function CoordRotationY(coord, rotDeg){
-	rotDeg *= 180 / Math.PI;
-
-	let c = Math.cos(rotDeg);
-	let s = Math.sin(rotDeg);
-
-	return [
-		coord[0] * c - coord[1] * s,
-		coord[0] * s + coord[1] * c
-	];
-}
-
-function CoordTransform(coord, rotDeg, centerOffsetY, xOffset){
-	let newCoord = [
-		coord[0] + xOffset ,
-		-(coord[1] - centerOffsetY)
-	];
-	newCoord[0] *= M2CoordFactor;
-	newCoord[1] *= M2CoordFactor;
-
-	//return CoordRotationY(newCoord, rotDeg);
-	return newCoord;
-}
-
-function AddShape(shape, compType, xOffset, yOffset, rotate){
+function AddShape(shape, compType, rotate){
+	const extrudeSettings = { depth: ExtrudeHeight, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 0, bevelThickness: 0 };
 	let color;
-	let geometry = new THREE.ShapeGeometry( shape );
+	let geometry;
 	let material;
-
+	
 	if(compType === "road"){
 		color = 0x00ffff;
 	}else if(compType === "sidewalk"){
@@ -58,16 +36,32 @@ function AddShape(shape, compType, xOffset, yOffset, rotate){
 	}else{
 		color = 0x0f0f0f;
 	}
+	
+	if(compType === "sidewalk" || compType === "bollard"){
+		geometry = new THREE.ExtrudeGeometry( shape, extrudeSettings );
+	}else{
+		geometry = new THREE.ShapeGeometry( shape );
+	}
+
 
 	material = new THREE.MeshBasicMaterial( { "color": color } );
 	let mesh = new THREE.Mesh( geometry, material ) ;
 	mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
 	mesh.position.set (0,RoadLevel, 0);
-	mesh.rotation.set (-Math.PI / 2, 0, -rotate);
+	mesh.rotation.set (-Math.PI / 2, 0, Math.PI-rotate);
 	roadGroup.add(mesh);
 }
 
 function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
+	function RoadCoordTransform(coord, centerOffsetY, xOffset){
+		let newCoord = [
+			coord[0] + xOffset ,
+			-(coord[1] - centerOffsetY)
+		];
+
+		return newCoord;
+	}
+
 	let xOffset = -model.roadLength - model.model[0].path[0][0] - centerOffsetX//model.model[0].path[0][0]+ centerOffsetX - model.roadLength ;
 	
 	model.model.forEach(element => {
@@ -82,7 +76,7 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 
 					let newPoint = [];
 					for(let i = 0;i<3;++i){
-						newPoint.push(CoordTransform(point[i], rotDeg, centerOffsetY, xOffset));
+						newPoint.push(RoadCoordTransform(point[i], centerOffsetY, xOffset));
 					}
 
 					shape.bezierCurveTo(
@@ -93,7 +87,7 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 					return;
 				}
 
-				let newPoint = CoordTransform(point, rotDeg, centerOffsetY, xOffset);
+				let newPoint = RoadCoordTransform(point, centerOffsetY, xOffset);
 				if(moveFlag){
 					shape.moveTo(newPoint[0], newPoint[1]);
 					moveFlag = false;
@@ -101,9 +95,67 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 				}
 				shape.lineTo(newPoint[0], newPoint[1]);
 			});
-			AddShape(shape, element.componentType, xOffset,centerOffsetY, rotDeg *Math.PI / 180 );
+			AddShape(shape, element.componentType, rotDeg *Math.PI / 180 );
 		}
 	});
+}
+
+function BuildCenter(model, xLength, zLength){
+	function CenterCoordTransform(coord){
+		let newCoord = [
+			coord[0] - zLength,
+			-coord[1] + xLength
+		];
+		return newCoord;
+	}
+
+	model.forEach(element => {
+		if(element.type === "component"){
+			let moveFlag = true;
+			let shape = new THREE.Shape();
+			//build shape
+			element.path.forEach(point => {
+				//b curve
+				if(point.length > 2){
+
+					let newPoint = [];
+					for(let i = 0;i<3;++i){
+						newPoint.push(CenterCoordTransform(point[i]));
+					}
+
+					shape.bezierCurveTo(
+						newPoint[0][0], newPoint[0][1],
+						newPoint[1][0], newPoint[1][1],
+						newPoint[2][0], newPoint[2][1],
+					);
+					return;
+				}
+
+				let newPoint = CenterCoordTransform(point);
+				if(moveFlag){
+					shape.moveTo(newPoint[0], newPoint[1]);
+					moveFlag = false;
+					return;
+				}
+				shape.lineTo(newPoint[0], newPoint[1]);
+			});
+			AddShape(shape, element.componentType,0 );
+		}
+	});
+
+	//build pavement
+	{
+		let shape = new THREE.Shape();
+		shape.moveTo(-zLength, -xLength)
+		.lineTo(-zLength, xLength)
+		.lineTo(zLength, xLength)
+		.lineTo(zLength, -xLength)
+		.lineTo(-zLength, -xLength)
+		AddShape(shape, "road",0 );
+	}
+
+
+	console.log(model);
 }
 
 function BuildIntersection(modelParameter){
@@ -124,6 +176,8 @@ function BuildIntersection(modelParameter){
 	BuildRoad(modelParameter[3], 270, xLength, zLength);
 
 	//build center
+	BuildCenter(modelParameter.center, xLength, zLength);
+
 
 	//console.log(modelParameter);
 }

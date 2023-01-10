@@ -12,7 +12,7 @@ const PresentStages = ["confirm", "present"];
 const StopSectionLength = 18;
 const MinRoadSectionLength = 5;
 const MinIntermidiateSectionLength = 1;
-const RoadLength3d = 600;
+const RoadLength3d = 50;
 
 const ComponentType2Name = {
 	shoulder:"路肩",
@@ -1577,7 +1577,7 @@ function BuildIntersectionCenter(build3dFlag = false){
 					"path":[
 						[0, elementHeight3d],
 						[0, elementHeight3d - rightSidewalkWidth3d],
-						[[leftSidewalkWidth3d, elementHeight3d - rightSidewalkWidth3d], [leftSidewalkWidth3d, elementHeight - rightSidewalkWidth3d], [leftSidewalkWidth3d, elementHeight3d]],
+						[[leftSidewalkWidth3d, elementHeight3d - rightSidewalkWidth3d], [leftSidewalkWidth3d, elementHeight3d - rightSidewalkWidth3d], [leftSidewalkWidth3d, elementHeight3d]],
 						[0, elementHeight3d],
 					]
 				});
