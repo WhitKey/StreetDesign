@@ -1708,7 +1708,7 @@ function IntermidiateStageTempStorageRefit(){
 				removeList.push(i);
 				continue;
 			}
-			if(roadConnectionRecord.type === "road"){
+			if(roadConnectionRecord.type === "road" || stopConnectionRecord.type === "stop"){
 				if(
 					(roadConnectionRecord.direction !== tempStorage.road[record.roadIndex].direction) ||
 					(stopConnectionRecord.direction !== tempStorage.stop[record.stopIndex].direction )
