@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
-const M2CoordFactor = 5;
+const M2CoordFactor = 1;
 const RoadLevel = 0.01;
 const MarkingLevel = RoadLevel + 0.001;
 const ExtrudeHeight = 0.2;
