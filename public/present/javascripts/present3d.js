@@ -27,13 +27,13 @@ function AddShape(shape, compType, rotate){
 	let material;
 	
 	if(compType === "road"){
-		color = 0x00ffff;
+		color = 0x1c1c1c;
 	}else if(compType === "sidewalk"){
-		color = 0xff0000;
+		color = 0x912727;
 	}else if(compType === "bollard"){
-		color = 0xffff00;
+		color = 0x808080;
 	}else if(compType === "shoulder"){
-		color = 0x00ff00;
+		color = 0x1c1c1c;
 	}else{
 		color = 0x0f0f0f;
 	}
@@ -43,7 +43,6 @@ function AddShape(shape, compType, rotate){
 	}else{
 		geometry = new THREE.ShapeGeometry( shape );
 	}
-
 
 	material = new THREE.MeshBasicMaterial( { "color": color } );
 	let mesh = new THREE.Mesh( geometry, material ) ;
@@ -64,12 +63,23 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 	}
 
 	let xOffset = -model.roadLength - model.model[0].path[0][0] - centerOffsetX//model.model[0].path[0][0]+ centerOffsetX - model.roadLength ;
-	
+	let canvas = document.createElement("canvas");
+	let context;
+	canvas.width = model.roadLength;
+	canvas.height = model.roadWidth;
+	context = canvas.getContext("2d");
+	console.log(context);
+	context.fillRect(0, 0, model.roadLength, model.roadWidth);
+
+
 	model.model.forEach(element => {
 		//build component
 		if(element.type === "component"){
+			if(element.componentType === "road")return;
+
 			let moveFlag = true;
 			let shape = new THREE.Shape();
+
 			//build shape
 			element.path.forEach(point => {
 				//b curve
@@ -101,6 +111,24 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 			//console.log(element);
 		}
 	});
+	
+	
+	
+	//add road
+	{
+		let shape = new THREE.Shape();
+		let point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+		shape.moveTo(point[0], point[1]);
+		point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+		shape.lineTo(point[0], point[1]);
+		point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
+		shape.lineTo(point[0], point[1]);
+		point = RoadCoordTransform([model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
+		shape.lineTo(point[0], point[1]);
+		point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+		shape.lineTo(point[0], point[1]);
+		AddShape(shape, "road", rotDeg *Math.PI / 180);
+	}
 }
 
 function BuildCenter(model, xLength, zLength){
