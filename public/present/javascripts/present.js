@@ -6,7 +6,7 @@ import * as present3d from "./present3d.js";
 // Global Variables
 //
 //-----------------------------------------
-const EditorPath =  window.location.protocol + "//"+ window.location.host+ "/roadEditor";
+const EditorPath = "../roadEditor";
 const Sections = ["road", "stop", "intermidiate"];
 const PresentStages = ["confirm", "present"];
 const StopSectionLength = 18;
@@ -676,7 +676,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				if(connectedLog.road[i] !== 1){
 					if(record.direction === 3){
 						deg = 90;
-						imgSrc = "/roadEditor/images/double_arrow.svg";
+						imgSrc = "../roadEditor/images/double_arrow.svg";
 					}else{
 						if(record.direction === 2){
 							deg = 90;
@@ -686,25 +686,25 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						
 						switch(record.exitDirection){
 							case 1:
-								imgSrc = "/roadEditor/images/left_arrow.svg";
+								imgSrc = "../roadEditor/images/left_arrow.svg";
 								break;
 							case 2:
-								imgSrc = "/roadEditor/images/straight_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_arrow.svg";
 								break;
 							case 3:
-								imgSrc = "/roadEditor/images/straight_left_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_left_arrow.svg";
 								break;
 							case 4:
-								imgSrc = "/roadEditor/images/right_arrow.svg";
+								imgSrc = "../roadEditor/images/right_arrow.svg";
 								break;
 							case 5:
-								imgSrc = "/roadEditor/images/left_right_arrow.svg";
+								imgSrc = "../roadEditor/images/left_right_arrow.svg";
 								break;
 							case 6:
-								imgSrc = "/roadEditor/images/straight_right_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_right_arrow.svg";
 								break;
 							case 7:
-								imgSrc = "/roadEditor/images/three_way_arrow.svg";
+								imgSrc = "../roadEditor/images/three_way_arrow.svg";
 								break;
 						}
 					}
@@ -719,7 +719,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					let stopRecord = roadRecord.record.stop[stopIndex];
 					if(stopRecord.direction === 3){
 						deg = 90;
-						imgSrc = "/roadEditor/images/double_arrow.svg";
+						imgSrc = "../roadEditor/images/double_arrow.svg";
 					}else{
 						if(stopRecord.direction === 2){
 							deg = 90;
@@ -729,25 +729,25 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	
 						switch(stopRecord.exitDirection){
 							case 1:
-								imgSrc = "/roadEditor/images/left_arrow.svg";
+								imgSrc = "../roadEditor/images/left_arrow.svg";
 								break;
 							case 2:
-								imgSrc = "/roadEditor/images/straight_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_arrow.svg";
 								break;
 							case 3:
-								imgSrc = "/roadEditor/images/straight_left_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_left_arrow.svg";
 								break;
 							case 4:
-								imgSrc = "/roadEditor/images/right_arrow.svg";
+								imgSrc = "../roadEditor/images/right_arrow.svg";
 								break;
 							case 5:
-								imgSrc = "/roadEditor/images/left_right_arrow.svg";
+								imgSrc = "../roadEditor/images/left_right_arrow.svg";
 								break;
 							case 6:
-								imgSrc = "/roadEditor/images/straight_right_arrow.svg";
+								imgSrc = "../roadEditor/images/straight_right_arrow.svg";
 								break;
 							case 7:
-								imgSrc = "/roadEditor/images/three_way_arrow.svg";
+								imgSrc = "../roadEditor/images/three_way_arrow.svg";
 								break;
 						}
 					}
@@ -1801,7 +1801,7 @@ function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 
 	if(record.type === "road"){
 		if(record.direction === 3){
-			upperIcon = `<img src="images/outline_double_arrow.svg" style="height:100%;pointer-events: none;color:red;">`;
+			upperIcon = `<img src="./images/outline_double_arrow.svg" style="height:100%;pointer-events: none;color:red;">`;
 		}else{
 			let auxStyle = "";
 			let iconSrc = "";
@@ -1810,13 +1810,13 @@ function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 				auxStyle = `transform:rotate(180deg);`;
 			}
 			
-			if(record.exitDirection === 1) iconSrc = "images/outline_left_arrow.svg";
-			else if(record.exitDirection === 2) iconSrc = "images/outline_straight_arrow.svg";
-			else if(record.exitDirection === 3) iconSrc = "images/outline_straight_left_arrow.svg";
-			else if(record.exitDirection === 4) iconSrc = "images/outline_right_arrow.svg";
-			else if(record.exitDirection === 5) iconSrc = "images/outline_left_right_arrow.svg";
-			else if(record.exitDirection === 6) iconSrc = "images/outline_straight_right_arrow.svg";
-			else if(record.exitDirection === 7) iconSrc = "images/outline_three_way_arrow.svg";
+			if(record.exitDirection === 1) iconSrc = "./images/outline_left_arrow.svg";
+			else if(record.exitDirection === 2) iconSrc = "./images/outline_straight_arrow.svg";
+			else if(record.exitDirection === 3) iconSrc = "./images/outline_straight_left_arrow.svg";
+			else if(record.exitDirection === 4) iconSrc = "./images/outline_right_arrow.svg";
+			else if(record.exitDirection === 5) iconSrc = "./images/outline_left_right_arrow.svg";
+			else if(record.exitDirection === 6) iconSrc = "./images/outline_straight_right_arrow.svg";
+			else if(record.exitDirection === 7) iconSrc = "./images/outline_three_way_arrow.svg";
 
 			upperIcon = `<img src="${iconSrc}" style="height:100%;pointer-events: none;color:red;${auxStyle}">`;
 		}
