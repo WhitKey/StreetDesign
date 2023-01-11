@@ -5,7 +5,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const M2CoordFactor = 1;
 const RoadLevel = 0.01;
-const MarkingLevel = RoadLevel + 0.001;
+const MarkingLevel = RoadLevel + 0.002;
+const MarkingLevelStep = 0.001;
 const ExtrudeHeight = 0.2;
 
 let roadGroup, camera, scene, renderer;
@@ -96,6 +97,8 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 				shape.lineTo(newPoint[0], newPoint[1]);
 			});
 			AddShape(shape, element.componentType, rotDeg *Math.PI / 180 );
+		}else if(element.type === "marking"){
+			//console.log(element);
 		}
 	});
 }

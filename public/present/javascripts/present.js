@@ -671,8 +671,6 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					}
 				}
 
-				//let color = undefined;
-
 				//add direction marking
 				//road
 				if(connectedLog.road[i] !== 1){
@@ -763,6 +761,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				//add marking
 				{
 					let points = [];
+					let markingModel = [];
 					let lineProp = {
 						left: 0,
 						right: 0,
@@ -796,6 +795,11 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 						points.push([roadEndX, componentX.stop[stopIndex]]);
 						points.push([intermidiateEndX, componentX.stop[stopIndex]]);
+						if(build3dFlag){
+							markingModel.push([roadEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+							markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+						}
+
 					}
 
 					//check cover
@@ -898,8 +902,22 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						if(points.length !== 0){
 							let markingPriorty = MarkingPriorty(lineProp);
 							let marking =  CreateLineMarking(lineProp, points);
-							if(markingPriorty === -1) markingSpace += marking;
-							else highPriortyMarking[markingPriorty].push(marking);
+							if(markingPriorty === -1){
+								markingSpace += marking;
+							}
+							else{
+								highPriortyMarking[markingPriorty].push(marking);
+							}
+
+							if(build3dFlag){
+								model.push({
+									"type": "marking",
+									"markingPriority": markingPriorty,
+									"lineProp": lineProp,
+									"path": markingModel,
+								});
+								markingModel = [];
+							}
 						}
 						points = [];
 						lineProp.width = tempLineProp.width;
@@ -914,6 +932,13 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
 						}
 						points.push([[intermidiateMidX, componentX.stop[stopIndex]], [intermidiateMidX, componentX.road[i]], [intermidiateStartX, componentX.road[i]]]);
+
+						if(build3dFlag){
+							if(markingModel.length === 0){
+								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+							}
+							markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex] / M2PxFactor], [intermidiateMid3d, componentX.road[i] / M2PxFactor], [intermidiateStart3d, componentX.road[i] / M2PxFactor]]);
+						}
 					}
 					
 					
@@ -952,6 +977,17 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								let marking =  CreateLineMarking(lineProp, points);
 								if(markingPriorty === -1) markingSpace += marking;
 								else highPriortyMarking[markingPriorty].push(marking);
+
+								//build model
+								if(build3dFlag){
+									model.push({
+										"type": "marking",
+										"markingPriority": markingPriorty,
+										"lineProp": lineProp,
+										"path": markingModel,
+									});
+									markingModel = [];
+								}
 							}
 							points = [];
 							lineProp.width = tempLineProp.width;
@@ -965,6 +1001,13 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							points.push([intermidiateStartX, componentX.road[i]]);
 						}
 						points.push([0, componentX.road[i]]);
+
+						if(build3dFlag){
+							if(markingModel.length === 0){
+								markingModel.push([intermidiateStart3d, componentX.road[i] / M2PxFactor]);
+							}
+							markingModel.push([-roadExtend, componentX.road[i] / M2PxFactor]);
+						}
 					}
 					
 					if(points.length !== 0){
@@ -972,6 +1015,17 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						let marking =  CreateLineMarking(lineProp, points);
 						if(markingPriorty === -1) markingSpace += marking;
 						else highPriortyMarking[markingPriorty].push(marking);
+
+						//build model
+						if(build3dFlag){
+							model.push({
+								"type": "marking",
+								"markingPriority": markingPriorty,
+								"lineProp": lineProp,
+								"path": markingModel,
+							});
+							markingModel = [];
+						}
 					}
 					
 					//right
@@ -980,6 +1034,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						check = false;
 						lineProp.width = 0;
 						points = [];
+						markingModel = [];
 						if(stopIndex === roadRecord.record.stop.length - 1){
 							check = true;
 						}else if(roadRecord.record.stop[stopIndex + 1].type !== "road"){
@@ -990,6 +1045,11 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							lineProp.width = 0.15;
 							points.push([roadEndX, componentX.stop[stopIndex + 1]]);
 							points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+
+							if(build3dFlag){
+								markingModel.push([roadEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+							}
 						}
 						
 						//build intermidiate section line property
@@ -1081,7 +1141,19 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								let marking =  CreateLineMarking(lineProp, points);
 								if(markingPriorty === -1) markingSpace += marking;
 								else highPriortyMarking[markingPriorty].push(marking);
+
+								//build model
+								if(build3dFlag){
+									model.push({
+										"type": "marking",
+										"markingPriority": markingPriorty,
+										"lineProp": lineProp,
+										"path": markingModel,
+									});
+									markingModel = [];
+								}
 							}
+
 							points = [];
 							
 							lineProp.width = tempLineProp.width;
@@ -1097,6 +1169,14 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							}
 							
 							points.push([[intermidiateMidX, componentX.stop[stopIndex + 1]], [intermidiateMidX, componentX.road[i + 1]], [intermidiateStartX, componentX.road[i + 1]]]);
+
+
+							if(build3dFlag){
+								if(markingModel.length === 0){
+									markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+								}
+								markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex + 1] / M2PxFactor], [intermidiateMid3d, componentX.road[i + 1] / M2PxFactor], [intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]]);
+							}
 						}
 
 
@@ -1115,6 +1195,17 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								if(markingPriorty === -1) markingSpace += marking;
 								else highPriortyMarking[markingPriorty].push(marking);
 								points = [];
+
+								//build model
+								if(build3dFlag){
+									model.push({
+										"type": "marking",
+										"markingPriority": markingPriorty,
+										"lineProp": lineProp,
+										"path": markingModel,
+									});
+									markingModel = [];
+								}
 							}
 						}
 						lineProp.width = 0.15;
@@ -1122,6 +1213,11 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						if(check){
 							points.push([intermidiateStartX, componentX.road[i + 1]]);
 							points.push([0, componentX.road[i + 1]]);
+							
+							if(build3dFlag){
+								markingModel.push([intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]);
+								markingModel.push([-roadExtend, componentX.road[i + 1]] / M2PxFactor);
+							}
 						}
 
 
@@ -1130,6 +1226,17 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							let marking =  CreateLineMarking(lineProp, points);
 							if(markingPriorty === -1) markingSpace += marking;
 							else highPriortyMarking[markingPriorty].push(marking);
+
+							//build model
+							if(build3dFlag){
+								model.push({
+									"type": "marking",
+									"markingPriority": markingPriorty,
+									"lineProp": lineProp,
+									"path": markingModel,
+								});
+								markingModel = [];
+							}
 						}
 
 					}
