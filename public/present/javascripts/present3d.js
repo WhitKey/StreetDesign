@@ -4,7 +4,7 @@ import { EllipseCurve } from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
-const M2CoordFactor = 1;
+const M2CoordFactor = 2;
 const RoadLevel = 0.01;
 const ExtrudeHeight = 0.2;
 const MarkingTextureMagLevel = 100;
@@ -402,7 +402,7 @@ function init(modelParameter) {
 
 	scene = new THREE.Scene();
 	present3dWindow = document.getElementById("intersectionRenderArea3d");
-	renderer = new THREE.WebGLRenderer( { antialias: true } );
+	renderer = new THREE.WebGLRenderer( { antialias: true, logarithmicDepthBuffer: true } );
 	renderer.setPixelRatio( window.devicePixelRatio );
 	renderer.setSize( present3dWindow.clientWidth, present3dWindow.clientHeight );
 	present3dWindow.appendChild( renderer.domElement );
