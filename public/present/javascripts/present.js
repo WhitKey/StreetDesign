@@ -516,16 +516,13 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	return rtn;
 }
 
-function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX, build3dFlag = false, roadSection = -1){
+function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX, build3dFlag = false, buildIntersection = false, roadSection = -1){
 	function MarkingPriorty(markingProp){
 		if((markingProp.width === 0.15) || (markingProp.left === 1 && markingProp.right === 1))return -1;
 		
 		if(markingProp.sameDir) return 1;
 		return 0;
 	}
-
-
-	//TODO: add road backing
 
 	let svgElement = document.getElementById(svgElementId);
 	let roadEndX = svgElement.clientWidth;
@@ -536,6 +533,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	let roadEnd3d = roadEndX / M2PxFactor;
 	let model = [];
 	
+	const RoadBackingLength = 0.9;// unit: m
+	let markingRoadEnd = buildIntersection? roadEndX - RoadBackingLength * M2PxFactor: roadEndX;
+	let markingRoadEnd3d = buildIntersection? roadEnd3d - RoadBackingLength: roadEnd3d;
+
 	let componentX = {road:[], stop:[]};
 	let ccConnect = {};
 	let intermidiateConnectTable = {
@@ -753,9 +754,9 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					}
 					
 					let roadWidth = componentX.stop[stopIndex + 1] - componentX.stop[stopIndex];
-					transform = `rotate(${deg}, ${roadEndX - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
+					transform = `rotate(${deg}, ${markingRoadEnd - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
 	
-					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${roadEndX - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
+					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${markingRoadEnd - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
 				}
 
 				//add marking
@@ -793,10 +794,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
 						}
 
-						points.push([roadEndX, componentX.stop[stopIndex]]);
+						points.push([markingRoadEnd, componentX.stop[stopIndex]]);
 						points.push([intermidiateEndX, componentX.stop[stopIndex]]);
 						if(build3dFlag){
-							markingModel.push([roadEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+							markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
 							markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
 						}
 
@@ -1049,11 +1050,11 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						
 						if(check){
 							lineProp.width = 0.15;
-							points.push([roadEndX, componentX.stop[stopIndex + 1]]);
+							points.push([markingRoadEnd, componentX.stop[stopIndex + 1]]);
 							points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
 
 							if(build3dFlag){
-								markingModel.push([roadEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+								markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
 								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
 							}
 						}
@@ -1368,7 +1369,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	let endX = -1;
 	let stopMarkingWidth = 0.4 * M2PxFactor;
 
-	let lineX = roadEndX - stopMarkingWidth / 2;
+	let lineX = markingRoadEnd - stopMarkingWidth / 2;
 	let marking15cm = 0.15 * M2PxFactor;
 	let marking10cm = 0.1 * M2PxFactor;
 	for(let i = 0;i< roadRecord.record.stop.length;++i){
@@ -1578,8 +1579,8 @@ function CalculateIntersectionSetting(){
 function BuildIntersectionCenter(build3dFlag = false){
 	let M2PxFactor = tempVariable.M2PxFactor;
 	let centerElement = document.getElementById("intersectionRoad_center");
-	let elementWidth = centerElement.clientWidth;
-	let elementHeight = centerElement.clientHeight;
+	let elementWidth = centerElement.clientWidth + 0.5;
+	let elementHeight = centerElement.clientHeight + 0.5;
 
 	let elementWidth3d = elementWidth / M2PxFactor;
 	let elementHeight3d = elementHeight / M2PxFactor;
@@ -1831,7 +1832,7 @@ function BuildIntersectionSvg(){
 
 	for(let i = 0;i< 4;++i){
 		let roadSetting= intersectionSetting.roads[i];
-		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX, build3dFlag, i);
+		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX, build3dFlag, true, i);
 		
 		if(build3dFlag){
 			modelParameter[i].roadWidth = intersectionRecord.intersection[i].record.landWidth;
