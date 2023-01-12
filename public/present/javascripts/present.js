@@ -805,84 +805,86 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 					//check cover
 					check = false;
-					if(i === 0 || stopIndex === 0){
-						check = true;
-						tempLineProp.width = 0.15;
-					}else if(stopIndex !== 0){
-						if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road"){
-							tempLineProp.width = 0.15;
+					//check for spliting
+					for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+						if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
+							let temp = intermidiateConnectTable.road[i][k]
 							check = true;
-						}else{
-							//check for spliting
-							for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
-								if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
-									let temp = intermidiateConnectTable.road[i][k]
-									check = true;
-									if(overrideSerial > temp.overrideSerialNumber){
-										tempLineProp.width = 0.1;
-										tempLineProp.left = 1;
-										tempLineProp.right = 1;
-										tempLineProp.sameDir = true;
-									}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
-										tempLineProp.width = 0.1;
-										tempLineProp.left = 1;
-										tempLineProp.right = 1;
-										tempLineProp.sameDir = true;
-									}else{
-										tempLineProp.width = 0;
-									}
+							if(overrideSerial > temp.overrideSerialNumber){
+								tempLineProp.width = 0.1;
+								tempLineProp.left = 1;
+								tempLineProp.right = 1;
+								tempLineProp.sameDir = true;
+							}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+								tempLineProp.width = 0.1;
+								tempLineProp.left = 1;
+								tempLineProp.right = 1;
+								tempLineProp.sameDir = true;
+							}else{
+								tempLineProp.width = 0;
+							}
+						}
+					}
+					if(!check){
+						for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
+							if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
+								let temp = intermidiateConnectTable.stop[stopIndex][k]
+								check = true;
+								if(overrideSerial > temp.overrideSerialNumber){
+									tempLineProp.width = 0.1;
+									tempLineProp.left = 1;
+									tempLineProp.right = 1;
+									tempLineProp.sameDir = true;
+								}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+									tempLineProp.width = 0.1;
+									tempLineProp.left = 1;
+									tempLineProp.right = 1;
+									tempLineProp.sameDir = true;
+								}else{
+									tempLineProp.width = 0;
 								}
 							}
-							if(!check){
-								for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
-									if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
-										let temp = intermidiateConnectTable.stop[stopIndex][k]
-										check = true;
-										if(overrideSerial > temp.overrideSerialNumber){
+						}
+					}
+					if(!check){
+						if(i === 0 || stopIndex === 0){
+							check = true;
+							tempLineProp.width = 0.15;
+						}else if(stopIndex !== 0){
+							if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road"){
+								tempLineProp.width = 0.15;
+								check = true;
+							}else{
+								
+	
+								//check for parallel
+								if(! check && roadRecord.record.road[i -1].type === "road"){
+									for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
+										if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
+											let connection = intermidiateConnectTable.road[i-1][k];
+											let tempRoadRecord = roadRecord.record.road[connection.roadIndex];
+											let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
+	
+											check = true;
 											tempLineProp.width = 0.1;
-											tempLineProp.left = 1;
-											tempLineProp.right = 1;
-											tempLineProp.sameDir = true;
-										}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
-											tempLineProp.width = 0.1;
-											tempLineProp.left = 1;
-											tempLineProp.right = 1;
-											tempLineProp.sameDir = true;
-										}else{
-											tempLineProp.width = 0;
+											tempLineProp.sameDir = record.direction === tempStopRecord.direction;
+											tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
+											tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
+											break;
 										}
 									}
 								}
-							}
-							
-
-							//check for parallel
-							if(! check && roadRecord.record.road[i -1].type === "road"){
-								for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
-									if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
-										let connection = intermidiateConnectTable.road[i-1][k];
-										let tempRoadRecord = roadRecord.record.road[connection.roadIndex];
-										let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
-
-										check = true;
-										tempLineProp.width = 0.1;
-										tempLineProp.sameDir = record.direction === tempStopRecord.direction;
-										tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
-										tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
-										break;
-									}
+								
+								//else
+								if(!check){
+									tempLineProp.width = 0.15;
+									check = true;
 								}
 							}
-							
-							//else
-							if(!check){
-								tempLineProp.width = 0.15;
-								check = true;
-							}
+						}else{
+							tempLineProp.width = 0.15;
+							check = true;
 						}
-					}else{
-						tempLineProp.width = 0.15;
-						check = true;
 					}
 
 					//check for diff line property
