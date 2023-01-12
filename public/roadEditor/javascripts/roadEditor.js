@@ -1055,7 +1055,7 @@ window.PropertySettingChange = function(event, type){
 		
 		if(newWidth < componentMinWidth[compType]){
 			event.target.value = componentMinWidth[compType];
-			return
+			newWidth = componentMinWidth[compType];
 		}
 
 		console.log("update width");
