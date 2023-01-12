@@ -44,7 +44,7 @@ function AddShape(shape, compType, rotate){
 		geometry = new THREE.ShapeGeometry( shape );
 	}
 
-	material = new THREE.MeshBasicMaterial( { "color": color } );
+	material = new THREE.MeshPhongMaterial( { "color": color } );
 	let mesh = new THREE.Mesh( geometry, material ) ;
 	mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
 	mesh.position.set (0,RoadLevel, 0);
@@ -97,14 +97,20 @@ function AddMarking(context, xOffset, points, lineProp){
 	let lineWidth = lineProp.width * MarkingTextureMagLevel;
 	let yOffset = 0;
 	let totalWidth;
-	let color = lineProp.width === 0.15 || lineProp.sameDir ? "white" : "yellow";
+	let color = lineProp.width !== 0.1 || lineProp.sameDir ? "white" : "yellow";
 	
 	
 	
 	
 	// 15 cm line
-	if(lineProp.width === 0.15){
-		yOffset = lineProp.width / 2;
+	if(lineProp.width !== 0.1){
+		if(lineProp.width === 0.15){
+			if(lineProp.right === 1){
+				yOffset = -lineProp.width / 2;
+			}else{
+				yOffset = lineProp.width / 2;
+			}
+		}
 		context.beginPath();
 		context.setLineDash([]);
 		context.strokeStyle = color;
@@ -129,7 +135,7 @@ function AddMarking(context, xOffset, points, lineProp){
 	}
 	
 	totalWidth = lineProp.width * 3;
-	yOffset = lineProp.width /2 - totalWidth / 2;
+	yOffset = lineProp.width/2 - totalWidth / 2;
 	//left
 	{
 		context.beginPath();
@@ -274,10 +280,14 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 			let geometry;
 			let material;
 			let texture = new THREE.CanvasTexture(canvas);
+			texture.magFilter = THREE.NearestFilter;
+			texture.minFilter = THREE.NearestFilter;
 
 			geometry = new THREE.ShapeGeometry( shape );
 
-			material = new THREE.MeshBasicMaterial( { map: texture} );
+			material = new THREE.MeshPhongMaterial( { map: texture} );
+			material.side = THREE.DoubleSide;
+
 			let mesh = new THREE.Mesh( geometry, material ) ;
 			mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
 			mesh.position.set (0,RoadLevel, 0);
@@ -411,7 +421,8 @@ function init(modelParameter) {
 	const controls = new OrbitControls( camera, renderer.domElement );
 	controls.minDistance = 20;
 	controls.maxDistance = 1000;
-	controls.maxPolarAngle = Math.PI;
+	controls.maxPolarAngle = Math.PI/2;
+	//controls.minPolarAngle = Math.PI / 2;
 
 	//background
 	{
@@ -432,10 +443,12 @@ function init(modelParameter) {
 	//light
 	{
 		// ambient light
-		scene.add( new THREE.AmbientLight( 0x222222 ) );
+		scene.add( new THREE.AmbientLight( 0x505050 ) );
 		
 		// point light
-		const light = new THREE.PointLight( 0xffffff, 1 );
+		let light = new THREE.PointLight( 0xffffff, 1 );
+
+		light.position.set(0, 20, 20);
 		camera.add( light );
 	}
 

@@ -900,6 +900,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 					if(check || tempLineProp.width === 0){
 						if(points.length !== 0){
+							if(lineProp.width === 0.15)lineProp.right = 0;
+
 							let markingPriorty = MarkingPriorty(lineProp);
 							let marking =  CreateLineMarking(lineProp, points);
 							if(markingPriorty === -1){
@@ -973,6 +975,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						//road section marking
 						if(check || tempLineProp.width === 0){
 							if(points.length !== 0){
+								if(lineProp.width === 0.15)lineProp.right = 0;
+
 								let markingPriorty = MarkingPriorty(lineProp);
 								let marking =  CreateLineMarking(lineProp, points);
 								if(markingPriorty === -1) markingSpace += marking;
@@ -1011,6 +1015,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					}
 					
 					if(points.length !== 0){
+						if(lineProp.width === 0.15)lineProp.right = 0;
+
 						let markingPriorty = MarkingPriorty(lineProp);
 						let marking =  CreateLineMarking(lineProp, points);
 						if(markingPriorty === -1) markingSpace += marking;
@@ -1137,8 +1143,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 						if(check){
 							if(points.length !== 0){
+								if(lineProp.width === 0.15)lineProp.right = 1;
+
 								let markingPriorty = MarkingPriorty(lineProp);
-								let marking =  CreateLineMarking(lineProp, points);
+								let marking =  CreateLineMarking(lineProp, points, -1);
 								if(markingPriorty === -1) markingSpace += marking;
 								else highPriortyMarking[markingPriorty].push(marking);
 
@@ -1190,6 +1198,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						
 						if(lineProp.width !== 0.15){
 							if(points.length !== 0){
+								if(lineProp.width === 0.15)lineProp.right = 1;
+
 								let markingPriorty = MarkingPriorty(lineProp);
 								let marking =  CreateLineMarking(lineProp, points);
 								if(markingPriorty === -1) markingSpace += marking;
@@ -1222,8 +1232,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 
 						if(points.length !== 0){
+							if(lineProp.width === 0.15)lineProp.right = 1;
+
 							let markingPriorty = MarkingPriorty(lineProp);
-							let marking =  CreateLineMarking(lineProp, points);
+							let marking =  CreateLineMarking(lineProp, points, -1);
 							if(markingPriorty === -1) markingSpace += marking;
 							else highPriortyMarking[markingPriorty].push(marking);
 
@@ -1428,7 +1440,20 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			}
 
 			if(check){
-				
+				if(build3dFlag){
+					model.push({
+						"type": "marking",
+						"markingPriority": 0,
+						"lineProp":{
+							width: 0.4,
+							left: 0,
+							right: 0,
+							sameDir: true,
+						},
+						"path": [[lineX / M2PxFactor,  startX / M2PxFactor], [lineX / M2PxFactor, endX / M2PxFactor]],
+					});
+				}
+
 				markingSpace += `<path d="M ${lineX} ${startX} L ${lineX} ${endX}" stroke-width="${stopMarkingWidth}" stroke="white"/>`
 				startX = -1;
 				endX = -1;
