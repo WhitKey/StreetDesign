@@ -1,13 +1,13 @@
 import * as THREE from 'three';
+import { EllipseCurve } from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 
 const M2CoordFactor = 1;
 const RoadLevel = 0.01;
-const MarkingLevel = RoadLevel + 0.002;
-const MarkingLevelStep = 0.001;
 const ExtrudeHeight = 0.2;
+const MarkingTextureMagLevel = 100;
 
 let roadGroup, camera, scene, renderer;
 let present3dWindow = document.getElementById("intersectionRenderArea3d");;
@@ -52,6 +52,128 @@ function AddShape(shape, compType, rotate){
 	roadGroup.add(mesh);
 }
 
+function AddMarking(context, xOffset, points, lineProp){
+	function CoordTransform(point, xOffset, yOffset){
+		if(point.length === 3){
+			let newPoint = [];
+			for(let i= 0;i<3;++i){
+				newPoint.push([
+					(point[i][0] + xOffset) * MarkingTextureMagLevel,
+					(point[i][1] + yOffset) * MarkingTextureMagLevel
+				]);
+			}
+			return newPoint;
+		}
+		return [
+			(point[0] + xOffset) * MarkingTextureMagLevel,
+			(point[1] + yOffset) * MarkingTextureMagLevel
+		];
+	}
+
+	function AddLine(context, points, xOffset, yOffset){
+		let firstFlag = true;
+		points.forEach(element => {
+			let item = CoordTransform(element, xOffset, yOffset);
+			if(firstFlag){
+				firstFlag = false;
+				context.moveTo(item[0], item[1]);
+				return;
+			}
+			
+			if(item.length === 3){
+				context.bezierCurveTo(
+					item[0][0], item[0][1],
+					item[1][0], item[1][1],
+					item[2][0], item[2][1],
+					);
+					return
+			}
+			context.lineTo(item[0], item[1]);
+		});
+	}
+
+	const DashedPattern = [3 * MarkingTextureMagLevel, 3 * MarkingTextureMagLevel];
+	const FillerColor = "hsl(0, 0%, 11%)";
+	let lineWidth = lineProp.width * MarkingTextureMagLevel;
+	let yOffset = 0;
+	let totalWidth;
+	let color = lineProp.width === 0.15 || lineProp.sameDir ? "white" : "yellow";
+	
+	
+	
+	
+	// 15 cm line
+	if(lineProp.width === 0.15){
+		yOffset = lineProp.width / 2;
+		context.beginPath();
+		context.setLineDash([]);
+		context.strokeStyle = color;
+		context.lineWidth = lineWidth;
+		
+		AddLine(context, points, xOffset, yOffset);
+		context.stroke();
+		return;
+	}
+
+	// double crossable
+	if(lineProp.left === 1 && lineProp.right === 1){
+		context.beginPath();
+		context.strokeStyle = color;
+		context.lineWidth = lineWidth;
+		context.setLineDash(DashedPattern);
+		
+		AddLine(context, points, xOffset, yOffset);
+		
+		context.stroke();
+		return;
+	}
+	
+	totalWidth = lineProp.width * 3;
+	yOffset = lineProp.width /2 - totalWidth / 2;
+	//left
+	{
+		context.beginPath();
+		context.strokeStyle = color;
+		context.lineWidth = lineWidth;
+		context.setLineDash([]);
+		
+		if(lineProp.left === 1){
+			context.setLineDash(DashedPattern);
+		}
+		
+		AddLine(context, points, xOffset, yOffset);
+		context.stroke();
+	}
+	yOffset += lineProp.width;
+	
+	//filler
+	{
+		context.beginPath();
+		context.strokeStyle = FillerColor;
+		context.lineWidth = lineWidth;
+		context.setLineDash([]);
+		
+		AddLine(context, points, xOffset, yOffset);
+		context.stroke();
+	}
+	yOffset += lineProp.width;
+	
+	//right
+	{
+		context.beginPath();
+		context.strokeStyle = color;
+		context.lineWidth = lineWidth;
+		context.setLineDash([]);
+		
+		if(lineProp.right === 1){
+			context.setLineDash(DashedPattern);
+		}
+		
+		AddLine(context, points, xOffset, yOffset);
+		context.stroke();
+	}
+}
+
 function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 	function RoadCoordTransform(coord, centerOffsetY, xOffset){
 		let newCoord = [
@@ -65,17 +187,22 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 	let xOffset = -model.roadLength - model.model[0].path[0][0] - centerOffsetX//model.model[0].path[0][0]+ centerOffsetX - model.roadLength ;
 	let canvas = document.createElement("canvas");
 	let context;
-	canvas.width = model.roadLength;
-	canvas.height = model.roadWidth;
+	let markingXOffset = -model.model[0].path[0][0];
+	let markingQueue = {"-1": [], "0": [], "1":[]};
+
+	canvas.width = model.roadLength * MarkingTextureMagLevel;
+	canvas.height = model.roadWidth * MarkingTextureMagLevel;
+
 	context = canvas.getContext("2d");
-	console.log(context);
-	context.fillRect(0, 0, model.roadLength, model.roadWidth);
+	context.fillStyle = "hsl(0, 0%, 11%)";
+	//context.fillStyle = "red";
+	context.fillRect(0, 0, model.roadLength * MarkingTextureMagLevel, model.roadWidth * MarkingTextureMagLevel);
 
 
 	model.model.forEach(element => {
 		//build component
 		if(element.type === "component"){
-			if(element.componentType === "road")return;
+			if(element.componentType === "road" || element.componentType === "shoulder" )return;
 
 			let moveFlag = true;
 			let shape = new THREE.Shape();
@@ -108,26 +235,66 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 			});
 			AddShape(shape, element.componentType, rotDeg *Math.PI / 180 );
 		}else if(element.type === "marking"){
-			//console.log(element);
+			markingQueue[element.markingPriority].push(element);
 		}
 	});
 	
-	
-	
 	//add road
 	{
+		//build shape
 		let shape = new THREE.Shape();
-		let point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
-		shape.moveTo(point[0], point[1]);
-		point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], 0], centerOffsetY, xOffset);
-		shape.lineTo(point[0], point[1]);
-		point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
-		shape.lineTo(point[0], point[1]);
-		point = RoadCoordTransform([model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
-		shape.lineTo(point[0], point[1]);
-		point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
-		shape.lineTo(point[0], point[1]);
-		AddShape(shape, "road", rotDeg *Math.PI / 180);
+		{
+			let point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+			shape.moveTo(point[0], point[1]);
+			point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+			shape.lineTo(point[0], point[1]);
+			point = RoadCoordTransform([model.roadLength + model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
+			shape.lineTo(point[0], point[1]);
+			point = RoadCoordTransform([model.model[0].path[0][0], model.roadWidth], centerOffsetY, xOffset);
+			shape.lineTo(point[0], point[1]);
+			point = RoadCoordTransform([model.model[0].path[0][0], 0], centerOffsetY, xOffset);
+			shape.lineTo(point[0], point[1]);
+		}
+
+		//build texture canvas
+		{
+			markingQueue[-1].forEach(element => {
+				AddMarking(context, markingXOffset, element.path, element.lineProp);
+			});
+			markingQueue[1].forEach(element => {
+				AddMarking(context, markingXOffset, element.path, element.lineProp);
+			});
+			markingQueue[0].forEach(element => {
+				AddMarking(context, markingXOffset, element.path, element.lineProp);
+			});
+		}
+
+		//build shape mesh
+		{
+			let geometry;
+			let material;
+			let texture = new THREE.CanvasTexture(canvas);
+
+			geometry = new THREE.ShapeGeometry( shape );
+
+			material = new THREE.MeshBasicMaterial( { map: texture} );
+			let mesh = new THREE.Mesh( geometry, material ) ;
+			mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
+			mesh.position.set (0,RoadLevel, 0);
+			mesh.rotation.set (-Math.PI / 2, 0, Math.PI-rotDeg *Math.PI / 180);
+
+			//reassign uv
+			{
+				let attUv = mesh.geometry.attributes.uv;
+				attUv.setXY(0, 0, 1);
+				attUv.setXY(1, 1, 1);
+				attUv.setXY(2, 1, 0);
+				attUv.setXY(3, 0, 0);
+			}
+			roadGroup.add(mesh);
+		}
+
+		//AddShape(shape, "road", rotDeg *Math.PI / 180);
 	}
 }
 
@@ -186,7 +353,7 @@ function BuildCenter(model, xLength, zLength){
 	}
 
 
-	console.log(model);
+	//console.log(model);
 }
 
 function BuildIntersection(modelParameter){

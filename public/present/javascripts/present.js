@@ -913,7 +913,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								model.push({
 									"type": "marking",
 									"markingPriority": markingPriorty,
-									"lineProp": lineProp,
+									"lineProp":JSON.parse(JSON.stringify(lineProp)),
 									"path": markingModel,
 								});
 								markingModel = [];
@@ -983,7 +983,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 									model.push({
 										"type": "marking",
 										"markingPriority": markingPriorty,
-										"lineProp": lineProp,
+										"lineProp":JSON.parse(JSON.stringify(lineProp)),
 										"path": markingModel,
 									});
 									markingModel = [];
@@ -1021,7 +1021,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							model.push({
 								"type": "marking",
 								"markingPriority": markingPriorty,
-								"lineProp": lineProp,
+								"lineProp":JSON.parse(JSON.stringify(lineProp)),
 								"path": markingModel,
 							});
 							markingModel = [];
@@ -1147,7 +1147,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 									model.push({
 										"type": "marking",
 										"markingPriority": markingPriorty,
-										"lineProp": lineProp,
+										"lineProp":JSON.parse(JSON.stringify(lineProp)),
 										"path": markingModel,
 									});
 									markingModel = [];
@@ -1201,7 +1201,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 									model.push({
 										"type": "marking",
 										"markingPriority": markingPriorty,
-										"lineProp": lineProp,
+										"lineProp":JSON.parse(JSON.stringify(lineProp)),
 										"path": markingModel,
 									});
 									markingModel = [];
@@ -1216,7 +1216,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							
 							if(build3dFlag){
 								markingModel.push([intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]);
-								markingModel.push([-roadExtend, componentX.road[i + 1]] / M2PxFactor);
+								markingModel.push([-roadExtend, componentX.road[i + 1] / M2PxFactor]);
 							}
 						}
 
@@ -1232,7 +1232,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								model.push({
 									"type": "marking",
 									"markingPriority": markingPriorty,
-									"lineProp": lineProp,
+									"lineProp":JSON.parse(JSON.stringify(lineProp)),
 									"path": markingModel,
 								});
 								markingModel = [];
