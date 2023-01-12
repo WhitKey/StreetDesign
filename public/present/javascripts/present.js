@@ -1737,6 +1737,15 @@ function BuildIntersectionCenter(build3dFlag = false){
 			pointA = [0, sidewalkCorner[0][1]];
 			pointB = [0, elementHeight - sidewalkCorner[3][1]];
 			centerElement.innerHTML += `<path d="M ${pointA[0] + zebraLineOffset} ${pointA[1]} L ${pointB[0] + zebraLineOffset} ${pointB[1]}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+			
+			if(build3dFlag){
+				model.push({
+					"type": "marking",
+					"markingType": "zebra",
+					"width" : sidewalkWidth,
+					"path": [[(pointA[0] + zebraLineOffset) / M2PxFactor, pointA[1] / M2PxFactor], [(pointB[0] + zebraLineOffset) / M2PxFactor, pointB[1] / M2PxFactor]],
+				});
+			}
 		}
 		
 		//right
@@ -1749,6 +1758,15 @@ function BuildIntersectionCenter(build3dFlag = false){
 			pointA = [elementWidth, sidewalkCorner[1][1]];
 			pointB = [elementWidth, elementHeight - sidewalkCorner[2][1]];
 			centerElement.innerHTML += `<path d="M ${pointA[0] - zebraLineOffset} ${pointA[1]} L ${pointB[0] - zebraLineOffset} ${pointB[1]}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+			
+			if(build3dFlag){
+				model.push({
+					"type": "marking",
+					"markingType": "zebra",
+					"width" : sidewalkWidth,
+					"path": [[(pointA[0] - zebraLineOffset) / M2PxFactor, pointA[1] / M2PxFactor], [(pointB[0] - zebraLineOffset) / M2PxFactor, pointB[1] / M2PxFactor]],
+				});
+			}
 		}
 		
 		
@@ -1764,6 +1782,16 @@ function BuildIntersectionCenter(build3dFlag = false){
 			pointA = [sidewalkCorner[0][0], 0];
 			pointB = [elementWidth - sidewalkCorner[1][0], 0];
 			centerElement.innerHTML += `<path d="M ${pointA[0]} ${pointA[1] + zebraLineOffset} L ${pointB[0] } ${pointB[1] + zebraLineOffset}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+			
+			
+			if(build3dFlag){
+				model.push({
+					"type": "marking",
+					"markingType": "zebra",
+					"width" : sidewalkWidth,
+					"path": [[pointA[0] / M2PxFactor, (pointA[1] + zebraLineOffset) / M2PxFactor], [pointB[0] / M2PxFactor, (pointB[1] + zebraLineOffset) / M2PxFactor]],
+				});
+			}
 		}
 		
 		//bottom
@@ -1776,6 +1804,15 @@ function BuildIntersectionCenter(build3dFlag = false){
 			pointA = [sidewalkCorner[3][0], elementHeight];
 			pointB = [elementWidth - sidewalkCorner[2][0], elementHeight];
 			centerElement.innerHTML += `<path d="M ${pointA[0]} ${pointA[1] - zebraLineOffset} L ${pointB[0]} ${pointB[1] - zebraLineOffset}" stroke="white" stroke-width="${sidewalkWidth * M2PxFactor}" stroke-dasharray="${zebraLineDashWidth} ${0.5 * M2PxFactor}" />`
+		
+			if(build3dFlag){
+				model.push({
+					"type": "marking",
+					"markingType": "zebra",
+					"width" : sidewalkWidth,
+					"path": [[pointA[0] / M2PxFactor, (pointA[1] - zebraLineOffset) / M2PxFactor], [pointB[0] / M2PxFactor, (pointB[1] - zebraLineOffset) / M2PxFactor]],
+				});
+			}
 		}
 	}
 

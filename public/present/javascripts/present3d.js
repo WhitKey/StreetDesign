@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { EllipseCurve } from 'three';
+import { EllipseCurve, ZeroSlopeEnding } from 'three';
 
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -52,7 +52,7 @@ function AddShape(shape, compType, rotate){
 	roadGroup.add(mesh);
 }
 
-function AddMarking(context, xOffset, points, lineProp){
+function AddRoadMarking(context, xOffset, points, lineProp){
 	function CoordTransform(point, xOffset, yOffset){
 		if(point.length === 3){
 			let newPoint = [];
@@ -265,13 +265,13 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 		//build texture canvas
 		{
 			markingQueue[-1].forEach(element => {
-				AddMarking(context, markingXOffset, element.path, element.lineProp);
+				AddRoadMarking(context, markingXOffset, element.path, element.lineProp);
 			});
 			markingQueue[1].forEach(element => {
-				AddMarking(context, markingXOffset, element.path, element.lineProp);
+				AddRoadMarking(context, markingXOffset, element.path, element.lineProp);
 			});
 			markingQueue[0].forEach(element => {
-				AddMarking(context, markingXOffset, element.path, element.lineProp);
+				AddRoadMarking(context, markingXOffset, element.path, element.lineProp);
 			});
 		}
 
@@ -317,6 +317,31 @@ function BuildCenter(model, xLength, zLength){
 		return newCoord;
 	}
 
+	function MarkingCoordTransform(coord){
+		if(coord.length === 3){
+			let newCoord = [];
+			for(let i = 0;i<3;++i){
+				newCoord.push([
+					coord[0] * MarkingTextureMagLevel,
+					coord[1] * MarkingTextureMagLevel,
+				]);
+			}
+			return newCoord;
+		}
+		return [
+			coord[0] * MarkingTextureMagLevel,
+			coord[1] * MarkingTextureMagLevel,
+		];
+	}
+
+	let canvas = document.createElement("canvas");
+	let context = canvas.getContext("2d");
+
+	canvas.width = zLength * 2* MarkingTextureMagLevel;
+	canvas.height = xLength * 2 * MarkingTextureMagLevel;
+	context.fillStyle = "hsl(0, 0%, 11%)";
+	context.fillRect(0, 0, canvas.width, canvas.height);
+
 	model.forEach(element => {
 		if(element.type === "component"){
 			let moveFlag = true;
@@ -348,18 +373,81 @@ function BuildCenter(model, xLength, zLength){
 				shape.lineTo(newPoint[0], newPoint[1]);
 			});
 			AddShape(shape, element.componentType,0 );
+		}else if(element.type === "marking"){
+			if(element.markingType === "zebra"){
+				let moveFlag = true;
+
+				context.beginPath();
+				context.lineWidth = element.width * MarkingTextureMagLevel;
+				context.strokeStyle = "white";
+				context.setLineDash ([0.4 * MarkingTextureMagLevel, 0.4 * MarkingTextureMagLevel]);
+
+				element.path.forEach(points => {
+					let item = MarkingCoordTransform(points);
+					if(moveFlag){
+						moveFlag = false;
+						context.moveTo(item[0], item[1]);
+						return;
+					}
+
+					if(item.length === 3){
+						context.bezierCurveTo(
+							item[0][0], item[0][1],
+							item[1][0], item[1][1],
+							item[2][0], item[2][1],
+						);
+						return;
+					}
+
+					context.lineTo(item[0], item[1]);
+				});
+
+				context.stroke();
+			}
 		}
 	});
 
 	//build pavement
 	{
 		let shape = new THREE.Shape();
+		
+		//create shape
 		shape.moveTo(-zLength, -xLength)
 		.lineTo(-zLength, xLength)
 		.lineTo(zLength, xLength)
 		.lineTo(zLength, -xLength)
 		.lineTo(-zLength, -xLength)
-		AddShape(shape, "road",0 );
+
+		//build shape mesh
+		{
+			let geometry;
+			let material;
+			let texture = new THREE.CanvasTexture(canvas);
+			texture.magFilter = THREE.NearestFilter;
+			texture.minFilter = THREE.NearestFilter;
+
+			geometry = new THREE.ShapeGeometry( shape );
+
+			material = new THREE.MeshPhongMaterial( { map: texture} );
+			material.side = THREE.DoubleSide;
+
+			let mesh = new THREE.Mesh( geometry, material ) ;
+			mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
+			mesh.position.set (0,RoadLevel, 0);
+			mesh.rotation.set (-Math.PI / 2, 0,0);
+
+			//reassign uv
+			{
+				let attUv = mesh.geometry.attributes.uv;
+				attUv.setXY(0, 1, 1);
+				attUv.setXY(1, 1, 0);
+				attUv.setXY(2, 0, 0);
+				attUv.setXY(3, 0, 1);
+			}
+			roadGroup.add(mesh);
+		}
+
+		//AddShape(shape, "road",0 );
 	}
 
 
