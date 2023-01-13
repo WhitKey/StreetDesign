@@ -1933,11 +1933,11 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	//set section switch
 	if(sectionTarget === "road"){
 		sectionSwitchElement.disabled = false;
-		sectionSwitchElement.innerText = "切換道路顯示";
+		sectionSwitchElement.innerText = "道路";
 		sectionSwitchElement.onclick = window.OnTo2DRoad;
 	}else if(sectionTarget === "intersection"){
 		sectionSwitchElement.disabled = false;
-		sectionSwitchElement.innerText = "切換路口顯示";
+		sectionSwitchElement.innerText = "路口";
 		sectionSwitchElement.onclick = window.OnToIntersection;
 		
 	}else{
@@ -1949,16 +1949,16 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	// set dimension switch
 	if(dimensionTarget === "2D"){
 		dimensionSwitchElement.disabled = false;
-		dimensionSwitchElement.innerText = "切換2D顯示";
+		dimensionSwitchElement.innerText = "2D";
 		dimensionSwitchElement.onclick = window.OnToIntersection;
 	}else if(dimensionTarget === "3D"){
 		dimensionSwitchElement.disabled = false;
-		dimensionSwitchElement.innerText = "切換3D顯示";
+		dimensionSwitchElement.innerText = "3D";
 		dimensionSwitchElement.onclick = window.OnTo3D;
 		
 	}else if(dimensionTarget === "cross"){
 		dimensionSwitchElement.disabled = false;
-		dimensionSwitchElement.innerText = "展開斷面顯示";
+		dimensionSwitchElement.innerText = "斷面";
 		dimensionSwitchElement.onclick = window.OnCrossEnable;
 	}else{
 		dimensionSwitchElement.disabled = true;
