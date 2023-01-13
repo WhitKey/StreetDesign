@@ -593,6 +593,7 @@ export function Trigger3d(modelParameter){
 	console.log("3d triggered");
 	showing = true;
 	init(modelParameter);
+	resize();
 	render();
 }
 
