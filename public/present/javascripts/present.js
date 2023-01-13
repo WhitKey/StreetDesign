@@ -552,7 +552,6 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		0:[],
 		1:[],
 	};
-
 	
 	tempVariable.M2PxFactor = M2PxFactor;
 
@@ -713,6 +712,16 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					let roadWidth = componentX.road[i + 1] - componentX.road[i];
 					transform = `rotate(${deg}, ${padding + roadWidth / 2}, ${componentX.road[i] + roadWidth / 2})`;
 					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${padding}" y="${componentX.road[i]}"/>`;
+					model.push(
+						{
+							"type": "dirMarking",
+							"section": "road",
+							"src": imgSrc,
+							"rot": deg,
+							"yOffset": componentX.road[i] / M2PxFactor,
+							"roadWidth": roadWidth / M2PxFactor,
+						}
+					);
 				}
 				
 				//stop
@@ -757,6 +766,16 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					transform = `rotate(${deg}, ${markingRoadEnd - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
 	
 					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${markingRoadEnd - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
+					model.push(
+						{
+							"type": "dirMarking",
+							"section": "stop",
+							"src": imgSrc,
+							"rot": deg,
+							"yOffset": componentX.stop[stopIndex] / M2PxFactor,
+							"roadWidth": roadWidth / M2PxFactor,
+						}
+					);
 				}
 
 				//add marking
@@ -1469,6 +1488,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		modelParameter[roadSection] = {
 			"model":model,
 			"roadLength": roadEnd3d + roadExtend,
+			"roadEnd": roadEnd3d - RoadBackingLength,
+			"intermidiateStart": intermidiateStart3d,
+			"intermidiateEnd": intermidiateEnd3d,
+			"intermidiateMid": intermidiateMid3d,
 		};
 	}
 }

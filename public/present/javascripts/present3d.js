@@ -181,6 +181,33 @@ function AddRoadMarking(context, xOffset, points, lineProp){
 }
 
 function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
+	function AddDirMarking(context, model, texture, roadModel, xOffset){
+		let dimension = model.roadWidth * MarkingTextureMagLevel;
+		let img = new Image();
+		let rot = model.rot * Math.PI / 180;
+		let coord = [ 0 , model.yOffset * MarkingTextureMagLevel + dimension / 2];
+
+		img.onload = function (){
+			context.save()
+			if(model.section === "stop"){
+				coord[0] = (xOffset + roadModel.roadEnd - 2 ) * MarkingTextureMagLevel- dimension / 2;
+			}else{
+				coord[0] = (xOffset + roadModel.intermidiateStart - 5 ) * MarkingTextureMagLevel- dimension / 2;
+			}
+
+			context.translate(coord[0], coord[1]);
+			context.rotate(rot);
+			context.drawImage(img, -dimension / 2, -dimension / 2, dimension, dimension);
+			context.restore();
+
+			texture.needsUpdate = true;
+		}
+		
+		img.height=dimension;
+		img.width=dimension;
+		img.src = model.src;
+	}
+
 	function RoadCoordTransform(coord, centerOffsetY, xOffset){
 		let newCoord = [
 			coord[0] + xOffset ,
@@ -189,13 +216,14 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 
 		return newCoord;
 	}
-
+	let setting = model[0]
 	let xOffset = -model.roadLength - model.model[0].path[0][0] - centerOffsetX//model.model[0].path[0][0]+ centerOffsetX - model.roadLength ;
 	let canvas = document.createElement("canvas");
 	let context;
 	let markingXOffset = -model.model[0].path[0][0];
 	let markingQueue = {"-1": [], "0": [], "1":[]};
-
+	let roadTexture = new THREE.CanvasTexture(canvas);
+	
 	canvas.width = model.roadLength * MarkingTextureMagLevel;
 	canvas.height = model.roadWidth * MarkingTextureMagLevel;
 
@@ -242,6 +270,8 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 			AddShape(shape, element.componentType, rotDeg *Math.PI / 180 );
 		}else if(element.type === "marking"){
 			markingQueue[element.markingPriority].push(element);
+		}else if(element.type === "dirMarking"){
+			AddDirMarking(context, element, roadTexture, model, markingXOffset);
 		}
 	});
 	
@@ -279,18 +309,18 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 		{
 			let geometry;
 			let material;
-			let texture = new THREE.CanvasTexture(canvas);
-			texture.magFilter = THREE.NearestFilter;
-			texture.minFilter = THREE.NearestFilter;
+			
+			roadTexture.magFilter = THREE.NearestFilter;
+			roadTexture.minFilter = THREE.NearestFilter;
 
 			geometry = new THREE.ShapeGeometry( shape );
 
-			material = new THREE.MeshPhongMaterial( { map: texture} );
+			material = new THREE.MeshPhongMaterial( { map: roadTexture} );
 			material.side = THREE.DoubleSide;
 
 			let mesh = new THREE.Mesh( geometry, material ) ;
 			mesh.scale.set(M2CoordFactor,M2CoordFactor,M2CoordFactor);
-			mesh.position.set (0,RoadLevel, 0);
+			mesh.position.set (0,RoadLevel - 0.01, 0);
 			mesh.rotation.set (-Math.PI / 2, 0, Math.PI-rotDeg *Math.PI / 180);
 
 			//reassign uv
@@ -508,7 +538,7 @@ function init(modelParameter) {
 	// controls
 	const controls = new OrbitControls( camera, renderer.domElement );
 	controls.minDistance = 20;
-	controls.maxDistance = 1000;
+	controls.maxDistance = 500;
 	controls.maxPolarAngle = Math.PI/2;
 	//controls.minPolarAngle = Math.PI / 2;
 
@@ -544,9 +574,9 @@ function init(modelParameter) {
 	{
 		scene.add( new THREE.AxesHelper( 200 ) );
 
-		const plane = new THREE.Plane( new THREE.Vector3( 0, 1, 0 ),0 );
-		const helper = new THREE.PlaneHelper( plane, 100, 0x00f0f0 );
-		scene.add( helper );
+		//const plane = new THREE.Plane( new THREE.Vector3( 0, 1, 0 ),0 );
+		//const helper = new THREE.PlaneHelper( plane, 100, 0x00f0f0 );
+		//scene.add( helper );
 	}
 
 	//build model
