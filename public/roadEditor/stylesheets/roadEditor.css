@@ -185,12 +185,14 @@
 	width: 10px;
 	transition-duration: 0.05s;
 	background-color: aquamarine;
+	z-index: 1;
 }
 
 .hitOn * .hitbox {
 	width: 10px;
 	transition-duration: 0.05s;
 	background-color: aquamarine;
+	z-index: 1;
 }
 
 .trashcan {

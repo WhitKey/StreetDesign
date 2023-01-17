@@ -1334,7 +1334,7 @@ function CreateRulerMarking(x, y, record, isLast = false, isFirst = false){
 		lineLength = width - arrowHeadLength * 2; 
 	}else{
 		lineLength = 0;
-		arrowHeadwidth = arrowHeadWidth * (width / 2) / arrowHeadLength;
+		arrowHeadWidth = arrowHeadWidth * (width / 2) / arrowHeadLength;
 		arrowHeadLength = width / 2;
 	}
 
