@@ -2426,6 +2426,7 @@ function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, s
 }
 
 function VerifyAndLink(roadIndex, stopIndex){
+	//TODO: add linking error message
 	function uniq(a) {
 		var seen = {};
 		return a.filter(function(item) {
