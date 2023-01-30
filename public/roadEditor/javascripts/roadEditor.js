@@ -583,13 +583,12 @@ function RemoveComponentA(index){
 function RemovePlaceholder(id){
 
 	let target = document.getElementById(id);
-	console.log(target);
 	if(target === null)return;
 	target.style.width = "0px";
 
 	setTimeout((target) => {
 		target.remove();
-	}, 10, target);
+	}, 150, target);
 }
 
 function MoveComponentA(fromIdx, toIdx){
@@ -743,12 +742,10 @@ window.ComponentDrag = function(event) {
 	
 	//raycast detection
 	if(raycast.classList.contains("placeholder")){
-		console.log("placeholder");
 		return;
 	}
 
 	if(raycast.id === "editor"){
-		console.log("editor");
 		let editorPosRatio = event.layerX / editorElement.clientWidth;
 
 		if(editorPosRatio <= 0.1){
@@ -765,7 +762,8 @@ window.ComponentDrag = function(event) {
 			}
 		}
 	}else if(raycast.id === "land"){
-		//insert to the rightest of the land
+
+		//insert to the most right of the land
 		if(oriDest !== roadSegmentRecord.length - 1){
 			if(oriDest === null){
 				dragDest = roadSegmentRecord.length;
@@ -775,18 +773,20 @@ window.ComponentDrag = function(event) {
 		}else{
 			dragDest = oriDest;
 		}
-		console.log("land");
 
 	}else if(raycast.id === "trashcan"){
 		//delete the component
 		dragDest = -1;
-		console.log("trashcan");
 	}else{
+		//insert / move the component
+		
 		raycast = raycast.closest(".component");
 		if(raycast !== null) {
 			let raycastParent = raycast.parentElement
 			let hitComponentIdx = GetComponentIdx(raycastParent);
 			let hitPos = (event.clientX - raycastParent.getBoundingClientRect().x) / raycastParent.clientWidth;
+			
+			//calculate where to put the component
 			if(hitPos < 0)hitPos = 0;
 			if(hitPos > 1)hitPos = 1;
 			if(hitPos < 0.5){
@@ -796,7 +796,6 @@ window.ComponentDrag = function(event) {
 			}
 
 			if(dragDest < 0)dragDest = -2;
-			console.log("component");
 		}else{
 			dragDest = -2;
 		}
@@ -863,8 +862,7 @@ window.ComponentDragEnd = function(event) {
 		return;
 	}
 
-	// insert
-	
+	// insert / move
 	if(oriDest !== null){
 		MoveComponentA(oriDest, dragDest);
 	}else{
@@ -875,6 +873,7 @@ window.ComponentDragEnd = function(event) {
 	UpdateRoadExitDirectionIcon("drag");
 	setTimeout(()=>{draging = false;}, 120);
 	
+	// cleanup placeholder
 	if(placeholderPos !== null){
 		RemovePlaceholder(`placeholder_${placeholderId}`);
 		placeholderPos === null;

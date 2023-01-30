@@ -8,6 +8,7 @@
 	flex-shrink: 0;
 	transition-duration: 100ms, 100ms;
 	transition-property: opacity, width;
+	transition-timing-function: unset, linear;
 }
 
 .roadComponent * {
