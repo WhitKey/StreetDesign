@@ -1080,10 +1080,10 @@ async function PropertySettingStart(compId, compType){
 
 	ConfigPropertySetting(compId, compType);
 
-	target.removeAttribute("onmousedown");
-	target.removeAttribute("ontouchstart");
-	target.removeEventListener("mousedown", ComponentDragStart);
-	target.removeEventListener("touchstart", ComponentDragStart);
+	//target.removeAttribute("onmousedown");
+	//target.removeAttribute("ontouchstart");
+	//target.removeEventListener("mousedown", ComponentDragStart);
+	//target.removeEventListener("touchstart", ComponentDragStart);
 }
 
 function ConfigPropertySetting(compId, compType){
