@@ -27,6 +27,16 @@ let templateBase = {};
 
 //road layout editor variable
 let dragElement = null;
+let dragRecord = null;
+
+//-1: trashcan
+//-2: miss
+// >= 0: hit position
+let dragDest = null;
+let oriDest = null;
+let placeholderId = 0;
+let placeholderPos = null;
+
 let hitboxCounter = 0;
 let componentCounter = 0;
 let inHitboxId = null;
@@ -135,7 +145,8 @@ let leftSlidoutOn = false;
 //
 //-----------------------
 function GetComponentIdx(component){
-	return (Array.prototype.slice.call(landElement.children).indexOf(component)-2)/2;
+	//return (Array.prototype.slice.call(landElement.children).indexOf(component)-2)/2;
+	return (Array.prototype.slice.call(landElement.getElementsByClassName("drag")).indexOf(component));
 }
 
 function M2Px(width){
@@ -182,7 +193,7 @@ function LandInit() {
 	landElement.setAttribute("id", "land");
 	landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
 	markingSpaceElement = document.getElementById("markingSpace");
-	AddHitbox();
+	//AddHitbox();
 
 	
 	sidebarElement.classList.remove("intermidiate");
@@ -422,6 +433,8 @@ function ImportRoadSegmentRecordJSON(json, updateMarking = true){
 	}else{
 		ClearRoadSegmentRecord();
 		
+
+		//TODO: (road segment overhaul) need rework
 		//construct html
 		for(let i = 0;i< json.length;++i){
 			let componentType = json[i].type;
@@ -434,11 +447,12 @@ function ImportRoadSegmentRecordJSON(json, updateMarking = true){
 			component.style.width = M2Percent(json[i].width);
 			component.setAttribute("component", componentType);
 			component.appendChild(templateBase[componentType].cloneNode(true));
+			landElement.appendChild(component);
 			++componentCounter;
-	
+
 			//insert component into land 
-			landElement.insertBefore(component, emptyComp.nextSibling);
-			AddHitbox(component);
+			//landElement.insertBefore(component, emptyComp.nextSibling);
+			//AddHitbox(component);
 		}
 		
 		//overwrite roadSegmentRecord
@@ -552,6 +566,98 @@ function RemoveHitbox(hitboxId) {
 	document.getElementById(hitboxId + "c").remove();
 }
 
+function InsertViewportComponent(index){
+	let component = roadComponentTemplate.cloneNode(true);
+	let record = roadSegmentRecord[index];
+	let componentType =  record.type;
+
+	component.id = "comp" + componentCounter.toString();
+	component.style.width = M2Percent(record.width);
+
+	component.setAttribute("component", componentType);
+	component.appendChild(templateBase[componentType].cloneNode(true));
+	landElement.insertBefore(component, landElement.getElementsByClassName("drag")[index]);
+	++componentCounter;
+
+}
+
+function InsertComponentA(index, record){
+	// road segment record operation
+	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+	AddComponentRecord(index, record);
+	PushUndoStack(tempVariables.state);
+
+	// viewport operation
+	InsertViewportComponent(index);
+}
+
+function InsertPlaceholder(index){
+	const PlaceholderClass = ["roadComponent", "placeholder"];
+	let placeholder = document.createElement("div");
+	++placeholderId;
+	let id = `placeholder_${placeholderId}`;
+
+	placeholder.classList.add(...PlaceholderClass);
+	placeholder.id = id;
+	landElement.insertBefore(placeholder, landElement.getElementsByClassName("drag")[index]);
+	placeholder.style.width = "0px";
+
+	setTimeout((target, width) => {
+		target.style.width = width;
+	}, 10, placeholder, M2Percent(dragRecord.width));
+	return id;
+}
+
+function RemoveViewportComponent(index){
+	let target = landElement.getElementsByClassName("drag")[index];
+	target.classList.remove("drag");
+	target.style.width = "0px";
+	
+	setTimeout((target) => {
+		target.remove();
+	}, 100, target);
+}
+
+function RemoveComponentA(index){
+	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+	
+	RemoveComponentRecord(index);
+	
+	PushUndoStack(tempVariables.state);
+
+}
+
+function RemovePlaceholder(id){
+
+	let target = document.getElementById(id);
+	console.log(target);
+	if(target === null)return;
+	target.style.width = "0px";
+
+	setTimeout((target) => {
+		target.remove();
+	}, 10, target);
+}
+
+function MoveComponentA(fromIdx, toIdx){
+
+	if(dragRecord === null)return;
+	if(fromIdx === toIdx){
+		InsertViewportComponent(toIdx);
+		return;
+		
+	}
+	
+	
+	//if(toIdx > fromIdx)--toIdx;
+	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+	RemoveComponentRecord(fromIdx);
+	AddComponentRecord(toIdx, dragRecord);
+	PushUndoStack(tempVariables.state);
+	InsertViewportComponent(toIdx);
+
+}
+//*
 function InsertComponent(hitboxId, move = false) {
 	const emptyComp = document.getElementById(hitboxId + "c");
 	const componentType = dragElement.getAttribute("component");
@@ -579,8 +685,8 @@ function InsertComponent(hitboxId, move = false) {
 		RemoveComponent(target, true);
 	}
 
-	landElement.insertBefore(component, emptyComp.nextSibling);
-	AddHitbox(component);
+	//landElement.insertBefore(component, emptyComp.nextSibling);
+	//AddHitbox(component);
 
 	
 	toIndex = GetComponentIdx(component);
@@ -594,6 +700,7 @@ function InsertComponent(hitboxId, move = false) {
 	//console.log(roadSegmentRecord);
 	PushUndoStack(tempVariables.state);
 }
+//*/
 
 function RemoveComponent(target, move = false) {
 	//console.log("remove component");
@@ -647,6 +754,8 @@ window.LeaveHitbox = function(event) {
 }
 
 window.EnterTrashcan = function() {
+	//TODO: (road segment overhaul) need rework
+	return;
 	//console.log("enter trash can");
 	if (dragElement === null) return;
 	if (dragElement.classList.contains("roadComponent")) {
@@ -656,6 +765,8 @@ window.EnterTrashcan = function() {
 }
 
 window.LeaveTrashcan = function() {
+	//TODO: (road segment overhaul) need rework
+	return;
 	//console.log("leave trash can");
 	if (dragElement === null) return;
 
@@ -704,7 +815,7 @@ function ClearRoadSegmentRecord(){
 	roadSegmentRecord = [];
 	landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
 	markingSpaceElement = document.getElementById("markingSpace");
-	AddHitbox();
+	//AddHitbox();
 }
 
 //---------------------------------------
@@ -714,8 +825,11 @@ function ClearRoadSegmentRecord(){
 //----------------------------------------
 window.ComponentDragStart = function(event) {
 
+	if(draging)return;
+
 	//set touch event flag
 	let touchevent = false;
+
 	if (event.type == "touchstart") {
 		touchevent = true;
 	}
@@ -734,15 +848,27 @@ window.ComponentDragStart = function(event) {
 		target = target.parentElement;
 	}
 
-	//drag element setting
+	//preprocessing
+	oriDest = null;
+	dragDest = -2;
 	dragElement = target.cloneNode(true);
+	if(target.classList.contains("roadComponent")){
+		console.log("old component");
+		oriDest = GetComponentIdx(target);
+		
+		dragRecord = JSON.parse(JSON.stringify(roadSegmentRecord[oriDest]));
+	}else{
+		console.log("new component");
+		dragRecord = JSON.parse(JSON.stringify(componentDefaultProperty[target.getAttribute("component")]));
+	}
+
+	//drag element setting
 	dragElement.setAttribute("target", dragElement.id);
 	dragElement.removeAttribute("id");
 	dragElement.removeAttribute("onmousedown");
 	dragElement.style.removeProperty("opacity");
 	dragElement.style.width = target.clientWidth + "px";
 	dragElement.style.height = target.clientHeight + "px";
-
 
 	//move drag element to the poition of the pointer/finger
 	dragElement.classList.add("draggingElement");
@@ -752,10 +878,10 @@ window.ComponentDragStart = function(event) {
 	document.body.appendChild(dragElement);
 
 	//remove all hitbox in the drag element
-	const hitbox = dragElement.querySelectorAll('.hitbox');
-	hitbox.forEach(box => {
-		box.remove();
-	});
+	//const hitbox = dragElement.querySelectorAll('.hitbox');
+	//hitbox.forEach(box => {
+	//	box.remove();
+	//});
 
 	//adding  event listener
 	if (touchevent) {
@@ -768,6 +894,7 @@ window.ComponentDragStart = function(event) {
 
 }
 
+/*
 window.ComponentDrag =  function(event) {
 	let touchEvent = false;
 	if (event.type === "touchmove") {
@@ -829,7 +956,116 @@ window.ComponentDrag =  function(event) {
 	}
 
 }
+//*/
 
+window.ComponentDrag = function(event) {
+	const target = dragElement;
+	const xOffset = -target.clientWidth / 2;
+	const yOffset = -target.clientHeight / 2;
+
+	// set flag
+	if (!draging) {
+		//set the hit on flag
+		landElement.classList.add("hitOn");
+		landElement.setAttribute("hitOn", "");
+		if (dragElement.classList.contains("roadComponent")) {
+			editorElement.classList.add("hitOn");
+			editorElement.setAttribute("hitOn", "");
+		}
+
+		// remove old element
+		if(oriDest !== null){
+			RemoveViewportComponent(oriDest);
+		}
+		draging = true;
+	}
+
+	target.style.left = event.clientX + xOffset + "px";
+	target.style.top = event.clientY + yOffset + "px";
+	let raycast = document.elementFromPoint(event.clientX, event.clientY);
+
+	
+	//raycast detection
+	if(raycast.classList.contains("placeholder")){
+		console.log("placeholder");
+		return;
+	}
+
+	if(raycast.id === "editor"){
+		console.log("editor");
+		let editorPosRatio = event.layerX / editorElement.clientWidth;
+
+		if(editorPosRatio <= 0.1){
+			dragDest = 0;
+		}else if(editorPosRatio >= 0.9){
+			if(oriDest !== roadSegmentRecord.length - 1){
+				if(oriDest === null){
+					dragDest = roadSegmentRecord.length;
+				}else{
+					dragDest = roadSegmentRecord.length - 1;
+				}
+			}else{
+				dragDest = oriDest;
+			}
+		}
+	}else if(raycast.id === "land"){
+		//insert to the rightest of the land
+		if(oriDest !== roadSegmentRecord.length - 1){
+			if(oriDest === null){
+				dragDest = roadSegmentRecord.length;
+			}else{
+				dragDest = roadSegmentRecord.length - 1;
+			}
+		}else{
+			dragDest = oriDest;
+		}
+		console.log("land");
+
+	}else if(raycast.id === "trashcan"){
+		//delete the component
+		dragDest = -1;
+		console.log("trashcan");
+	}else{
+		raycast = raycast.closest(".component");
+		if(raycast !== null) {
+			let raycastParent = raycast.parentElement
+			let hitComponentIdx = GetComponentIdx(raycastParent);
+			let hitPos = (event.clientX - raycastParent.getBoundingClientRect().x) / raycastParent.clientWidth;
+			if(hitPos < 0)hitPos = 0;
+			if(hitPos > 1)hitPos = 1;
+			if(hitPos < 0.5){
+				dragDest = hitComponentIdx;
+			}else{
+				dragDest = hitComponentIdx + 1;
+			}
+
+			if(dragDest < 0)dragDest = -2;
+			//console.log(hitPos + dragDest);
+			//insert at location
+
+			console.log("component");
+		}else{
+			dragDest = -2;
+		}
+	}
+
+	if(placeholderPos !== dragDest){
+		if(placeholderPos !== null && dragDest < 0){
+			RemovePlaceholder(`placeholder_${placeholderId}`);
+			placeholderPos = null;
+		}else if(dragDest >= 0){
+			if(placeholderPos !== null){
+				RemovePlaceholder(`placeholder_${placeholderId}`);
+			}
+
+			placeholderPos = dragDest;
+			InsertPlaceholder(dragDest);
+		}
+	}
+
+}
+
+/*
 window.ComponentDragEnd = function(event) {
 
 	let touchEvent = false;
@@ -897,7 +1133,113 @@ window.ComponentDragEnd = function(event) {
 	dragElement = null;
 	//setTimeout(UpdateMarkingSpace, 100);
 }
+//*/
 
+window.ComponentDragEnd = function(event) {
+	let touchEvent = false;
+	if (event.type === "touchend") {
+		touchEvent = true;
+		touchHitbox = false;
+		//console.log("touch end");
+		document.body.removeEventListener("touchmove", ComponentDrag);
+		document.body.removeEventListener("touchend", ComponentDragEnd);
+	} else {
+		document.body.removeEventListener("mousemove", ComponentDrag);
+		document.body.removeEventListener("mouseup", ComponentDragEnd);
+	}
+
+
+	if (draging === false) {
+		console.log("click");
+		if(dragElement.classList.contains("roadComponent")){
+			PropertySettingStart(dragElement.getAttribute("target"), dragElement.getAttribute("component"));
+		}
+
+	}else if(oriDest !== null && dragDest === -2){
+			InsertViewportComponent(oriDest);
+	}
+
+	console.log("drag end");
+	landElement.classList.remove("hitOn");
+	landElement.removeAttribute("hitOn");
+	editorElement.classList.remove("hitOn");
+	editorElement.removeAttribute("hitOn");
+
+
+
+	dragElement.remove();
+	dragElement = null;
+
+	// miss
+	if(dragDest === -2){
+		UpdateRoadExitDirectionIcon("drag");
+		setTimeout(()=>{draging = false;}, 120);
+		return;
+	}
+
+	// delete
+	if(dragDest === -1){
+		RemoveComponentA(oriDest);
+		UpdateMarkingSpace();
+		UpdateRoadExitDirectionIcon("drag");
+		setTimeout(()=>{draging = false;}, 120);
+		return;
+	}
+
+	// insert
+	
+	if(oriDest !== null){
+		MoveComponentA(oriDest, dragDest);
+	}else{
+		InsertComponentA(dragDest, dragRecord);
+	}
+
+	UpdateMarkingSpace();
+	UpdateRoadExitDirectionIcon("drag");
+	setTimeout(()=>{draging = false;}, 120);
+	
+	if(placeholderPos !== null){
+		RemovePlaceholder(`placeholder_${placeholderId}`);
+		placeholderPos === null;
+	}
+	/*
+	if (inHitboxId !== null) {
+		let emptyComp = document.getElementById(inHitboxId + "c");
+		if (dragElement.classList.contains("roadComponent")) {
+			let target = document.getElementById(dragElement.getAttribute("target"));
+			document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
+			if (inHitboxId === -1) {
+				RemoveComponent(target);
+				inHitboxId = null;
+				dragElement.remove();
+				dragElement = null;
+				setTimeout(UpdateMarkingSpace, 100);
+				return;
+			} else {
+				if (target.children[1].id !== inHitboxId) {
+					InsertComponent(inHitboxId, true);
+				}
+			}
+		} else if (inHitboxId !== -1) {
+			InsertComponent(inHitboxId);
+		} else {
+			inHitboxId = null;
+			dragElement.remove();
+			dragElement = null;
+			return;
+		}
+		inHitboxId = null;
+
+		emptyComp.style.width = "0px";
+		emptyComp.style.display = "none";
+		setTimeout(() => {
+			emptyComp.style.display = "block";
+		}, 300);
+		UpdateMarkingSpace();
+		UpdateRoadExitDirectionIcon();
+	}
+	*/
+}
 //---------------------------
 //
 //Property Setting functions
@@ -1243,9 +1585,9 @@ window.PropertyToggleTrigger = function(event, callback = null){
 	tempVariables.propertySettingChangeFlag = true;
 }
 
-function UpdateRoadExitDirectionIcon(){
-	let uiList = landElement.getElementsByClassName("roadComponent");
-	for(let i = 0;i<uiList.length;++i){
+function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
+	let uiList = landElement.getElementsByClassName(componentId);
+	for(let i = 0;i<uiList.length && i < roadSegmentRecord.length;++i){
 		if(roadSegmentRecord[i].type === "road"){
 			let iconContainer = uiList[i].getElementsByClassName("roadComponentIcon")[0];
 			let direction = roadSegmentRecord[i].direction;
