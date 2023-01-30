@@ -580,15 +580,21 @@ function RemoveComponentA(index){
 
 }
 
-function RemovePlaceholder(id){
+function RemovePlaceholder(id, instant = false){
 
 	let target = document.getElementById(id);
 	if(target === null)return;
-	target.style.width = "0px";
-
-	setTimeout((target) => {
+	if(instant){
 		target.remove();
-	}, 150, target);
+		return;
+	}
+	setTimeout((target) => {
+		target.style.width = "0px";
+	
+		setTimeout((target) => {
+			target.remove();
+		}, 150, target);
+	}, 15, target);
 }
 
 function MoveComponentA(fromIdx, toIdx){
@@ -875,7 +881,7 @@ window.ComponentDragEnd = function(event) {
 	
 	// cleanup placeholder
 	if(placeholderPos !== null){
-		RemovePlaceholder(`placeholder_${placeholderId}`);
+		RemovePlaceholder(`placeholder_${placeholderId}`, true);
 		placeholderPos === null;
 	}
 }
