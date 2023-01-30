@@ -60,6 +60,7 @@
 .roadComponent.placeholder{
 	background-color: cyan;
 	opacity: 0.3;
+	cursor: unset;
 }
 
 .component{

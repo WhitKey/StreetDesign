@@ -36,11 +36,7 @@ let dragDest = null;
 let oriDest = null;
 let placeholderId = 0;
 let placeholderPos = null;
-
-let hitboxCounter = 0;
 let componentCounter = 0;
-let inHitboxId = null;
-let touchHitbox = false;
 let draging = false;
 
 //landwidth 
@@ -145,7 +141,6 @@ let leftSlidoutOn = false;
 //
 //-----------------------
 function GetComponentIdx(component){
-	//return (Array.prototype.slice.call(landElement.children).indexOf(component)-2)/2;
 	return (Array.prototype.slice.call(landElement.getElementsByClassName("drag")).indexOf(component));
 }
 
@@ -178,10 +173,7 @@ function LandInit() {
 	let sidebarElement = document.getElementById("sidebar");
 	
 	dragElement = null;
-	hitboxCounter = 0;
 	componentCounter = 0;
-	inHitboxId = null;
-	touchHitbox = false;
 	draging = false;
 	roadSegmentRecord = [];
 	redoStack = [];
@@ -193,8 +185,6 @@ function LandInit() {
 	landElement.setAttribute("id", "land");
 	landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
 	markingSpaceElement = document.getElementById("markingSpace");
-	//AddHitbox();
-
 	
 	sidebarElement.classList.remove("intermidiate");
 	document.getElementById("stopSection").classList.remove("intermidiate");
@@ -433,13 +423,10 @@ function ImportRoadSegmentRecordJSON(json, updateMarking = true){
 	}else{
 		ClearRoadSegmentRecord();
 		
-
-		//TODO: (road segment overhaul) need rework
 		//construct html
 		for(let i = 0;i< json.length;++i){
 			let componentType = json[i].type;
 			let component = roadComponentTemplate.cloneNode(true);
-			let emptyComp = document.getElementById(`hb${i}c`);
 	
 	
 			//set up new component
@@ -449,10 +436,6 @@ function ImportRoadSegmentRecordJSON(json, updateMarking = true){
 			component.appendChild(templateBase[componentType].cloneNode(true));
 			landElement.appendChild(component);
 			++componentCounter;
-
-			//insert component into land 
-			//landElement.insertBefore(component, emptyComp.nextSibling);
-			//AddHitbox(component);
 		}
 		
 		//overwrite roadSegmentRecord
@@ -536,36 +519,6 @@ function UpdateSidewalkMinWidth(){
 //Component behavior functions
 //
 //-----------------------------
-function AddHitbox(referencePos = null) {
-	const hitboxTemplate = document.getElementById("hitboxTemplate");
-	const emptyRoadComponentTemplate = document.getElementById("emptyRoadComponentTemplate");
-
-	let hitbox = hitboxTemplate.cloneNode(true);
-	let emptyComp = emptyRoadComponentTemplate.cloneNode(true);
-
-	hitbox.id = "hb" + hitboxCounter.toString();
-	emptyComp.id = hitbox.id + "c";
-
-
-	if (referencePos === null) {
-
-		hitbox.style.position = "absolute";
-		landElement.appendChild(emptyComp);
-		landElement.appendChild(hitbox);
-	} else {
-		referencePos.appendChild(hitbox);
-		landElement.insertBefore(emptyComp, referencePos.nextSibling);
-		//landElement.insertBefore(hitbox, emptyComp);
-	}
-
-	++hitboxCounter;
-}
-
-function RemoveHitbox(hitboxId) {
-	document.getElementById(hitboxId).remove();
-	document.getElementById(hitboxId + "c").remove();
-}
-
 function InsertViewportComponent(index){
 	let component = roadComponentTemplate.cloneNode(true);
 	let record = roadSegmentRecord[index];
@@ -657,124 +610,6 @@ function MoveComponentA(fromIdx, toIdx){
 	InsertViewportComponent(toIdx);
 
 }
-//*
-function InsertComponent(hitboxId, move = false) {
-	const emptyComp = document.getElementById(hitboxId + "c");
-	const componentType = dragElement.getAttribute("component");
-	let component = roadComponentTemplate.cloneNode(true);
-	//let nextComp = null;
-
-	let oldComp = null
-	let toIndex = null;
-
-	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
-	component.id = "comp" + componentCounter.toString();
-	++componentCounter;
-
-	component.style.width = emptyComp.style.width;
-	component.setAttribute("component", componentType);
-
-	if (!move) {
-		component.appendChild(templateBase[componentType].cloneNode(true));
-	} else {
-		let target = document.getElementById(dragElement.getAttribute("target"));
-
-		oldComp = GetComponentRecord(GetComponentIdx(target));
-		RemoveHitbox(target.children[1].id);
-		component.append(...target.childNodes);
-		RemoveComponent(target, true);
-	}
-
-	//landElement.insertBefore(component, emptyComp.nextSibling);
-	//AddHitbox(component);
-
-	
-	toIndex = GetComponentIdx(component);
-	if(oldComp === null){
-		AddNewComponentRecord(toIndex, componentType);
-		console.log("add new record");
-	}else{
-		AddComponentRecord(toIndex, oldComp);
-		console.log("copy old record");
-	}
-	//console.log(roadSegmentRecord);
-	PushUndoStack(tempVariables.state);
-}
-//*/
-
-function RemoveComponent(target, move = false) {
-	//console.log("remove component");
-	//console.log({target});
-	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
-	if (target.lastChild !== null) {
-		if (target.lastChild.classList.contains("hitbox")) {
-			RemoveHitbox(target.lastChild.id);
-		}
-	}
-	
-	let compIndex = GetComponentIdx(target);
-	RemoveComponentRecord(compIndex);
-	
-	target.remove();
-	if(!move){
-		PushUndoStack(tempVariables.state);
-	}
-}
-
-window.EnterHitbox = function(event) {
-	if (landElement.hasAttribute("hitOn")) {
-		//console.log("enter hitbox");
-		let refPercent = 100.0 / landWidth;
-		let emptyComp = document.getElementById(event.srcElement.id + "c");
-		if (dragElement.classList.contains("roadComponent")) {
-			let targetElement = document.getElementById(dragElement.getAttribute("target"));
-			//console.log(targetElement);
-			document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
-			emptyComp.style.width = targetElement.style.width;
-		}else{
-			emptyComp.style.width = parseFloat(refPercent * parseFloat(componentDefaultWidth[dragElement.getAttribute("component")])).toString() + "%";
-		}
-
-		inHitboxId = event.target.id;
-	}
-}
-
-window.LeaveHitbox = function(event) {
-	if (landElement.hasAttribute("hitOn")) {
-		inHitboxId = null;
-		//console.log("leave hitbox");
-
-		if (dragElement.classList.contains("roadComponent")) {
-			document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
-		}
-
-		let emptyComp = document.getElementById(event.srcElement.id + "c");
-		emptyComp.style.width = "0px";
-	}
-}
-
-window.EnterTrashcan = function() {
-	//TODO: (road segment overhaul) need rework
-	return;
-	//console.log("enter trash can");
-	if (dragElement === null) return;
-	if (dragElement.classList.contains("roadComponent")) {
-		document.getElementById(dragElement.getAttribute("target")).style.opacity = "0.3";
-	}
-	inHitboxId = -1;
-}
-
-window.LeaveTrashcan = function() {
-	//TODO: (road segment overhaul) need rework
-	return;
-	//console.log("leave trash can");
-	if (dragElement === null) return;
-
-	if (dragElement.classList.contains("roadComponent")) {
-		document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
-	}
-	inHitboxId = null;
-}
 
 //----------------------------------------
 //
@@ -783,14 +618,6 @@ window.LeaveTrashcan = function() {
 //----------------------------------------
 function CreateComponentRecord(compType){
 	return JSON.parse(JSON.stringify(componentDefaultProperty[compType]));   
-}
-
-function AddNewComponentRecord(index, compType){
-	let comp = CreateComponentRecord(compType);
-	
-	if(comp === undefined)return;
-
-	roadSegmentRecord.splice(index, 0, comp);
 }
 
 function GetComponentRecord(index){
@@ -807,15 +634,11 @@ function RemoveComponentRecord(index){
 
 function ClearRoadSegmentRecord(){
 	dragElement = null;
-	hitboxCounter = 0;
 	componentCounter = 0;
-	inHitboxId = null;
-	touchHitbox = false;
 	draging = false;
 	roadSegmentRecord = [];
 	landElement.innerHTML = `<svg id="markingSpace" class="markingSpace"></svg>`;
 	markingSpaceElement = document.getElementById("markingSpace");
-	//AddHitbox();
 }
 
 //---------------------------------------
@@ -825,6 +648,7 @@ function ClearRoadSegmentRecord(){
 //----------------------------------------
 window.ComponentDragStart = function(event) {
 
+	//TODO: touch event
 	if(draging)return;
 
 	//set touch event flag
@@ -877,12 +701,6 @@ window.ComponentDragStart = function(event) {
 	//attach the draging element
 	document.body.appendChild(dragElement);
 
-	//remove all hitbox in the drag element
-	//const hitbox = dragElement.querySelectorAll('.hitbox');
-	//hitbox.forEach(box => {
-	//	box.remove();
-	//});
-
 	//adding  event listener
 	if (touchevent) {
 		document.body.addEventListener("touchmove", ComponentDrag);
@@ -894,71 +712,9 @@ window.ComponentDragStart = function(event) {
 
 }
 
-/*
-window.ComponentDrag =  function(event) {
-	let touchEvent = false;
-	if (event.type === "touchmove") {
-		touchEvent = true;
-	}
-
-	if (!draging) {
-		//set the hit on flag
-		landElement.classList.add("hitOn");
-		landElement.setAttribute("hitOn", "");
-		if (dragElement.classList.contains("roadComponent")) {
-			editorElement.classList.add("hitOn");
-			editorElement.setAttribute("hitOn", "");
-		}
-		draging = true;
-	}
-	const target = dragElement;
-	const xOffset = -target.clientWidth / 2;
-	const yOffset = -target.clientHeight / 2;
-
-	if (touchEvent) {
-		target.style.left = event.touches[0].clientX + xOffset + "px";
-		target.style.top = event.touches[0].clientY + yOffset + "px";
-		const overElement = document.elementFromPoint(event.touches[0].clientX, event.touches[0].clientY);
-		if (overElement !== null) {
-			if (overElement.classList.contains("hitbox") || overElement.id === "trashcan") {
-				if (inHitboxId !== null) {
-					if (inHitboxId === -1) {
-						if (overElement.id !== "trashcan") {
-							document.getElementById("trashcan").dispatchEvent(new Event("mouseleave"));
-						}
-					} else if (overElement.id !== inHitboxId) {
-						document.getElementById(inHitboxId).dispatchEvent(new Event("mouseleave"));
-					}
-				}
-
-				touchHitbox = true;
-				let event = new Event("mouseenter");
-				overElement.dispatchEvent(event);
-			} else if (inHitboxId !== null) {
-				if (inHitboxId === -1) {
-					document.getElementById("trashcan").dispatchEvent(new Event("mouseleave"));
-				} else {
-					document.getElementById(inHitboxId).dispatchEvent(new Event("mouseleave"));
-				}
-			}
-		} else if (touchHitbox) {
-			touchHitbox = false;
-			if (inHitboxId === -1) {
-				document.getElementById("trashcan").dispatchEvent(new Event("mouseleave"));
-			} else {
-				document.getElementById(inHitboxId).dispatchEvent(new Event("mouseleave"));
-			}
-		}
-
-	} else {
-		target.style.left = event.clientX + xOffset + "px";
-		target.style.top = event.clientY + yOffset + "px";
-	}
-
-}
-//*/
-
 window.ComponentDrag = function(event) {
+	//TODO: touch event
+
 	const target = dragElement;
 	const xOffset = -target.clientWidth / 2;
 	const yOffset = -target.clientHeight / 2;
@@ -1040,9 +796,6 @@ window.ComponentDrag = function(event) {
 			}
 
 			if(dragDest < 0)dragDest = -2;
-			//console.log(hitPos + dragDest);
-			//insert at location
-
 			console.log("component");
 		}else{
 			dragDest = -2;
@@ -1065,88 +818,12 @@ window.ComponentDrag = function(event) {
 
 }
 
-/*
 window.ComponentDragEnd = function(event) {
+	
+	//TODO: touch event
+	document.body.removeEventListener("mousemove", ComponentDrag);
+	document.body.removeEventListener("mouseup", ComponentDragEnd);
 
-	let touchEvent = false;
-	if (event.type === "touchend") {
-		touchEvent = true;
-		touchHitbox = false;
-		//console.log("touch end");
-		document.body.removeEventListener("touchmove", ComponentDrag);
-		document.body.removeEventListener("touchend", ComponentDragEnd);
-	} else {
-		document.body.removeEventListener("mousemove", ComponentDrag);
-		document.body.removeEventListener("mouseup", ComponentDragEnd);
-
-	}
-
-	if (draging === false) {
-		console.log("click");
-		if(dragElement.classList.contains("roadComponent")){
-			PropertySettingStart(dragElement.getAttribute("target"), dragElement.getAttribute("component"));
-		}
-	}
-
-	//console.log("drag end");
-	landElement.classList.remove("hitOn");
-	landElement.removeAttribute("hitOn");
-	editorElement.classList.remove("hitOn");
-	editorElement.removeAttribute("hitOn");
-
-	if (inHitboxId !== null) {
-		let emptyComp = document.getElementById(inHitboxId + "c");
-		if (dragElement.classList.contains("roadComponent")) {
-			let target = document.getElementById(dragElement.getAttribute("target"));
-			document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
-			if (inHitboxId === -1) {
-				RemoveComponent(target);
-				inHitboxId = null;
-				dragElement.remove();
-				dragElement = null;
-				setTimeout(UpdateMarkingSpace, 100);
-				return;
-			} else {
-				if (target.children[1].id !== inHitboxId) {
-					InsertComponent(inHitboxId, true);
-				}
-			}
-		} else if (inHitboxId !== -1) {
-			InsertComponent(inHitboxId);
-		} else {
-			inHitboxId = null;
-			dragElement.remove();
-			dragElement = null;
-			return;
-		}
-		inHitboxId = null;
-
-		emptyComp.style.width = "0px";
-		emptyComp.style.display = "none";
-		setTimeout(() => {
-			emptyComp.style.display = "block";
-		}, 300);
-		UpdateMarkingSpace();
-		UpdateRoadExitDirectionIcon();
-	}
-	dragElement.remove();
-	dragElement = null;
-	//setTimeout(UpdateMarkingSpace, 100);
-}
-//*/
-
-window.ComponentDragEnd = function(event) {
-	let touchEvent = false;
-	if (event.type === "touchend") {
-		touchEvent = true;
-		touchHitbox = false;
-		//console.log("touch end");
-		document.body.removeEventListener("touchmove", ComponentDrag);
-		document.body.removeEventListener("touchend", ComponentDragEnd);
-	} else {
-		document.body.removeEventListener("mousemove", ComponentDrag);
-		document.body.removeEventListener("mouseup", ComponentDragEnd);
-	}
 
 
 	if (draging === false) {
@@ -1202,43 +879,6 @@ window.ComponentDragEnd = function(event) {
 		RemovePlaceholder(`placeholder_${placeholderId}`);
 		placeholderPos === null;
 	}
-	/*
-	if (inHitboxId !== null) {
-		let emptyComp = document.getElementById(inHitboxId + "c");
-		if (dragElement.classList.contains("roadComponent")) {
-			let target = document.getElementById(dragElement.getAttribute("target"));
-			document.getElementById(dragElement.getAttribute("target")).style.opacity = "1";
-			if (inHitboxId === -1) {
-				RemoveComponent(target);
-				inHitboxId = null;
-				dragElement.remove();
-				dragElement = null;
-				setTimeout(UpdateMarkingSpace, 100);
-				return;
-			} else {
-				if (target.children[1].id !== inHitboxId) {
-					InsertComponent(inHitboxId, true);
-				}
-			}
-		} else if (inHitboxId !== -1) {
-			InsertComponent(inHitboxId);
-		} else {
-			inHitboxId = null;
-			dragElement.remove();
-			dragElement = null;
-			return;
-		}
-		inHitboxId = null;
-
-		emptyComp.style.width = "0px";
-		emptyComp.style.display = "none";
-		setTimeout(() => {
-			emptyComp.style.display = "block";
-		}, 300);
-		UpdateMarkingSpace();
-		UpdateRoadExitDirectionIcon();
-	}
-	*/
 }
 //---------------------------
 //

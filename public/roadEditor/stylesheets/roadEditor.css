@@ -170,31 +170,6 @@
 	position: relative;
 }
 
-.hitbox {
-	left: 0px;
-	right: 0px;
-	width: 0px;
-	height: 100%;
-	opacity: 0.8;
-	position: relative;
-	transition-duration: 0.05s;
-	flex-shrink: 0;
-}
-
-.hitOn .hitbox {
-	width: 10px;
-	transition-duration: 0.05s;
-	background-color: aquamarine;
-	z-index: 1;
-}
-
-.hitOn * .hitbox {
-	width: 10px;
-	transition-duration: 0.05s;
-	background-color: aquamarine;
-	z-index: 1;
-}
-
 .trashcan {
 	margin-top: auto;
 	background-color: red;

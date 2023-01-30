@@ -74,7 +74,7 @@
 		
 			<div id="editor" class="window" style="margin:2px;">
 				<div style="position: absolute; height:100%;width:90%;background-color:rgb(161, 114, 43);left:5%;z-index:-1;"></div>
-				<div id="trashcan" class="roadScope" onmouseenter="EnterTrashcan()" onmouseleave="LeaveTrashcan()"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
+				<div id="trashcan" class="roadScope"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
 				<div id="designInfo" class="unusedSection roadScope" style="background-color: white;">
 					<div id="rightInfo">
 						<div style="width:50%;height:80%;display:flex;justify-content:center;flex-direction:column;">
@@ -120,7 +120,6 @@
 		</div>
 		
 		<div id="data" style="display:none;">
-			<div id="hitboxTemplate" class="hitbox" onmouseenter="EnterHitbox(event);" onmouseleave="LeaveHitbox(event);"></div>
 			<div id="emptyRoadComponentTemplate" class="emptyRoadComponent"></div>
 			<div id="roadComponentTemplate" class="roadComponent drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)"></div>
 			
