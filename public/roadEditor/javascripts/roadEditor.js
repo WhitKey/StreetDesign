@@ -2046,9 +2046,9 @@ function SwitchEditorRoadSegment(fromStage, toStage){
 
 function UpdatePrevButtonVis(){
 	if(currentStage === 0){
-		prevButtonElement.style.visibility = "hidden";
+		prevButtonElement.classList.remove("active");
 	}else{
-		prevButtonElement.style.removeProperty("visibility");
+		prevButtonElement.classList.add("active");
 	}
 }
 
@@ -2238,7 +2238,12 @@ function EnterIntermidiateStage(){
 	//update info bar
 	document.getElementById("widthInfo").style.display = "none";
 	
+	//update stage control button text
+	nextButtonElement.innerText = "下";
+	prevButtonElement.innerText = "上";
+	
 	console.log("enter imtermidiate stage");
+
 }
 
 function ExitIntremidiateStage(){
@@ -2256,6 +2261,10 @@ function ExitIntremidiateStage(){
 	
 	// update info bar
 	document.getElementById("widthInfo").style.display = "flex";
+
+	//update stage control button text
+	nextButtonElement.innerText = "下一步";
+	prevButtonElement.innerText = "上一步";
 
 	console.log("exit intermidate stage");
 }

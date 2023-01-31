@@ -38,6 +38,9 @@
 	transition-property: all, min-width;
 	transition-duration: 200ms, 200ms;
 	transition-delay: 0ms, 200ms;
+
+	display: flex;
+	flex-direction: column;
 }
 
 #sidebar.intermidiate{
@@ -50,7 +53,8 @@
 }
 
 #sidebar.intermidiate .utilButtonList{
-	height: 100%;
+	height: 90%;
+	flex-grow: 1;
 	width: 100%;
 	flex-direction: column;
 }
@@ -205,40 +209,6 @@
 	background-color:lightgray;
 }
 
-.stageCntlButton{
-	height: 30px;
-	width: 70px;
-	position:absolute;
-	border-width: 3px;
-	color: cyan;
-	border: solid;
-	line-height: 24px;
-	text-align: center;
-	background-color: darkcyan;
-	font-weight: 1000;
-	opacity: 0.3;
-	z-index: 2;
-	border-radius: 5px;
-	transition: background-color 300ms;
-}
-
-.stageCntlButton.active {
-	opacity: 1;
-}
-
-.stageCntlButton.active:hover {
-	background-color: darkturquoise;
-}
-
-#nextButton{
-	right: 5px;
-	bottom: 10px;
-}
-
-#prevButton{
-	left: 5px;
-	bottom: 10px;
-}
 
 .unusedSection .auxWorkspace{
 	position:absolute;
@@ -264,12 +234,96 @@
 	opacity: 0.0;
 }
 
-
-
 .auxWorkspace .acceptable{
 	pointer-events: all;
 	opacity: 1;
 }
+
+.lowerBar{
+	width: 100%;
+	height: 50px;
+	justify-self: end;
+	display: flex;
+	justify-content: stretch;
+	background-color: aliceblue;
+}
+
+
+#sidebar.intermidiate .lowerBar{
+	flex-direction: column;
+	height: 100px;
+}
+
+
+.lowerBar * {
+	flex-grow: 1;
+	text-align: center;
+	line-height: 40px;
+	border: solid 0px;
+	height: 100%;
+}
+
+#sidebar.intermidiate .lowerBar * {
+	height: 50%;
+	overflow-y: hidden;
+}
+
+.lowerBar .left{
+	border-top-left-radius: 5px;
+	border-bottom-left-radius: 5px;
+	border-right: solid 1px;
+}
+
+#sidebar.intermidiate .lowerBar .left{
+	border-radius: 0px;
+	border-top-left-radius: 5px;
+	border-top-right-radius: 5px;
+	border-right: solid 0px;
+	border-bottom: solid 1px;
+}
+
+.lowerBar .right{
+	border-top-right-radius: 5px;
+	border-bottom-right-radius: 5px;
+	border-left: solid 1px;
+}
+
+#sidebar.intermidiate .lowerBar .right{
+	border-radius: 0px;
+	border-bottom-left-radius: 5px;
+	border-bottom-right-radius: 5px;
+	border-left: solid 0px;
+	border-top: solid 1px;
+}
+
+.stageCntlButton{
+	background-color: lightgrey;
+	color: gray;
+	font-weight: 1000;
+	opacity: 0.3;
+	transition: background-color 300ms;
+}
+
+.stageCntlButton.active {
+	opacity: 1;
+}
+
+.stageCntlButton.active:hover {
+	background-color: gray;
+	color: lightgray;
+}
+
+/*
+#nextButton{
+	right: 5px;
+	bottom: 10px;
+}
+
+#prevButton{
+	left: 5px;
+	bottom: 10px;
+}
+*/
 
 @media screen and (max-width: 600px) {
 	#mainWindow {

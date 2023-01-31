@@ -70,6 +70,10 @@
 					</div>
 				</div>
 
+				<div class="lowerBar window">
+					<div  id="prevButton" title="上一步" class="left stageCntlButton active" onclick="OnSwitchSegment(false);">上一步</div>
+					<div  id="nextButton" title="下一步" class="right stageCntlButton"onclick="OnSwitchSegment();">下一步</div>
+				</div>
 			</div>
 		
 			<div id="editor" class="window" style="margin:2px;">
@@ -105,9 +109,11 @@
 				<div id="stopSection" class="unusedSection roadScope" style=""></div>
 				<div id="intermidiateSection" class="roadScope unusedSection" style="background-color:dimgray;height:20px;"></div>
 				<div id="roadSection" class="unusedSection roadScope "></div>
-		
-				<div id="nextButton" class="stageCntlButton" onclick="OnSwitchSegment();">下一步</div>
-				<div id="prevButton" class="stageCntlButton active" onclick="OnSwitchSegment(false);">上一步</div>
+				
+				<!--
+					<div id="nextButton" class="stageCntlButton" onclick="OnSwitchSegment();">下一步</div>
+					<div id="prevButton" class="stageCntlButton active" onclick="OnSwitchSegment(false);">上一步</div>
+				-->
 				<div id="warningPopup" class="popupFrame window" onfocusout="OnWarningPopupFocusout(event);"  tabindex="0">
 					<div class="frame">
 						<div id="warningPopupTitle">錯誤清單</div>
