@@ -123,6 +123,11 @@
 	z-index: 2;
 }
 
+#trashcan * {
+	touch-action: none;
+	pointer-events: none;
+}
+
 .markingSpace{
 	position:absolute;
 	width:100vw;

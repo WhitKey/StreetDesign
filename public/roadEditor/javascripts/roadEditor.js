@@ -1716,7 +1716,7 @@ function IntermidiateStageTempStorageRefit(){
 				}
 			}
 		}else if(record.type === "cp"){
-			
+
 			if(record.roadLinkType === "component"){
 				if(record.roadIndex >= tempStorage.road.length){
 					removeList.push(i);
@@ -1724,6 +1724,17 @@ function IntermidiateStageTempStorageRefit(){
 					removeList.push(i);
 				}else if(record.stopIndex > tempStorage.stop.length){
 					removeList.push(i);
+				}else{
+					let check = true;
+					if(record.stopIndex > 0 && tempStorage.road[record.stopIndex - 1].type === roadConnectionRecord.type){
+						removeList.push(i);
+						check = false;
+					}
+
+					if(check && record.stopIndex < tempStorage.stop.length - 1 && tempStorage.road[record.stopIndex].type === roadConnectionRecord.type){
+						removeList.push(i);
+						check = false;
+					}
 				}
 				
 			}else{
@@ -1733,6 +1744,17 @@ function IntermidiateStageTempStorageRefit(){
 					removeList.push(i);
 				}else if(record.roadIndex > tempStorage.road.length){
 					removeList.push(i);
+				}else{
+					let check = true;
+					if(record.roadIndex > 0 && tempStorage.road[record.roadIndex - 1].type === stopConnectionRecord.type){
+						removeList.push(i);
+						check = false;
+					}
+
+					if(check && record.roadIndex < tempStorage.road.length - 1 && tempStorage.road[record.roadIndex].type === stopConnectionRecord.type){
+						removeList.push(i);
+						check = false;
+					}
 				}
 			}
 
