@@ -36,7 +36,7 @@
 	padding: 10px;
 	z-index: 1;
 	transition-property: all, min-width;
-	transition-duration: 200ms, 200ms;
+	transition-duration: 200ms, 0ms;
 	transition-delay: 0ms, 200ms;
 
 	display: flex;
@@ -254,7 +254,6 @@
 	height: 100px;
 }
 
-
 .lowerBar * {
 	flex-grow: 1;
 	text-align: center;
@@ -313,17 +312,19 @@
 	color: lightgray;
 }
 
-/*
-#nextButton{
-	right: 5px;
-	bottom: 10px;
-}
+#midErrorWindow .errormsg{
+	height: 50px;
+	width: 100%;
+	background-color: red;
+	line-height: 35px;
+	margin-bottom: 5px;
+	color: white;
+	padding: 5px;
 
-#prevButton{
-	left: 5px;
-	bottom: 10px;
+	transition-property: opacity, height;
+	transition-duration: 300ms, 100ms;
+	transition-delay: 0ms, 200ms;
 }
-*/
 
 @media screen and (max-width: 600px) {
 	#mainWindow {
@@ -351,9 +352,53 @@
 	#sidebar.intermidiate{
 		height:50px;
 		width: 100%;
+		flex-direction: row;
 	}
 
 	#sidebar.intermidiate .utilButtonList{
 		flex-direction: row;
+	}
+
+	
+	.utilButtonList{
+		margin:0px;
+	}
+	
+	.lowerBar{
+		height: 30px;
+	}
+
+	.lowerBar * {
+		line-height: 30px;
+	}
+	
+	#sidebar.intermidiate .lowerBar{
+		flex-direction: row;
+		height: 90%;
+		width: 100px;
+		margin-left: 5px;
+	}
+
+	
+	#sidebar.intermidiate .lowerBar * {
+		height: 100%;
+		border-width: 0px;
+	}
+
+	
+	#sidebar.intermidiate .lowerBar .left{
+		border-radius: 0px;
+		border-top-left-radius: 5px;
+		border-bottom-left-radius: 5px;
+		border-right: solid 1px;
+		border-bottom: solid 0px;
+	}
+		
+	#sidebar.intermidiate .lowerBar .right{
+		border-radius: 0px;
+		border-top-right-radius: 5px;
+		border-bottom-right-radius: 5px;
+		border-left: solid 1px;
+		border-top: solid 0px;
 	}
 }

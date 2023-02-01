@@ -17,6 +17,7 @@ let undoButtonElement = document.getElementById("undoButton");
 let nextButtonElement = document.getElementById("nextButton");
 let prevButtonElement = document.getElementById("prevButton");
 let warningPopupElement = document.getElementById("warningPopup");
+let midErrorWindowElement = document.getElementById("midErrorWindow");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -227,7 +228,9 @@ function InitElementVariables(){
 	nextButtonElement = document.getElementById("nextButton");
 	prevButtonElement = document.getElementById("prevButton");
 
+	//window element
 	warningPopupElement = document.getElementById("warningPopup");
+	midErrorWindowElement = document.getElementById("midErrorWindow");
 
 	//get template element from document
 	templateBase["road"] = document.getElementById("roadTemplate").cloneNode(true);
@@ -2186,6 +2189,21 @@ function ActivateWarningPopup(){
 // intermidiate stage function
 //
 //------------------------------
+function CreateLinkErrorMsg(msg){
+	let errorMsg = document.createElement("div");
+	errorMsg.classList.add(...["errormsg", "window"]);
+	errorMsg.innerText = msg;
+	midErrorWindowElement.appendChild(errorMsg);
+	
+	setTimeout((element) => {
+		element.style.opacity = "0";
+		element.style.height = "0px";
+		setTimeout((element) => {
+			element.remove();
+		}, 300, element);
+	}, 1000, errorMsg);
+}
+
 function EnterIntermidiateStage(){
 	
 	// internmidiate stage initialization
@@ -2351,22 +2369,34 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 	return check || !draging;
 }
 
-function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, stopIndex, tempStorage){
+function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, stopIndex, tempStorage, verbose = false){
 	let record;
 	let check = false;
 	
 
 	if(isRoadComponent){
 		//index boundry check
-		if(stopIndex > tempStorage.stop.length + 1)return false;
-		if(roadIndex > tempStorage.road.length)return false;
+		if(stopIndex > tempStorage.stop.length + 1){
+			if(verbose)CreateLinkErrorMsg("index越界");
+			return false;
+		}
+		if(roadIndex > tempStorage.road.length){
+			if(verbose)CreateLinkErrorMsg("index越界");
+			return false;
+		}
 		
 		if(stopIndex < tempStorage.stop.length){
-			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex].type) return false;
+			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex].type) {
+				if(verbose)CreateLinkErrorMsg("同種類物件旁點連結");
+				return false;
+			}
 		}
 
 		if(stopIndex !== 0){
-			if(tempStorage.stop[stopIndex - 1].type === tempStorage.road[roadIndex].type)return false;
+			if(tempStorage.stop[stopIndex - 1].type === tempStorage.road[roadIndex].type){
+				if(verbose)CreateLinkErrorMsg("同種類物件旁點連結");
+				return false;
+			}
 		}
 		
 		for(let i = 0;i< roadSegmentRecord.length;++i){
@@ -2382,20 +2412,35 @@ function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, s
 			}
 			
 			//test for crossing
-			if((record.roadIndex < roadIndex && record.stopIndex >= stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
+			if((record.roadIndex < roadIndex && record.stopIndex >= stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) ){
+				if(verbose)CreateLinkErrorMsg("跨越其他連結");
+				return false;
+			}
 		}
 	}else{
 		
 		//index boundry check
-		if(stopIndex > tempStorage.stop.length)return false;
-		if(roadIndex > tempStorage.road.length + 1)return false;
+		if(stopIndex > tempStorage.stop.length){
+			if(verbose)CreateLinkErrorMsg("index越界");
+			return false;
+		}
+		if(roadIndex > tempStorage.road.length + 1){
+			if(verbose)CreateLinkErrorMsg("index越界");
+			return false;
+		}
 		
 		if(roadIndex < tempStorage.road.length){
-			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex].type) return false;
+			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex].type) {
+				if(verbose)CreateLinkErrorMsg("同種類物件旁點連結");
+				return false;
+			}
 		}
 
 		if(roadIndex !== 0){
-			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex - 1].type)return false;
+			if(tempStorage.stop[stopIndex].type === tempStorage.road[roadIndex - 1].type){
+				if(verbose)CreateLinkErrorMsg("同種類物件旁點連結");
+				return false;
+			}
 		}
 
 		for(let i = 0;i< roadSegmentRecord.length;++i){
@@ -2412,13 +2457,19 @@ function VerifyComponentPointLink(isRoadComponent, isStopComponent, roadIndex, s
 			}
 
 			//test for crossing
-			if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex >= roadIndex && record.stopIndex < stopIndex) )return false;
+			if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex >= roadIndex && record.stopIndex < stopIndex) ){
+				if(verbose)CreateLinkErrorMsg("跨越其他連結");
+				return false;
+			}
 			
 		}
 
 	}
-	
-	return check == draging;
+	if(check !== draging){
+		if(verbose)CreateLinkErrorMsg("連結失敗");
+		return false;
+	}
+	return true;
 }
 
 function VerifyAndLink(roadIndex, stopIndex){
@@ -2450,12 +2501,21 @@ function VerifyAndLink(roadIndex, stopIndex){
 	let centerRoadRecord = null;
 
 	// link component type check
-	if(roadRecord.type !== stopRecord.type) return false;
-	
+	if(roadRecord.type !== stopRecord.type){
+		CreateLinkErrorMsg("不同種類物件連結");
+		return false;
+	}
+
 	//road component check
 	if(roadRecord.type === "road"){
-		if(roadRecord.direction !== stopRecord.direction)return false;
-		if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+		if(roadRecord.direction !== stopRecord.direction){
+			CreateLinkErrorMsg("上/下行 不匹配");
+			return false;
+		}
+		if((roadRecord.exitDirection & stopRecord.exitDirection) === 0){
+			CreateLinkErrorMsg("出口方向 不匹配");
+			return false; 
+		}	
 	}
 
 	// find center component
@@ -2472,7 +2532,10 @@ function VerifyAndLink(roadIndex, stopIndex){
 		}
 
 		//check link crossing
-		if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
+		if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) ){
+			CreateLinkErrorMsg("跨越其他連結");
+			return false;
+		}
 
 		if(roadRecord.type === "road"){
 			if(record.roadIndex === roadIndex){
@@ -2506,11 +2569,13 @@ function VerifyAndLink(roadIndex, stopIndex){
 			let record = roadSegmentRecord[i];
 			if(centerStopRecord !== null){
 				if(record.stopIndex === centerStopRecord.stopIndex && (((record.roadIndex > roadIndex) && (record.roadIndex < centerStopRecord.roadIndex)) || ((record.roadIndex < roadIndex) && (record.roadIndex > centerStopRecord.roadIndex)))){
+					CreateLinkErrorMsg("過多同側岔出");
 					return false;
 				}
 			}
 			if(centerRoadRecord !== null){
 				if(record.roadIndex === centerRoadRecord.roadIndex && (((record.stopIndex > stopIndex) && (record.stopIndex < centerRoadRecord.stopIndex)) || ((record.stopIndex < stopIndex) && (record.stopIndex > centerRoadRecord.stopIndex)))){
+					CreateLinkErrorMsg("過多同側岔出");
 					return false;
 				}
 			}
@@ -2728,7 +2793,7 @@ function OnIntermidiateDragEnd(event){
 					let isRoadComponent = startSection === "roadSection";
 					let isStopComponent = startSection === "stopSection";
 					// create mode
-					if(VerifyComponentPointLink(isRoadComponent, isStopComponent, linkage.roadSection, linkage.stopSection, tempStorage)){
+					if(VerifyComponentPointLink(isRoadComponent, isStopComponent, linkage.roadSection, linkage.stopSection, tempStorage, true)){
 						
 						roadSegmentRecord.push(
 							{
