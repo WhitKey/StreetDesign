@@ -810,20 +810,25 @@ window.ComponentDrag = function(event) {
 		}
 	}
 
-	if(placeholderPos !== dragDest){
-		if(placeholderPos !== null && dragDest < 0){
+	let insertPos = dragDest;
+
+	if(dragDest === -2 && oriDest !== null){
+		insertPos = oriDest;
+	}
+
+	if(placeholderPos !== insertPos){
+		if(placeholderPos !== null && insertPos < 0){
 			RemovePlaceholder(`placeholder_${placeholderId}`);
 			placeholderPos = null;
-		}else if(dragDest >= 0){
+		}else if(insertPos >= 0){
 			if(placeholderPos !== null){
 				RemovePlaceholder(`placeholder_${placeholderId}`);
 			}
 
-			placeholderPos = dragDest;
-			InsertPlaceholder(dragDest);
+			placeholderPos = insertPos;
+			InsertPlaceholder(insertPos);
 		}
 	}
-
 }
 
 window.ComponentDragEnd = function(event) {
@@ -859,6 +864,12 @@ window.ComponentDragEnd = function(event) {
 	if(dragDest === -2){
 		UpdateRoadExitDirectionIcon("drag");
 		setTimeout(()=>{draging = false;}, 120);
+		
+		// cleanup placeholder
+		if(placeholderPos !== null){
+			RemovePlaceholder(`placeholder_${placeholderId}`, true);
+			placeholderPos === null;
+		}
 		return;
 	}
 
