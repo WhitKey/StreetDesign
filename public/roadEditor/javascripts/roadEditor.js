@@ -1532,6 +1532,17 @@ window.OnUndo = function(){
 
 window.OnClearLocalStorage = function (){
 	localStorage.clear();
+	//rebuild entry setting
+	let entryConfig = {
+		"loadExtern": false,
+		"landWidth": landWidth,
+		"roadType": "primary",
+		"hasArcade": "false",
+		"template": ""
+	}
+
+	sessionStorage.setItem("entryConfig", JSON.stringify(entryConfig));
+
 	window.location.reload();
 }
 
