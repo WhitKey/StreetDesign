@@ -25,8 +25,10 @@
 }
 
 .questionContainer{
-	min-width: 600px;
-	width: 60%;
+	max-width: 750px;
+	width: 100%;
+	padding-left: 5px;
+	padding-right: 5px;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
