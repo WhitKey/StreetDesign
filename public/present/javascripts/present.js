@@ -359,6 +359,7 @@ function InputValidation(storageJSON){
 		});
 	} catch (error) {
 		console.log(error);
+		location.href = "../entryPage";
 		return false;
 	}
 	return true;
