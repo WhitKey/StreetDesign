@@ -190,6 +190,8 @@ function LandInit() {
 	sidebarElement.classList.remove("intermidiate");
 	document.getElementById("stopSection").classList.remove("intermidiate");
 	document.getElementById("roadSection").classList.remove("intermidiate");
+
+	document.addEventListener("keydown", KeyEventHnadler);
 }
 
 function IntermidiateStageInit(){
@@ -899,12 +901,13 @@ window.ComponentDragEnd = function(event) {
 		placeholderPos === null;
 	}
 }
+
+
 //---------------------------
 //
 //Property Setting functions
 //
 //---------------------------
-
 function CreatePropertyCard(type = String, value = Number, compRecord, recordIdx = Number){
 	let propertyTitle = "";
 	let cardToggle = "";
@@ -1148,15 +1151,19 @@ function SetLeftSlideout(value){
 	}
 }
 
-window.PropertySettingExitTrigger = function(event){
-	let target = event.target;
+window.PropertySettingExitTrigger = function(event = null){
+	let target;
 	let check = false;
-	while(target){
-		if(target.id === "leftSlideout" || target.classList.contains("propertyConfig")){
-			check = true;
-			break;
+	
+	if(event !== null){
+		target = event.target;
+		while(target){
+			if(target.id === "leftSlideout" || target.classList.contains("propertyConfig")){
+				check = true;
+				break;
+			}
+			target = target.parentElement;
 		}
-		target = target.parentElement;
 	}
 
 	if(check){
@@ -1278,6 +1285,71 @@ function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 	}
+}
+
+//-------------------------------
+//
+// shortcut functions
+//
+//-------------------------------
+function KeyEventHnadler(event){
+	let key = event.key;
+	
+	if(key === "ArrowRight"){
+		MoveSelect(1, event);
+
+	}else if(key === "ArrowLeft"){
+		MoveSelect(-1, event);
+	
+	}else if(key === "Delete"){
+		DeleteKey(event);
+	
+	}
+}
+
+function DeleteKey(event){
+	if(currentStage >= 2)return;
+	let targetId = propertyEditorElement.getAttribute("target");
+	let recordIdx;
+
+	if(targetId === null)return
+	recordIdx = GetComponentIdx(document.getElementById(targetId));
+
+	PropertySettingExitTrigger();
+
+	//delete component
+	RemoveViewportComponent(recordIdx);
+	RemoveComponentA(recordIdx);
+	
+	//update ui
+	UpdateMarkingSpace();
+	UpdateRoadExitDirectionIcon("drag");
+
+	//select next component
+	if(recordIdx >= roadSegmentRecord.length)return;
+	let nextComponent =  landElement.getElementsByClassName("drag")[recordIdx];
+	PropertySettingStart(nextComponent.id, nextComponent.getAttribute("component"));
+
+}
+
+function MoveSelect(direction, event){
+	if(currentStage >= 2)return;
+	let targetId = propertyEditorElement.getAttribute("target");
+	let recordIdx;
+	let nextPos = direction;
+	let nextComponent;
+
+	if(targetId === null)return
+
+	//get next component
+	recordIdx = GetComponentIdx(document.getElementById(targetId));
+	nextPos += recordIdx;
+	if(nextPos >= roadSegmentRecord.length || nextPos < 0)return;
+	nextComponent = landElement.getElementsByClassName("drag")[nextPos];
+
+	//switch property setting page
+	PropertySettingExitTrigger();
+	PropertySettingStart(nextComponent.id, nextComponent.getAttribute("component"));
 }
 
 //-------------------------------------
