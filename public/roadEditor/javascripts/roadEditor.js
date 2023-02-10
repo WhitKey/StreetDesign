@@ -1293,8 +1293,8 @@ function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
 //
 //-------------------------------
 function KeyEventHnadler(event){
-	let key = event.key;
-	
+	let key = event.code;
+
 	if(key === "ArrowRight"){
 		MoveSelect(1, event);
 
@@ -1303,6 +1303,9 @@ function KeyEventHnadler(event){
 	
 	}else if(key === "Delete"){
 		DeleteKey(event);
+	
+	}else if(key === "KeyZ" && event.ctrlKey){
+		RedoUndoKey(event);
 	
 	}
 }
@@ -1350,6 +1353,22 @@ function MoveSelect(direction, event){
 	//switch property setting page
 	PropertySettingExitTrigger();
 	PropertySettingStart(nextComponent.id, nextComponent.getAttribute("component"));
+}
+
+function RedoUndoKey(event){
+	if(currentStage < 2){
+		if(mainWindowElement.classList.contains("clickOn")){
+			PropertySettingExitTrigger();
+		}
+	}
+
+	if(event.shiftKey){
+		//ctrl + shift + z
+		OnRedo();
+	}else{
+		//ctrl + z
+		OnUndo();
+	}
 }
 
 //-------------------------------------
