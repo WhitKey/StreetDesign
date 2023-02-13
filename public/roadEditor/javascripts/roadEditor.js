@@ -724,18 +724,15 @@ window.ComponentDragStart = function(event) {
 }
 
 window.ComponentDrag = function(event) {
-	//TODO: touch event
 
 	let isTouch = false;
-	//console.log(event);
 
 	if(event.type === "touchmove"){
 		event.preventDefault();
 		isTouch = true;
 		event = event.touches[0];
 	}
-	//console.log("sdadsas");
-	//console.log(event.clientX);
+
 	const target = dragElement;
 	const xOffset = -target.clientWidth / 2;
 	const yOffset = -target.clientHeight / 2;
@@ -845,8 +842,6 @@ window.ComponentDrag = function(event) {
 }
 
 window.ComponentDragEnd = function(event) {
-	
-	//TODO: touch event
 	let isTouch = false;
 	
 	if(event.type === "touchend"){
@@ -3001,9 +2996,13 @@ function OnIntermidiateDragEnd(event){
 	let hitElement = null;
 
 	if(event.type === "touchend"){
-		//TODO: touch event
+		document.removeEventListener("touchend", OnIntermidiateDragEnd);
+		document.removeEventListener("touchmove", OnIntermidiateDragMove);
+		hitElement = document.elementFromPoint(event.changedTouches[0].clientX, event.changedTouches[0].clientY);
 	}else{
 		hitElement = document.elementFromPoint(event.clientX, event.clientY);
+		document.removeEventListener("mouseup", OnIntermidiateDragEnd);
+		document.removeEventListener("mousemove", OnIntermidiateDragMove);
 	}
 
 	setTimeout(()=>{document.removeEventListener('contextmenu', PreventDefault);}, 100);
@@ -3011,10 +3010,6 @@ function OnIntermidiateDragEnd(event){
 	LinkingProcess(hitElement);
 
 	//remove event listener
-	document.removeEventListener("touchend", OnIntermidiateDragEnd);
-	document.removeEventListener("mouseup", OnIntermidiateDragEnd);
-	document.removeEventListener("touchmove", OnIntermidiateDragMove);
-	document.removeEventListener("mousemove", OnIntermidiateDragMove);
 
 	document.getElementById("dragTemp").remove();
 
@@ -3068,7 +3063,8 @@ function OnIntermidiateDragMove(event){
 		clientX = event.clientX;
 		clientY = event.clientY;
 	}else{
-		//TODO: touch event;
+		clientX = event.touches[0].clientX;
+		clientY = event.touches[0].clientY;
 	}
 	
 	raycast = document.elementFromPoint(clientX, clientY);
@@ -3696,6 +3692,9 @@ window.OnIntermidiateDragStart  = function(event){
 	if(event.type === "touchstart"){
 		document.addEventListener("touchend", OnIntermidiateDragEnd);
 		document.addEventListener("touchmove", OnIntermidiateDragMove);
+
+		//TODO: add touch event delete mode
+
 	}else{
 		document.addEventListener("mouseup", OnIntermidiateDragEnd);
 		document.addEventListener("mousemove", OnIntermidiateDragMove);
