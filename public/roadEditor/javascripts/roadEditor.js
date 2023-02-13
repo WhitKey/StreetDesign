@@ -572,7 +572,10 @@ function RemoveViewportComponent(index){
 	target.style.width = "0px";
 	
 	setTimeout((target) => {
-		target.remove();
+		target.style.display = "none";
+		setTimeout((target) => {
+			target.remove();
+		}, 10000, target);
 	}, 100, target);
 }
 
@@ -610,7 +613,6 @@ function MoveComponentA(fromIdx, toIdx){
 		return;
 		
 	}
-	
 	
 	//if(toIdx > fromIdx)--toIdx;
 	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
@@ -657,14 +659,13 @@ function ClearRoadSegmentRecord(){
 //
 //----------------------------------------
 window.ComponentDragStart = function(event) {
-
-	//TODO: touch event
 	if(draging)return;
 
 	//set touch event flag
 	let touchevent = false;
 
 	if (event.type == "touchstart") {
+		event.preventDefault();
 		touchevent = true;
 	}
 
@@ -713,7 +714,7 @@ window.ComponentDragStart = function(event) {
 
 	//adding  event listener
 	if (touchevent) {
-		document.body.addEventListener("touchmove", ComponentDrag);
+		setTimeout(()=>{document.body.addEventListener("touchmove", ComponentDrag);}, 10);
 		document.body.addEventListener("touchend", ComponentDragEnd);
 	} else {
 		setTimeout(()=>{document.body.addEventListener("mousemove", ComponentDrag);}, 10);
@@ -725,10 +726,21 @@ window.ComponentDragStart = function(event) {
 window.ComponentDrag = function(event) {
 	//TODO: touch event
 
+	let isTouch = false;
+	//console.log(event);
+
+	if(event.type === "touchmove"){
+		event.preventDefault();
+		isTouch = true;
+		event = event.touches[0];
+	}
+	//console.log("sdadsas");
+	//console.log(event.clientX);
 	const target = dragElement;
 	const xOffset = -target.clientWidth / 2;
 	const yOffset = -target.clientHeight / 2;
 
+	
 	// set flag
 	if (!draging) {
 		//set the hit on flag
@@ -738,7 +750,7 @@ window.ComponentDrag = function(event) {
 			editorElement.classList.add("hitOn");
 			editorElement.setAttribute("hitOn", "");
 		}
-
+		
 		// remove old element
 		if(oriDest !== null){
 			RemoveViewportComponent(oriDest);
@@ -750,18 +762,17 @@ window.ComponentDrag = function(event) {
 	target.style.top = event.clientY + yOffset + "px";
 	let raycast = document.elementFromPoint(event.clientX, event.clientY);
 
-	
 	//raycast detection
 	if(raycast.classList.contains("placeholder")){
 		return;
 	}
 
 	if(raycast.id === "editor"){
-		let editorPosRatio = event.layerX / editorElement.clientWidth;
+		let editorPosRatio = (event.pageX - editorElement.offsetLeft) / editorElement.clientWidth;
 
-		if(editorPosRatio <= 0.1){
+		if(editorPosRatio <= 0.05){
 			dragDest = 0;
-		}else if(editorPosRatio >= 0.9){
+		}else if(editorPosRatio >= 0.95){
 			if(oriDest !== roadSegmentRecord.length - 1){
 				if(oriDest === null){
 					dragDest = roadSegmentRecord.length;
@@ -836,8 +847,17 @@ window.ComponentDrag = function(event) {
 window.ComponentDragEnd = function(event) {
 	
 	//TODO: touch event
-	document.body.removeEventListener("mousemove", ComponentDrag);
-	document.body.removeEventListener("mouseup", ComponentDragEnd);
+	let isTouch = false;
+	
+	if(event.type === "touchend"){
+		isTouch = true;
+		document.body.removeEventListener("touchmove", ComponentDrag);
+		document.body.removeEventListener("touchend", ComponentDragEnd);
+	}else{
+		document.body.removeEventListener("mousemove", ComponentDrag);
+		document.body.removeEventListener("mouseup", ComponentDragEnd);
+	}
+
 
 
 
