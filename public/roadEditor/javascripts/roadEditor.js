@@ -1503,14 +1503,15 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 	}
 
 	for(let i = 0;i< record.length;++i){
-		if(record[i].type === "road"){
+		if(record[i].type === "road" || record[i].type === "slowlane"){
 			leftD = "";
 			rightD = "";
 
 			//left marking
-			if(i === 0 || record[i-1].type !== "road"){
+			if(i === 0 || (record[i-1].type !== "road" && record[i - 1].type !== "slowlane")){
 				leftD = CreateVerticalMarking("white", M2Px(widthSum), [0],  marking15cm, 1, dashLineOverride);
 
+				//TODO: add slowlane condition
 				//stop line start condition
 				if((record[i].direction & 0b10) !== 0 && isStopSection){
 					stopMarkingStartX = M2Px(widthSum) + marking15cm;
@@ -1526,7 +1527,7 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 					stopMarkingStartX = -1;
 				}
 				rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0],  marking15cm, -1, dashLineOverride);
-			}else if(record[i + 1].type === "road"){
+			}else if(record[i + 1].type === "road" || record[i + 1].type === "slowlane"){
 				let color = "white";
 				if(record[i].direction !== record[i + 1].direction){
 					color = "yellow";
@@ -1534,10 +1535,10 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 					//calculating stop line parameter
 					if(isStopSection){
 						if(stopMarkingStartX !== -1){// stopLine end condition
-							if((record[i + 1].direction&0b10) === 0){
+							if(record[i + 1].type === "slowlane" || record[i].type === "slowlane" || (record[i + 1].direction&0b10) === 0){
 
 								//draw stop line
-								if((record[i].crossability&0b10) !== 0 && (record[i + 1].crossability&0b1) !== 0){
+								if(record[i + 1].type === "slowlane" || record[i].type === "slowlane" ||(record[i].crossability&0b10) !== 0 && (record[i + 1].crossability&0b1) !== 0){
 									newMarking += CreateStopLine(stopMarkingStartX,  M2Px(widthSum + record[i].width) - marking10cm / 2, 0, stopLineWidth);
 								}else{
 									newMarking += CreateStopLine(stopMarkingStartX,  M2Px(widthSum + record[i].width) - marking10cm * 3 / 2, 0, stopLineWidth);
@@ -1545,8 +1546,9 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 								stopMarkingStartX = -1;
 							}
 
-						} else if((record[i + 1].direction & 0b10) !== 0){// stop line start condition
-							if((record[i].crossability&0b10)!==0 && (record[i + 1].crossability&0b1) !== 0){
+						//TODO: add slow lane stop line start condition
+						} else if(record[i + 1].type !== "slowlane" && ((record[i + 1].direction & 0b10) !== 0)){// stop line start condition
+							if(record[i].type === "slowlane" || (record[i].crossability&0b10)!==0 && (record[i + 1].crossability&0b1) !== 0){
 								stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm / 2;
 							}else{
 								stopMarkingStartX = M2Px(widthSum + record[i].width) + marking10cm * 3 / 2;
@@ -1554,7 +1556,12 @@ function CreateNewMarking(record, rulerY, dashLineOverride = -1, ruler=true, isS
 						}
 					}
 				}
-				rightD = CreateVerticalMarking(color, M2Px(widthSum + record[i].width), [record[i].crossability&0b10, record[i + 1].crossability&0b1], marking10cm, 0, dashLineOverride);
+
+				if(record[i].type === "slowlane" || record[i + 1].type === "slowlane"){
+					rightD = CreateVerticalMarking("white", M2Px(widthSum + record[i].width), [0], marking10cm, 0, dashLineOverride);
+				}else{
+					rightD = CreateVerticalMarking(color, M2Px(widthSum + record[i].width), [record[i].crossability&0b10, record[i + 1].crossability&0b1], marking10cm, 0, dashLineOverride);
+				}
 			}else{
 				// stop line end condition
 				if(isStopSection && stopMarkingStartX !== -1){
