@@ -24,6 +24,7 @@ let roadTemplate = document.getElementById("land");
 let sidewalkTemplate = document.getElementById("land");
 let bollardTemplate = document.getElementById("land");
 let roadComponentTemplate = document.getElementById("land");
+let slowlaneComponentTemplate = document.getElementById("land");
 let templateBase = {};
 
 //road layout editor variable
@@ -64,6 +65,7 @@ let componentMinWidth = {
 	"sidewalk": 1.5,
 	"bollard": 0.5,
 	"shoulder" : 0.1,
+	"slowlane": 0.1,
 };
 
 let componentDefaultWidth = {
@@ -71,6 +73,7 @@ let componentDefaultWidth = {
 	"sidewalk": 1.5,
 	"bollard": 0.5,
 	"shoulder": 0.5,
+	"slowlane": 2,
 };
 
 const componentConstantProperty = {
@@ -85,6 +88,9 @@ const componentConstantProperty = {
 	},
 	"shoulder":{
 		"pointyEnd":true,
+	},
+	"slowlane":{
+		"pointyEnd":false,
 	},
 }
 
@@ -110,6 +116,10 @@ const componentDefaultProperty = {
 		"type": "shoulder",
 		"width": componentDefaultWidth['shoulder'],
 	},
+	"slowlane":{
+		"type": "slowlane",
+		"width": componentDefaultWidth['slowlane'],
+	},
 };
 
 const componentLayout = {
@@ -117,6 +127,7 @@ const componentLayout = {
 	'bollard':[],
 	'sidewalk':[],
 	'shoulder':[],
+	'slowlane':[],
 }
 
 const DesignStage = [
@@ -239,6 +250,7 @@ function InitElementVariables(){
 	templateBase["sidewalk"] = document.getElementById("sidewalkTemplate").cloneNode(true);
 	templateBase["bollard"] = document.getElementById("bollardTemplate").cloneNode(true);
 	templateBase["shoulder"] = document.getElementById("shoulderTemplate").cloneNode(true);
+	templateBase["slowlane"] = document.getElementById("slowlaneTemplate").cloneNode(true);
 
 	//setting template
 	templateBase["road"].removeAttribute("id");
