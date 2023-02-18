@@ -60,7 +60,7 @@ const StageName = {
 
 //conponent default data
 let componentMinWidth = {
-	"road": 3,
+	"road": 0.1,
 	"sidewalk": 1.5,
 	"bollard": 0.5,
 	"shoulder" : 0.1,
