@@ -1835,17 +1835,23 @@ function IntermidiateStageTempStorageRefit(){
 		let roadConnectionRecord = JSON.parse(record.roadSideRecord);
 		let stopConnectionRecord = JSON.parse(record.stopSideRecord);
 
-		//check connection
+		//component - component link
 		if(record.type === "cc"){
+			
+			//index out of range
 			if(record.roadIndex < 0 || record.roadIndex >= tempStorage.road.length || record.stopIndex < 0|| record.stopIndex >= tempStorage.stop.length){
 				removeList.push(i);
 				continue;
 			}
+			
+			//component type mismatch
 			if(roadConnectionRecord.type !== tempStorage.road[record.roadIndex].type || stopConnectionRecord.type !== tempStorage.stop[record.stopIndex].type){
 				removeList.push(i);
 				continue;
 			}
-			if(roadConnectionRecord.type === "road" || stopConnectionRecord.type === "stop"){
+			
+			if(roadConnectionRecord.type === "road" && stopConnectionRecord.type === "road"){
+				//road direction mismatch
 				if(
 					(roadConnectionRecord.direction !== tempStorage.road[record.roadIndex].direction) ||
 					(stopConnectionRecord.direction !== tempStorage.stop[record.stopIndex].direction )
@@ -1854,6 +1860,7 @@ function IntermidiateStageTempStorageRefit(){
 					continue;
 				}
 				
+				//road exit direction mismatch
 				if(
 					(roadConnectionRecord.exitDirection & tempStorage.road[record.roadIndex].exitDirection) === 0 ||
 					(stopConnectionRecord.exitDirection & tempStorage.stop[record.stopIndex].exitDirection) === 0
@@ -1862,7 +1869,8 @@ function IntermidiateStageTempStorageRefit(){
 					continue;
 				}
 			}
-		}else if(record.type === "cp"){
+		}//component - point link
+		else if(record.type === "cp"){
 
 			if(record.roadLinkType === "component"){
 				if(record.roadIndex >= tempStorage.road.length){
@@ -2004,7 +2012,7 @@ function IntermidiateValidation( updateWarningPopup = false){
 		InitWarningPopup();
 	}
 
-	//check all road, sidewalk has connection
+	//check all road, sidewalk, slowlane has connection
 	
 	for(let i = 0;i<roadSegmentRecord.length; ++i){
 		let record = roadSegmentRecord[i];
@@ -2026,36 +2034,56 @@ function IntermidiateValidation( updateWarningPopup = false){
 		}
 	}
 
-	//checking road segment
+	//checking road section
 	for(let i = 0;i<tempStorage.road.length;++i){
 		let record = tempStorage.road[i];
-		if(record.type==="road" || record.type === "sidewalk"){
+		if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
 			if(!hasConnect.road.includes(i)){
 				check = false;
 				if(updateWarningPopup){
 					if(record.type === "road"){
 						WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 需連結至儲車段`, 3);
-					}else{
+					}else if(record.type === "sidewalk"){
 						WarningPopupAddMessage(`道路段第${i+1}個物件(人行道) 需連結至儲車段`, 3);
+					}else if(record.type === "slowlane"){
+						WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 需連結至儲車段`, 3);
 					}
 				}
 			}
 		}
+		
+		//slow lane can only has one connection
+		if(record.type === "slowlane"){
+			if(connectivity.road[i].length > 1){
+				check = false;
+				WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
+			}
+		}
 	}
 	
-	//checking stop segment
+	//checking stop section
 	for(let i = 0;i<tempStorage.stop.length;++i){
 		let record = tempStorage.stop[i];
-		if(record.type==="road" || record.type === "sidewalk"){
+		if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
 			if(!hasConnect.stop.includes(i)){
 				if(updateWarningPopup){
 					if(record.type === "road"){
 						WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 需連結至道路段`, 3);
-					}else{
+					}else if(record.type === "sidewalk"){
 						WarningPopupAddMessage(`儲車段第${i+1}個物件(人行道) 需連結至道路段`, 3);
+					}else if(record.type === "slowlane"){
+						WarningPopupAddMessage(`儲車段第${i+1}個物件(慢車道) 需連結至道路段`, 3);
 					}
 				}
 				check = false;
+			}
+		}
+		
+		//slow lane can only has one connection
+		if(record.type === "slowlane"){
+			if(connectivity.road[i].length > 1){
+				check = false;
+				WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
 			}
 		}
 	}
@@ -2068,7 +2096,9 @@ function IntermidiateValidation( updateWarningPopup = false){
 			let temp = 0;
 			if(connectivity.road[i] !== undefined){
 				for(let j = 0;j< connectivity.road[i].length;++j){
-					temp |= tempStorage.stop[connectivity.road[i][j]].exitDirection;
+					if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
+						temp |= tempStorage.stop[connectivity.road[i][j]].exitDirection;
+					}
 				}
 			}
 			
@@ -2089,7 +2119,9 @@ function IntermidiateValidation( updateWarningPopup = false){
 			let temp = 0;
 			if(connectivity.stop[i] !== undefined){
 				for(let j = 0;j< connectivity.stop[i].length;++j){
-					temp |= tempStorage.road[connectivity.stop[i][j]].exitDirection;
+					if(tempStorage.road[connectivity.stop[i][j]].type === "road"){
+						temp |= tempStorage.road[connectivity.stop[i][j]].exitDirection;
+					}
 				}
 			}
 			

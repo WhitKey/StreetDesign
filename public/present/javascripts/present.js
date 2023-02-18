@@ -301,11 +301,11 @@ function InputValidation(storageJSON){
 				intersectionRecord.primaryRoad.intermidiateLength = tempVariable.intermidiateLength;
 				intersectionRecord.primaryRoad.record = JSON.parse(JSON.stringify(storageJSON));
 
-				//check all road, sidewalk has connection
+				//check all road, sidewalk, slowlane has connection
 					//road section
 				for(let i = 0;i<storageJSON.road.length;++i){
 					let record = storageJSON.road[i];
-					if(record.type==="road" || record.type === "sidewalk"){
+					if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
 						if(!hasConnect.road.includes(i)){
 							throw "road section intermidiate connection missing";
 						}
@@ -317,7 +317,7 @@ function InputValidation(storageJSON){
 					//stop section
 				for(let i = 0;i<storageJSON.stop.length;++i){
 					let record = storageJSON.stop[i];
-					if(record.type==="road" || record.type === "sidewalk"){
+					if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
 						if(!hasConnect.stop.includes(i)){
 							throw "stop section intermidiate connection missing";
 						}
@@ -332,7 +332,9 @@ function InputValidation(storageJSON){
 						let temp = 0;
 						if(connectivity.road[i] !== undefined){
 							for(let j = 0;j< connectivity.road[i].length;++j){
-								temp |= storageJSON.stop[connectivity.road[i][j]].exitDirection;
+								if(storageJSON.stop[connectivity.road[i][j]].type === "road"){
+									temp |= storageJSON.stop[connectivity.road[i][j]].exitDirection;
+								}
 							}
 						}
 						
@@ -348,7 +350,9 @@ function InputValidation(storageJSON){
 						let temp = 0;
 						if(connectivity.stop[i] !== undefined){
 							for(let j = 0;j< connectivity.stop[i].length;++j){
-								temp |= storageJSON.road[connectivity.stop[i][j]].exitDirection;
+								if(storageJSON.road[connectivity.stop[i][j]].type === "road"){
+									temp |= storageJSON.road[connectivity.stop[i][j]].exitDirection;
+								}
 							}
 						}
 						
