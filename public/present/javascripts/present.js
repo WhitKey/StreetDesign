@@ -1432,7 +1432,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		}
 
 		//build stop marking
-		if(record.type === "road" && (record.direction & 0b10) !== 0){
+		if((record.type === "road" || record.type === "slowlane") && (record.direction & 0b10) !== 0){
 			if(i === 0 || startX === -1){
 				if(i === 0){
 					startX = componentX.stop[i] + marking15cm;
@@ -1442,6 +1442,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					}else{
 						startX = componentX.stop[i] + marking10cm * 0.5;
 					}
+				}else if (roadRecord.record.stop[i - 1].type === "slowlane"){
+					startX = componentX.stop[i] + marking10cm * 0.5;
 				}else{
 					startX = componentX.stop[i] + marking15cm;
 				}
@@ -1455,12 +1457,16 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			}else{
 				let nextComponent = roadRecord.record.stop[i + 1];
 				check = true;
-				if(nextComponent.type !== "road"){
+				if(nextComponent.type !== "road" && nextComponent.type !== "slowlane"){
 					endX = componentX.stop[i + 1] - marking15cm;
 				}else if((nextComponent.direction & 0b10) === 0){
-					if((record.crossability & 0b10) === 0 || (nextComponent.crossability & 0b1) === 0){
-						endX = componentX.stop[i + 1] - marking10cm * 1.5;
-					}else {
+					if(record.type === "road"){
+						if((record.crossability & 0b10) === 0 || (nextComponent.crossability & 0b1) === 0){
+							endX = componentX.stop[i + 1] - marking10cm * 1.5;
+						}else {
+							endX = componentX.stop[i + 1] - marking10cm * 0.5;
+						}
+					}else{
 						endX = componentX.stop[i + 1] - marking10cm * 0.5;
 					}
 				}else{
