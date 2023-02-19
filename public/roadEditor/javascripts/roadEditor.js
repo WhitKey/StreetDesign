@@ -24,7 +24,7 @@ let roadTemplate = document.getElementById("land");
 let sidewalkTemplate = document.getElementById("land");
 let bollardTemplate = document.getElementById("land");
 let roadComponentTemplate = document.getElementById("land");
-let slowlaneComponentTemplate = document.getElementById("land");
+let slowlaneTemplate = document.getElementById("land");
 let templateBase = {};
 
 //road layout editor variable
@@ -265,6 +265,8 @@ function InitElementVariables(){
 	templateBase["road"].removeAttribute("id");
 	templateBase["sidewalk"].removeAttribute("id");
 	templateBase["bollard"].removeAttribute("id");
+	templateBase["shoulder"].removeAttribute("id");
+	templateBase["slowlane"].removeAttribute("id");
 
 	//setting road component template
 	roadComponentTemplate = document.getElementById("roadComponentTemplate").cloneNode(true);
@@ -2279,6 +2281,27 @@ function MakeRoadSegmentHTML(record){
 				iconSrc = "./images/double_arrow.svg";
 			}
 			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
+		}else if (compType === "slowlane"){
+			let iconContainer = component.getElementsByClassName("roadComponentIcon")[0];
+			let direction = record[i].direction;
+			let iconSrc = "";
+
+			iconContainer.innerHTML = "";
+			
+			//下行
+			if (direction !== 2){
+				if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+			}//上行
+			else{
+				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
+			}
+		
+			if(direction !== 3){
+				iconSrc = "./images/straight_arrow.svg";
+			}else{
+				iconSrc = "./images/double_arrow.svg";
+			}
+			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
 		}
 
 	}
@@ -3463,7 +3486,7 @@ function RenderIntermidiateStage(){
 		indicatorMarkings.push(temp[1]);
 	}
 
-	RenderIntermediateStageMarkingB(tempStorage);
+	RenderIntermediateStageMarking(tempStorage);
 	
 	//render indicator marking
 	for(let i = 0;i<roadSegmentRecord.length;++i){
@@ -3474,7 +3497,385 @@ function RenderIntermidiateStage(){
 	//console.log(markingSpaceElement);
 }
 
-function RenderIntermidiateStageMarking(tempStorage){
+function RenderIntermediateStageMarking(tempStorage){
+	function CreateSvgLine(startPoint, endPoint, width, color, dashLengthList, offset = -0.5){
+		let xOffset = width * (dashLengthList.length * 2 - 1) * offset + width / 2;
+		let rtn = "";
+
+		if(dashLengthList.length > 1){
+			rtn += `<path class="markingFiller" d = "M ${startPoint[0]} ${startPoint[1]} L ${endPoint[0]} ${endPoint[1]}"  stroke-width="${ width * (dashLengthList.length * 2 - 1)}" />`;
+		}
+		for (let i = 0;i< dashLengthList.length;++i){
+			if(dashLengthList[i] === 0){
+				rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" />`;
+			}else{
+				rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dashLengthList[i]}"/>`;
+			}
+			xOffset += width * 2;
+		}
+		return rtn;
+	}
+
+	let roadRecordMap = {};
+	let stopRecordMap = {};
+	let maxY = markingSpaceElement.clientHeight;
+	let highPriorityMarking = [];
+	let centerLookup = {
+		"road":{},
+		"stop":{}
+	};
+	let branchOutLookup = {};
+
+	//create record entry map
+	for(let i = 0;i< roadSegmentRecord.length;++i){
+		let record = roadSegmentRecord[i];
+		let roadRecord = tempStorage.road[record.roadIndex];
+		let stopRecord = tempStorage.road[record.stopIndex];
+		
+		if(roadRecord.type !== "road" && roadRecord.type !== "slowlane")continue;
+
+		if(roadRecordMap[record.roadIndex] === undefined){
+			roadRecordMap[record.roadIndex] = {};
+		}
+		roadRecordMap[record.roadIndex][record.stopIndex] = true;
+		
+		if(stopRecordMap[record.stopIndex] === undefined){
+			stopRecordMap[record.stopIndex] = {};
+		}
+		stopRecordMap[record.stopIndex][record.roadIndex] = true;
+	}
+
+	//build center lookup
+	for(let i = 0;i<roadSegmentRecord.length;++i){
+		let record = roadSegmentRecord[i];
+		if(record.type === "cp")continue;
+
+		let roadRecord = tempStorage.road[record.roadIndex];
+		let stopRecord = tempStorage.stop[record.stopIndex];
+		let centerLink = null;
+		let centerIndex = -1;
+		let leftBranch = false;
+		let rightBranch = false;
+		
+
+		//road side
+		if(roadRecord.type === "road" || roadRecord.type === "slowlane"){
+
+			for(let j = 0;j<roadSegmentRecord.length;++j){
+				let scanRecord = roadSegmentRecord[j];
+				if(scanRecord.type === "cp")continue;
+				if(scanRecord.roadIndex !== record.roadIndex)continue;
+
+				if(scanRecord.stopIndex < record.stopIndex) leftBranch = true;
+				if(scanRecord.stopIndex > record.stopIndex) rightBranch = true;
+
+				let linkIndex = scanRecord.stopIndex;
+				let linkComp = tempStorage.stop[linkIndex];
+
+
+				if(linkComp.type === "road"){
+					if(centerLink === null){
+						centerLink = scanRecord;
+						centerIndex = linkIndex;
+					}else{
+						if(centerLink.overrideSerialNumber < scanRecord.overrideSerialNumber){
+							centerLink = scanRecord;
+							centerIndex = linkIndex;
+						}else if(centerLink.overrideSerialNumber === scanRecord.overrideSerialNumber && centerLink.serialNumber > scanRecord.serialNumber){
+							centerLink = scanRecord;
+							centerIndex = linkIndex;
+						}
+					}
+				}
+			}
+
+			if(centerIndex === -1){
+				centerLookup.road[record.roadIndex] = record.stopIndex;
+			}else{
+				centerLookup.road[record.roadIndex] = centerIndex;
+			}
+		}
+
+		//stop side
+		centerLink = null;
+		centerIndex = -1;
+		if(stopRecord.type === "road" || stopRecord.type === "slowlane"){
+			for(let j = 0;j<roadSegmentRecord.length;++j){
+				let scanRecord = roadSegmentRecord[j];
+				if(scanRecord.type === "cp")continue;
+				if(scanRecord.stopIndex !== record.stopIndex)continue;
+
+				
+				if(scanRecord.roadIndex < record.roadIndex) leftBranch = true;
+				if(scanRecord.roadIndex > record.roadIndex) rightBranch = true;
+
+				let linkIndex = scanRecord.roadIndex;
+				let linkComp = tempStorage.road[linkIndex];
+
+
+				if(linkComp.type === "road"){
+					if(centerLink === null){
+						centerLink = scanRecord;
+						centerIndex = linkIndex;
+					}else{
+						if(centerLink.overrideSerialNumber < scanRecord.overrideSerialNumber){
+							centerLink = scanRecord;
+							centerIndex = linkIndex;
+						}else if(centerLink.overrideSerialNumber === scanRecord.overrideSerialNumber && centerLink.serialNumber > scanRecord.serialNumber){
+							centerLink = scanRecord;
+							centerIndex = linkIndex;
+						}
+					}
+				}
+
+			}
+
+			if(centerIndex === -1){
+				centerLookup.stop[record.stopIndex] = record.roadIndex;
+			}else{
+				centerLookup.stop[record.stopIndex] = centerIndex;
+			}
+		}
+
+		branchOutLookup[i] = {
+			"left": leftBranch,
+			"right": rightBranch,
+		}
+	}
+
+	//build marking
+	for(let i = 0; i < roadSegmentRecord.length;++i){
+		let record = roadSegmentRecord[i];
+		if(RemoveComponentRecord.type === "cp")continue;
+		
+		let roadRecord = tempStorage.road[record.roadIndex];
+		let stopRecord = tempStorage.stop[record.stopIndex];
+
+		if(roadRecord.type !== "road" && roadRecord.type !== "slowlane")continue;
+
+		let roadLeftRecord = null;
+		let stopLeftRecord = null;
+		let roadRightRecord = null;
+		let stopRightRecord = null;
+		let isCenter = (record.stopIndex === centerLookup.road[record.roadIndex]) && (record.roadIndex === centerLookup.stop[record.stopIndex]);
+
+		let link = {
+			roadComponent: {
+				width: M2Px(roadRecord.width),
+				right: M2Px(tempVariables.componentXCoord.road[record.roadIndex]),
+				left: M2Px(tempVariables.componentXCoord.road[record.roadIndex]) -  M2Px(roadRecord.width)
+			},
+
+			stopComponent: {
+				width: M2Px(stopRecord.width),
+				right: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]),
+				left: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]) - M2Px(stopRecord.width)
+			}
+		};
+
+		if(record.roadIndex !== 0){
+			roadLeftRecord = tempStorage.road[record.roadIndex - 1];
+			if(roadLeftRecord.type !== "road" && roadLeftRecord.type !== "slowlane"){
+				roadLeftRecord = null;
+			}
+		}
+		if(record.stopIndex !== 0){
+			stopLeftRecord = tempStorage.stop[record.stopIndex - 1];
+			if(stopLeftRecord.type !== "road" && stopLeftRecord.type !== "slowlane"){
+				stopLeftRecord = null;
+			}
+		}
+		if(record.roadIndex !== tempStorage.road.length - 1){
+			roadRightRecord = tempStorage.road[record.roadIndex + 1];
+			if(roadRightRecord.type !== "road" && roadRightRecord.type !== "slowlane"){
+				roadRightRecord = null;
+			}
+		}
+		if(record.stopIndex !== tempStorage.stop.length - 1){
+			stopRightRecord = tempStorage.stop[record.stopIndex + 1];
+			if(stopRightRecord.type !== "road" && stopRightRecord.type !== "slowlane"){
+				stopRightRecord = null;
+			}
+		}
+		
+		//left side
+		//left side branch out
+		if(branchOutLookup[i].left){
+			if(isCenter){
+				markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), "white", [M2Px(1)], -0.5);
+			}
+		}else if(roadLeftRecord === null || stopLeftRecord === null){
+			//road side marking
+			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
+			
+		}
+		else if(roadRecordMap[record.roadIndex - 1] === undefined || stopRecordMap[record.stopIndex - 1] === undefined){
+			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
+			
+		}else{
+			let color = "white";
+			
+			if(roadLeftRecord.direction !== roadRecord.direction){
+				color = "yellow";
+			}
+			
+			//slowlane
+			if((roadRecord.type === "slowlane" || roadLeftRecord.type === "slowlane")|| (stopRecord.type === "slowlane"  || stopLeftRecord.type === "slowlane")){
+				if((roadRecord.type === "road" || roadLeftRecord.type === "road")|| (stopRecord.type === "road"  || stopLeftRecord.type === "road")){
+					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [0], -0.5);
+				}else{
+					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [M2Px(1)], -0.5);
+				}
+			}else{
+				let leftCrossability = (roadLeftRecord.crossability&0b10)&(stopLeftRecord.crossability&0b10);
+				let rightCrossability = (roadRecord.crossability&0b1)&(stopRecord.crossability&0b1);
+				let markingList = [];
+
+				if(leftCrossability !== 0 && rightCrossability !== 0){
+					markingList = [M2Px(1)];
+				}else{
+					if(leftCrossability !== 0){
+						markingList.push(M2Px(1));
+					}else{
+						markingList.push(0);
+					}
+					if(rightCrossability !== 0){
+						markingList.push(M2Px(1));
+					}else{
+						markingList.push(0);
+					}
+				}
+
+				let marking = CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, markingList, -0.5);
+				if(markingList.length > 1){
+					highPriorityMarking.push(marking);
+				}else{
+					markingSpaceElement.innerHTML += marking;
+				}
+			}
+		}
+		
+		//right side
+		if(branchOutLookup[i].right){
+			if(isCenter){
+				markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), "white", [M2Px(1)], -0.5);
+			}
+		//right side branch out
+		}else if(roadRightRecord === null || stopRightRecord === null){
+			//road side marking
+			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
+		}else if(roadRecordMap[record.roadIndex + 1] === undefined || stopRecordMap[record.stopIndex + 1] === undefined){
+			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
+		}
+
+
+	}
+
+	highPriorityMarking.forEach(marking => {
+		markingSpaceElement.innerHTML += marking;
+	});
+}
+
+window.OnIntermidiateDragStart  = function(event){
+	dragElement = event.srcElement.closest(".roadComponent");
+	document.addEventListener('contextmenu', PreventDefault);
+	
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	let section = dragElement.closest(".roadScope").id;;
+	let dragTempElementX = 0;
+	let elementIndex = parseInt(dragElement.getAttribute("index"));
+	let elementType;
+	let startY;
+	let tempElmentWidth = 3;
+
+	tempElmentWidth /= 2;
+
+	//refine section name
+	if(section === "roadSection"){
+		section = "road";
+		startY = markingSpaceElement.clientHeight;
+	}else if(section === "stopSection"){
+		section = "stop";
+		startY = 0;
+	}else{
+		section = undefined;
+	}
+
+	dragTempElementX = M2Px(tempVariables.componentXCoord[section][elementIndex] - tempStorage[section][elementIndex].width / 2);
+	
+	//add dragint temp element to marking space
+	let points = `${dragTempElementX - tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX - tempElmentWidth},${startY}`;
+	markingSpaceElement.innerHTML += `<polygon id="dragTemp" index="${dragElement.getAttribute("index")}" class="fail" x="${dragTempElementX.toString()}" halfWidth="${tempElmentWidth}" section="${section}" points="${points}"></polygon>`;
+	
+	
+	//event handling
+	if(event.type === "touchstart"){
+		document.addEventListener("touchend", OnIntermidiateDragEnd);
+		document.addEventListener("touchmove", OnIntermidiateDragMove);
+
+		//TODO: add touch event delete mode
+
+	}else{
+		document.addEventListener("mouseup", OnIntermidiateDragEnd);
+		document.addEventListener("mousemove", OnIntermidiateDragMove);
+		if(event.button === 2){
+			//deleting mode
+			draging = true;
+		}else{
+			//linking mode
+			draging = false;
+		}
+	}
+	
+	//add dragging tag to editor
+	editorElement.classList.add("dragging");
+
+
+	// show acceptable.
+	if(section === "road"){
+		let stopSectionElements = document.getElementById("stopSection").getElementsByClassName("roadComponent");
+		for(let stopIndex = 0;stopIndex < tempStorage.stop.length; ++stopIndex){
+			if(VerifyLink(elementIndex, stopIndex, tempStorage)){
+				stopSectionElements[stopIndex].classList.add("acceptable");
+			}
+		}
+
+		//visualize point link anchor
+		elementType = tempStorage.road[elementIndex].type;
+		if(componentConstantProperty[elementType].pointyEnd){
+			for(let i = 0;i<tempStorage.stop.length + 1; ++i){
+				if(VerifyComponentPointLink(true, false, elementIndex, i, tempStorage)){
+					document.getElementById(`stopPointAnchor_${i}`).classList.add("acceptable");
+				}
+			}
+		}
+	}else if(section === "stop"){
+		let roadSectionElements = document.getElementById("roadSection").getElementsByClassName("roadComponent");
+		for(let roadIndex = 0;roadIndex < tempStorage.road.length; ++roadIndex){
+			if(VerifyLink(roadIndex, elementIndex, tempStorage)){
+				roadSectionElements[roadIndex].classList.add("acceptable");
+			}
+		}
+		//cisualize point link anchor
+		elementType = tempStorage.stop[elementIndex].type;
+		if(componentConstantProperty[elementType].pointyEnd){
+			for(let i = 0;i<tempStorage.road.length + 1; ++i){
+				if(VerifyComponentPointLink(false, true, i, elementIndex, tempStorage)){
+					document.getElementById(`roadPointAnchor_${i}`).classList.add("acceptable");
+				}
+			}
+		}
+	}
+
+}
+
+//-------------------------------------------
+//
+// discard
+//
+//-------------------------------------------
+/*
+function RenderIntermidiateStageMarkingOld(tempStorage){
 	function CreateSvgLine(startPoint, endPoint, width, color, dashLengthList, offset = -0.5){
 		let xOffset = width * (dashLengthList.length * 2 - 1) * offset + width / 2;
 		let rtn = "";
@@ -3871,378 +4272,4 @@ function RenderIntermidiateStageMarking(tempStorage){
 		markingSpaceElement.innerHTML += marking;
 	});
 }
-
-function RenderIntermediateStageMarkingB(tempStorage){
-	function CreateSvgLine(startPoint, endPoint, width, color, dashLengthList, offset = -0.5){
-		let xOffset = width * (dashLengthList.length * 2 - 1) * offset + width / 2;
-		let rtn = "";
-
-		if(dashLengthList.length > 1){
-			rtn += `<path class="markingFiller" d = "M ${startPoint[0]} ${startPoint[1]} L ${endPoint[0]} ${endPoint[1]}"  stroke-width="${ width * (dashLengthList.length * 2 - 1)}" />`;
-		}
-		for (let i = 0;i< dashLengthList.length;++i){
-			if(dashLengthList[i] === 0){
-				rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" />`;
-			}else{
-				rtn += `<path d = "M ${startPoint[0] + xOffset} ${startPoint[1]} L ${endPoint[0] + xOffset} ${endPoint[1]}" stroke="${color}" stroke-width="${width}" stroke-dasharray="${dashLengthList[i]}"/>`;
-			}
-			xOffset += width * 2;
-		}
-		return rtn;
-	}
-
-	let roadRecordMap = {};
-	let stopRecordMap = {};
-	let maxY = markingSpaceElement.clientHeight;
-	let highPriorityMarking = [];
-	let centerLookup = {
-		"road":{},
-		"stop":{}
-	};
-	let branchOutLookup = {};
-
-	//create record entry map
-	for(let i = 0;i< roadSegmentRecord.length;++i){
-		let record = roadSegmentRecord[i];
-		let roadRecord = tempStorage.road[record.roadIndex];
-		let stopRecord = tempStorage.road[record.stopIndex];
-		
-		if(roadRecord.type !== "road" && roadRecord.type !== "slowlane")continue;
-
-		if(roadRecordMap[record.roadIndex] === undefined){
-			roadRecordMap[record.roadIndex] = {};
-		}
-		roadRecordMap[record.roadIndex][record.stopIndex] = true;
-		
-		if(stopRecordMap[record.stopIndex] === undefined){
-			stopRecordMap[record.stopIndex] = {};
-		}
-		stopRecordMap[record.stopIndex][record.roadIndex] = true;
-	}
-
-	//build center lookup
-	for(let i = 0;i<roadSegmentRecord.length;++i){
-		let record = roadSegmentRecord[i];
-		if(record.type === "cp")continue;
-
-		let roadRecord = tempStorage.road[record.roadIndex];
-		let stopRecord = tempStorage.stop[record.stopIndex];
-		let centerLink = null;
-		let centerIndex = -1;
-		let leftBranch = false;
-		let rightBranch = false;
-		
-
-		//road side
-		if(roadRecord.type === "road" || roadRecord.type === "slowlane"){
-
-			for(let j = 0;j<roadSegmentRecord.length;++j){
-				let scanRecord = roadSegmentRecord[j];
-				if(scanRecord.type === "cp")continue;
-				if(scanRecord.roadIndex !== record.roadIndex)continue;
-
-				if(scanRecord.stopIndex < record.stopIndex) leftBranch = true;
-				if(scanRecord.stopIndex > record.stopIndex) rightBranch = true;
-
-				let linkIndex = scanRecord.stopIndex;
-				let linkComp = tempStorage.stop[linkIndex];
-
-
-				if(linkComp.type === "road"){
-					if(centerLink === null){
-						centerLink = scanRecord;
-						centerIndex = linkIndex;
-					}else{
-						if(centerLink.overrideSerialNumber < scanRecord.overrideSerialNumber){
-							centerLink = scanRecord;
-							centerIndex = linkIndex;
-						}else if(centerLink.overrideSerialNumber === scanRecord.overrideSerialNumber && centerLink.serialNumber > scanRecord.serialNumber){
-							centerLink = scanRecord;
-							centerIndex = linkIndex;
-						}
-					}
-				}
-			}
-
-			if(centerIndex === -1){
-				centerLookup.road[record.roadIndex] = record.stopIndex;
-			}else{
-				centerLookup.road[record.roadIndex] = centerIndex;
-			}
-		}
-
-		//stop side
-		centerLink = null;
-		centerIndex = -1;
-		if(stopRecord.type === "road" || stopRecord.type === "slowlane"){
-			for(let j = 0;j<roadSegmentRecord.length;++j){
-				let scanRecord = roadSegmentRecord[j];
-				if(scanRecord.type === "cp")continue;
-				if(scanRecord.stopIndex !== record.stopIndex)continue;
-
-				
-				if(scanRecord.roadIndex < record.roadIndex) leftBranch = true;
-				if(scanRecord.roadIndex > record.roadIndex) rightBranch = true;
-
-				let linkIndex = scanRecord.roadIndex;
-				let linkComp = tempStorage.road[linkIndex];
-
-
-				if(linkComp.type === "road"){
-					if(centerLink === null){
-						centerLink = scanRecord;
-						centerIndex = linkIndex;
-					}else{
-						if(centerLink.overrideSerialNumber < scanRecord.overrideSerialNumber){
-							centerLink = scanRecord;
-							centerIndex = linkIndex;
-						}else if(centerLink.overrideSerialNumber === scanRecord.overrideSerialNumber && centerLink.serialNumber > scanRecord.serialNumber){
-							centerLink = scanRecord;
-							centerIndex = linkIndex;
-						}
-					}
-				}
-
-			}
-
-			if(centerIndex === -1){
-				centerLookup.stop[record.stopIndex] = record.roadIndex;
-			}else{
-				centerLookup.stop[record.stopIndex] = centerIndex;
-			}
-		}
-
-		branchOutLookup[i] = {
-			"left": leftBranch,
-			"right": rightBranch,
-		}
-	}
-
-	//build marking
-	for(let i = 0; i < roadSegmentRecord.length;++i){
-		let record = roadSegmentRecord[i];
-		if(RemoveComponentRecord.type === "cp")continue;
-		
-		let roadRecord = tempStorage.road[record.roadIndex];
-		let stopRecord = tempStorage.stop[record.stopIndex];
-
-		if(roadRecord.type !== "road" && roadRecord.type !== "slowlane")continue;
-
-		let roadLeftRecord = null;
-		let stopLeftRecord = null;
-		let roadRightRecord = null;
-		let stopRightRecord = null;
-		let isCenter = (record.stopIndex === centerLookup.road[record.roadIndex]) && (record.roadIndex === centerLookup.stop[record.stopIndex]);
-
-		let link = {
-			roadComponent: {
-				width: M2Px(roadRecord.width),
-				right: M2Px(tempVariables.componentXCoord.road[record.roadIndex]),
-				left: M2Px(tempVariables.componentXCoord.road[record.roadIndex]) -  M2Px(roadRecord.width)
-			},
-
-			stopComponent: {
-				width: M2Px(stopRecord.width),
-				right: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]),
-				left: M2Px(tempVariables.componentXCoord.stop[record.stopIndex]) - M2Px(stopRecord.width)
-			}
-		};
-
-		if(record.roadIndex !== 0){
-			roadLeftRecord = tempStorage.road[record.roadIndex - 1];
-			if(roadLeftRecord.type !== "road" && roadLeftRecord.type !== "slowlane"){
-				roadLeftRecord = null;
-			}
-		}
-		if(record.stopIndex !== 0){
-			stopLeftRecord = tempStorage.stop[record.stopIndex - 1];
-			if(stopLeftRecord.type !== "road" && stopLeftRecord.type !== "slowlane"){
-				stopLeftRecord = null;
-			}
-		}
-		if(record.roadIndex !== tempStorage.road.length - 1){
-			roadRightRecord = tempStorage.road[record.roadIndex + 1];
-			if(roadRightRecord.type !== "road" && roadRightRecord.type !== "slowlane"){
-				roadRightRecord = null;
-			}
-		}
-		if(record.stopIndex !== tempStorage.stop.length - 1){
-			stopRightRecord = tempStorage.stop[record.stopIndex + 1];
-			if(stopRightRecord.type !== "road" && stopRightRecord.type !== "slowlane"){
-				stopRightRecord = null;
-			}
-		}
-		
-		//left side
-		//left side branch out
-		if(branchOutLookup[i].left){
-			if(isCenter){
-				markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), "white", [M2Px(1)], -0.5);
-			}
-		}else if(roadLeftRecord === null || stopLeftRecord === null){
-			//road side marking
-			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
-			
-		}
-		else if(roadRecordMap[record.roadIndex - 1] === undefined || stopRecordMap[record.stopIndex - 1] === undefined){
-			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.15), "white", [0], 0);
-			
-		}else{
-			let color = "white";
-			
-			if(roadLeftRecord.direction !== roadRecord.direction){
-				color = "yellow";
-			}
-			
-			//slowlane
-			if((roadRecord.type === "slowlane" || roadLeftRecord.type === "slowlane")|| (stopRecord.type === "slowlane"  || stopLeftRecord.type === "slowlane")){
-				if((roadRecord.type === "road" || roadLeftRecord.type === "road")|| (stopRecord.type === "road"  || stopLeftRecord.type === "road")){
-					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [0], -0.5);
-				}else{
-					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [M2Px(1)], -0.5);
-				}
-			}else{
-				let leftCrossability = (roadLeftRecord.crossability&0b10)&(stopLeftRecord.crossability&0b10);
-				let rightCrossability = (roadRecord.crossability&0b1)&(stopRecord.crossability&0b1);
-				let markingList = [];
-
-				if(leftCrossability !== 0 && rightCrossability !== 0){
-					markingList = [M2Px(1)];
-				}else{
-					if(leftCrossability !== 0){
-						markingList.push(M2Px(1));
-					}else{
-						markingList.push(0);
-					}
-					if(rightCrossability !== 0){
-						markingList.push(M2Px(1));
-					}else{
-						markingList.push(0);
-					}
-				}
-
-				let marking = CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, markingList, -0.5);
-				if(markingList.length > 1){
-					highPriorityMarking.push(marking);
-				}else{
-					markingSpaceElement.innerHTML += marking;
-				}
-			}
-		}
-		
-		//right side
-		if(branchOutLookup[i].right){
-			if(isCenter){
-				markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.1), "white", [M2Px(1)], -0.5);
-			}
-		//right side branch out
-		}else if(roadRightRecord === null || stopRightRecord === null){
-			//road side marking
-			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
-		}else if(roadRecordMap[record.roadIndex + 1] === undefined || stopRecordMap[record.stopIndex + 1] === undefined){
-			markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.right, maxY], [link.stopComponent.right, 0], M2Px(0.15), "white", [0], -1);
-		}
-
-
-	}
-
-	highPriorityMarking.forEach(marking => {
-		markingSpaceElement.innerHTML += marking;
-	});
-}
-
-window.OnIntermidiateDragStart  = function(event){
-	dragElement = event.srcElement.closest(".roadComponent");
-	document.addEventListener('contextmenu', PreventDefault);
-	
-	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
-	let section = dragElement.closest(".roadScope").id;;
-	let dragTempElementX = 0;
-	let elementIndex = parseInt(dragElement.getAttribute("index"));
-	let elementType;
-	let startY;
-	let tempElmentWidth = 3;
-
-	tempElmentWidth /= 2;
-
-	//refine section name
-	if(section === "roadSection"){
-		section = "road";
-		startY = markingSpaceElement.clientHeight;
-	}else if(section === "stopSection"){
-		section = "stop";
-		startY = 0;
-	}else{
-		section = undefined;
-	}
-
-	dragTempElementX = M2Px(tempVariables.componentXCoord[section][elementIndex] - tempStorage[section][elementIndex].width / 2);
-	
-	//add dragint temp element to marking space
-	let points = `${dragTempElementX - tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX + tempElmentWidth},${startY} ${dragTempElementX - tempElmentWidth},${startY}`;
-	markingSpaceElement.innerHTML += `<polygon id="dragTemp" index="${dragElement.getAttribute("index")}" class="fail" x="${dragTempElementX.toString()}" halfWidth="${tempElmentWidth}" section="${section}" points="${points}"></polygon>`;
-	
-	
-	//event handling
-	if(event.type === "touchstart"){
-		document.addEventListener("touchend", OnIntermidiateDragEnd);
-		document.addEventListener("touchmove", OnIntermidiateDragMove);
-
-		//TODO: add touch event delete mode
-
-	}else{
-		document.addEventListener("mouseup", OnIntermidiateDragEnd);
-		document.addEventListener("mousemove", OnIntermidiateDragMove);
-		if(event.button === 2){
-			//deleting mode
-			draging = true;
-		}else{
-			//linking mode
-			draging = false;
-		}
-	}
-	
-	//add dragging tag to editor
-	editorElement.classList.add("dragging");
-
-
-	// show acceptable.
-	if(section === "road"){
-		let stopSectionElements = document.getElementById("stopSection").getElementsByClassName("roadComponent");
-		for(let stopIndex = 0;stopIndex < tempStorage.stop.length; ++stopIndex){
-			if(VerifyLink(elementIndex, stopIndex, tempStorage)){
-				stopSectionElements[stopIndex].classList.add("acceptable");
-			}
-		}
-
-		//visualize point link anchor
-		elementType = tempStorage.road[elementIndex].type;
-		if(componentConstantProperty[elementType].pointyEnd){
-			for(let i = 0;i<tempStorage.stop.length + 1; ++i){
-				if(VerifyComponentPointLink(true, false, elementIndex, i, tempStorage)){
-					document.getElementById(`stopPointAnchor_${i}`).classList.add("acceptable");
-				}
-			}
-		}
-	}else if(section === "stop"){
-		let roadSectionElements = document.getElementById("roadSection").getElementsByClassName("roadComponent");
-		for(let roadIndex = 0;roadIndex < tempStorage.road.length; ++roadIndex){
-			if(VerifyLink(roadIndex, elementIndex, tempStorage)){
-				roadSectionElements[roadIndex].classList.add("acceptable");
-			}
-		}
-		//cisualize point link anchor
-		elementType = tempStorage.stop[elementIndex].type;
-		if(componentConstantProperty[elementType].pointyEnd){
-			for(let i = 0;i<tempStorage.road.length + 1; ++i){
-				if(VerifyComponentPointLink(false, true, i, elementIndex, tempStorage)){
-					document.getElementById(`roadPointAnchor_${i}`).classList.add("acceptable");
-				}
-			}
-		}
-	}
-
-}
-
-
-
+//*/

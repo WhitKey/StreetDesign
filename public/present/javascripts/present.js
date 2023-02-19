@@ -1915,6 +1915,21 @@ function BuildCrossSectionComponent(record, M2PercentFactor, isLast = false){
 
 			upperIcon = `<img src="${iconSrc}" style="height:100%;pointer-events: none;color:red;${auxStyle}">`;
 		}
+	}else if(record.type === "slowlane"){
+		if(record.direction === 3){
+			upperIcon = `<img src="./images/outline_double_arrow.svg" style="height:100%;pointer-events: none;color:red;">`;
+		}else{
+			let auxStyle = "";
+			let iconSrc = "";
+			
+			if(record.direction === 1){
+				auxStyle = `transform:rotate(180deg);`;
+			}
+			
+			iconSrc = "./images/outline_straight_arrow.svg";
+
+			upperIcon = `<img src="${iconSrc}" style="height:100%;pointer-events: none;color:red;${auxStyle}">`;
+		}
 	}
 
 
