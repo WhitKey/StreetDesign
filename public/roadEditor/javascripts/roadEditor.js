@@ -2953,6 +2953,12 @@ function VerifyAndLink(roadIndex, stopIndex){
 		}
 	}
 
+	if(centerRoadRecord === null && centerStopRecord === null){
+		if(roadRecord.type === "road" && stopRecord.type === "road"){
+			isCenter = true;
+		}
+	}
+
 	//road branch limit
 	if(!isCenter && (roadRecord.type === "road" || stopRecord.type === "road")){
 		for(let i = 0;i < roadSegmentRecord.length;++i){
@@ -3024,7 +3030,10 @@ function VerifyAndLink(roadIndex, stopIndex){
 		}
 		++tempVariables.intermidiateSerialCounter;
 	}
+
 	
+	console.log(centerRoadRecord, centerStopRecord);
+
 	for(let i =0;i<roadSegmentRecord.length;++i){
 		let record = roadSegmentRecord[i];
 		if(roadRecord.type === "road"|| stopRecord.type === "road"){

@@ -1189,7 +1189,6 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 											
 											if(stopRecord.type === "slowlane"){
 												tempLineProp.width = 0;
-												console.log("aaaa");
 												break;
 											}
 											tempLineProp.slowlane = false;
@@ -1227,7 +1226,6 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 											tempLineProp.slowlane = false;
 											if(stopRecord.type === "slowlane"){
 												tempLineProp.width = 0;
-												console.log("aasdd")
 												break;
 											}
 
