@@ -2849,6 +2849,7 @@ function VerifyAndLink(roadIndex, stopIndex){
 		
 		for(let i = 0;i<roadSegmentRecord.length;++i){
 			let record = roadSegmentRecord[i];
+			if(record.type === "cp")continue;
 			if(record.roadIndex === roadIndex){
 				++roadConnectionCounter;
 			}
@@ -3721,7 +3722,8 @@ function RenderIntermediateStageMarking(tempStorage){
 			
 			//slowlane
 			if((roadRecord.type === "slowlane" || roadLeftRecord.type === "slowlane")|| (stopRecord.type === "slowlane"  || stopLeftRecord.type === "slowlane")){
-				if((roadRecord.type === "road" || roadLeftRecord.type === "road")|| (stopRecord.type === "road"  || stopLeftRecord.type === "road")){
+				
+				if((roadRecord.type === "road" || roadLeftRecord.type === "road" || stopRecord.type === "road"  || stopLeftRecord.type === "road") && stopRecord.type === roadRecord.type){
 					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [0], -0.5);
 				}else{
 					markingSpaceElement.innerHTML += CreateSvgLine([link.roadComponent.left, maxY], [link.stopComponent.left, 0], M2Px(0.1), color, [M2Px(1)], -0.5);

@@ -418,7 +418,7 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	let temp = "";
 	let yOffset = 0;
 	
-	if((lineProp.width === 0.15) || (lineProp.left === 1 && lineProp.right === 1)){
+	if((lineProp.width === 0.15) || (lineProp.left === 1 && lineProp.right === 1) || lineProp.slowlane){
 		
 		if(lineProp.width === 0.15){
 			yOffset = yOffsetDir * lineWidth / 2;
@@ -445,7 +445,7 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 			}
 		}
 
-		if(lineProp.width === 0.15){
+		if(lineProp.width === 0.15 || lineProp.slowlane){
 			return `<path fill="transparent" stroke="${color}" d="${temp}" stroke-width="${lineWidth}"/>`;
 		}
 		
@@ -574,7 +574,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				ccConnect[record.roadIndex].push(parseInt(record.stopIndex));
 			}
 
-			if(roadRecord.record.road[record.roadIndex].type === "road"){
+			if(roadRecord.record.road[record.roadIndex].type === "road" || roadRecord.record.road[record.roadIndex].type === "slowlane" ){
 				if(intermidiateConnectTable.road[record.roadIndex] === undefined){
 					intermidiateConnectTable.road[record.roadIndex] = [record];
 				}else{
@@ -662,7 +662,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			}
 
 			//marking space
-			if(record.type === "road"){
+			if(record.type === "road" || record.type === "slowlane"){
 				let padding = 1 * M2PxFactor;
 				let imgSrc = "";
 				let transform;
@@ -691,28 +691,32 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							deg = -90;
 						}
 						
-						switch(record.exitDirection){
-							case 1:
-								imgSrc = "../roadEditor/images/left_arrow.svg";
-								break;
-							case 2:
-								imgSrc = "../roadEditor/images/straight_arrow.svg";
-								break;
-							case 3:
-								imgSrc = "../roadEditor/images/straight_left_arrow.svg";
-								break;
-							case 4:
-								imgSrc = "../roadEditor/images/right_arrow.svg";
-								break;
-							case 5:
-								imgSrc = "../roadEditor/images/left_right_arrow.svg";
-								break;
-							case 6:
-								imgSrc = "../roadEditor/images/straight_right_arrow.svg";
-								break;
-							case 7:
-								imgSrc = "../roadEditor/images/three_way_arrow.svg";
-								break;
+						if(record.type === "road"){
+							switch(record.exitDirection){
+								case 1:
+									imgSrc = "../roadEditor/images/left_arrow.svg";
+									break;
+								case 2:
+									imgSrc = "../roadEditor/images/straight_arrow.svg";
+									break;
+								case 3:
+									imgSrc = "../roadEditor/images/straight_left_arrow.svg";
+									break;
+								case 4:
+									imgSrc = "../roadEditor/images/right_arrow.svg";
+									break;
+								case 5:
+									imgSrc = "../roadEditor/images/left_right_arrow.svg";
+									break;
+								case 6:
+									imgSrc = "../roadEditor/images/straight_right_arrow.svg";
+									break;
+								case 7:
+									imgSrc = "../roadEditor/images/three_way_arrow.svg";
+									break;
+							}
+						}else{
+							imgSrc = "../roadEditor/images/straight_arrow.svg";
 						}
 					}
 					
@@ -743,29 +747,33 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						}else{
 							deg = -90;
 						}
-	
-						switch(stopRecord.exitDirection){
-							case 1:
-								imgSrc = "../roadEditor/images/left_arrow.svg";
-								break;
-							case 2:
-								imgSrc = "../roadEditor/images/straight_arrow.svg";
-								break;
-							case 3:
-								imgSrc = "../roadEditor/images/straight_left_arrow.svg";
-								break;
-							case 4:
-								imgSrc = "../roadEditor/images/right_arrow.svg";
-								break;
-							case 5:
-								imgSrc = "../roadEditor/images/left_right_arrow.svg";
-								break;
-							case 6:
-								imgSrc = "../roadEditor/images/straight_right_arrow.svg";
-								break;
-							case 7:
-								imgSrc = "../roadEditor/images/three_way_arrow.svg";
-								break;
+						
+						if(stopRecord.type === "road"){
+							switch(stopRecord.exitDirection){
+								case 1:
+									imgSrc = "../roadEditor/images/left_arrow.svg";
+									break;
+								case 2:
+									imgSrc = "../roadEditor/images/straight_arrow.svg";
+									break;
+								case 3:
+									imgSrc = "../roadEditor/images/straight_left_arrow.svg";
+									break;
+								case 4:
+									imgSrc = "../roadEditor/images/right_arrow.svg";
+									break;
+								case 5:
+									imgSrc = "../roadEditor/images/left_right_arrow.svg";
+									break;
+								case 6:
+									imgSrc = "../roadEditor/images/straight_right_arrow.svg";
+									break;
+								case 7:
+									imgSrc = "../roadEditor/images/three_way_arrow.svg";
+									break;
+							}
+						}else{
+							imgSrc = "../roadEditor/images/straight_arrow.svg";
 						}
 					}
 					
@@ -793,14 +801,16 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						left: 0,
 						right: 0,
 						sameDir: false,
-						width: 0
+						width: 0,
+						slowlane: false
 					};
 
 					let tempLineProp = {
 						left: 0,
 						right: 0,
 						sameDir: false,
-						width: 0
+						width: 0,
+						slowlane: false,
 					};
 					let check;
 					//left
@@ -809,15 +819,29 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					if(connectedLog.stop[stopIndex] !== 0){
 						if(stopIndex === 0){
 							lineProp.width = 0.15;
-						}else if(roadRecord.record.stop[stopIndex - 1].type !== "road"){
+						}else if(roadRecord.record.stop[stopIndex - 1].type !== "road" && roadRecord.record.stop[stopIndex - 1].type !== "slowlane"){
 							lineProp.width = 0.15;
+						}else if((roadRecord.record.stop[stopIndex].type === "road" && roadRecord.record.stop[stopIndex - 1].type === "slowlane")|| (roadRecord.record.stop[stopIndex].type === "slowlane" && roadRecord.record.stop[stopIndex - 1].type === "road")){
+							let tempRecord = roadRecord.record.stop[stopIndex - 1];
+							lineProp.width = 0.1;
+							lineProp.slowlane = true;
+							lineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							lineProp.left = 0;
+							lineProp.right = 0;
 						}else{
 							let tempRecord = roadRecord.record.stop[stopIndex - 1];
 							
 							lineProp.width = 0.1;
 							lineProp.sameDir = stopRecord.direction === tempRecord.direction;
-							lineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
-							lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+
+							if(stopRecord.type === "slowlane"){
+								lineProp.left = 1;
+								lineProp.right = 1;
+							}else{
+								lineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+								lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+							}
+							lineProp.slowlane = false;
 						}
 
 						points.push([markingRoadEnd, componentX.stop[stopIndex]]);
@@ -836,18 +860,33 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
 							let temp = intermidiateConnectTable.road[i][k]
 							check = true;
+
+							if(stopRecord.type === "slowlane"){
+								tempLineProp.width = 0;
+								break;
+							}
+							
 							if(overrideSerial > temp.overrideSerialNumber){
 								tempLineProp.width = 0.1;
 								tempLineProp.left = 1;
 								tempLineProp.right = 1;
 								tempLineProp.sameDir = true;
+								tempLineProp.slowlane = false;
 							}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
 								tempLineProp.width = 0.1;
 								tempLineProp.left = 1;
 								tempLineProp.right = 1;
 								tempLineProp.sameDir = true;
+								tempLineProp.slowlane = false;
+							}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+								tempLineProp.width = 0.1;
+								tempLineProp.left = 1;
+								tempLineProp.right = 1;
+								tempLineProp.sameDir = true;
+								tempLineProp.slowlane = false;
 							}else{
 								tempLineProp.width = 0;
+								tempLineProp.slowlane = false;
 							}
 						}
 					}
@@ -856,35 +895,49 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
 								let temp = intermidiateConnectTable.stop[stopIndex][k]
 								check = true;
+
+								if(stopRecord.type === "slowlane"){
+									tempLineProp.width = 0;
+									break;
+								}
+
 								if(overrideSerial > temp.overrideSerialNumber){
 									tempLineProp.width = 0.1;
 									tempLineProp.left = 1;
 									tempLineProp.right = 1;
 									tempLineProp.sameDir = true;
+									tempLineProp.slowlane = false;
 								}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
 									tempLineProp.width = 0.1;
 									tempLineProp.left = 1;
 									tempLineProp.right = 1;
 									tempLineProp.sameDir = true;
+									tempLineProp.slowlane = false;
+								}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+									tempLineProp.width = 0.1;
+									tempLineProp.left = 1;
+									tempLineProp.right = 1;
+									tempLineProp.sameDir = true;
+									tempLineProp.slowlane = false;
 								}else{
 									tempLineProp.width = 0;
 								}
 							}
 						}
 					}
+
 					if(!check){
 						if(i === 0 || stopIndex === 0){
 							check = true;
 							tempLineProp.width = 0.15;
 						}else if(stopIndex !== 0){
-							if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road"){
+							if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane" && roadRecord.record.stop[stopIndex -1].type !== "slowlane"){
 								tempLineProp.width = 0.15;
 								check = true;
 							}else{
 								
-	
 								//check for parallel
-								if(! check && roadRecord.record.road[i -1].type === "road"){
+								if(! check && (roadRecord.record.road[i -1].type === "road" || roadRecord.record.road[i -1].type === "slowlane")){
 									for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
 										if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
 											let connection = intermidiateConnectTable.road[i-1][k];
@@ -892,10 +945,25 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 											let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
 	
 											check = true;
+											
 											tempLineProp.width = 0.1;
 											tempLineProp.sameDir = record.direction === tempStopRecord.direction;
-											tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
-											tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
+											
+											if(tempStopRecord.type === stopRecord.type){
+												if(stopRecord.type === "road"){
+													tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
+													tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
+												}else{
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+												}
+												tempLineProp.slowlane = false;
+											}else{
+												tempLineProp.left = 0;
+												tempLineProp.right = 0;
+												tempLineProp.slowlane = true;
+											}
+
 											break;
 										}
 									}
@@ -921,7 +989,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						if(
 							lineProp.left !==tempLineProp.left||
 							lineProp.right !==tempLineProp.right||
-							lineProp.sameDir !==tempLineProp.sameDir
+							lineProp.sameDir !==tempLineProp.sameDir||
+							lineProp.slowlane !== lineProp.slowlane
 						){
 							check = true;
 						}
@@ -955,6 +1024,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						lineProp.left = tempLineProp.left;
 						lineProp.right = tempLineProp.right;
 						lineProp.sameDir = tempLineProp.sameDir;
+						lineProp.slowlane = tempLineProp.slowlane;
 					}
 
 					//intermidiate stage
@@ -975,16 +1045,30 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 					
 					if(connectedLog.road[i] !== 1){
 						//road stage line prop
+						tempLineProp.slowlane = false;
 						if(i === 0){
 							tempLineProp.width = 0.15;
-						}else if(roadRecord.record.road[i - 1].type !== "road"){
+						}else if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane"){
 							tempLineProp.width = 0.15;
+						}else if((roadRecord.record.road[i].type === "road" && roadRecord.record.road[i - 1].type === "slowlane")|| (roadRecord.record.road[i].type === "slowlane" && roadRecord.record.road[i - 1].type === "road")){
+							let tempRecord = roadRecord.record.stop[stopIndex - 1];
+							tempLineProp.width = 0.1;
+							tempLineProp.slowlane = true;
+							tempLineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							tempLineProp.left = 0;
+							tempLineProp.right = 0;
 						}else{
 							let tempRecord = roadRecord.record.road[i -1];
 							tempLineProp.width = 0.1;
 							tempLineProp.sameDir = record.direction === tempRecord.direction;
-							tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
-							tempLineProp.right = (record.crossability & 0b1) === 0? 0:1;
+
+							if(stopRecord.type === "slowlane"){
+								tempLineProp.left = 1;
+								tempLineProp.right = 1;
+							}else{
+								tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+								tempLineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+							}
 						}
 
 						//line prop diff check
@@ -995,7 +1079,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							if(
 								lineProp.left !==tempLineProp.left||
 								lineProp.right !==tempLineProp.right||
-								lineProp.sameDir !==tempLineProp.sameDir
+								lineProp.sameDir !==tempLineProp.sameDir||
+								lineProp.slowlane !==tempLineProp.slowlane
 							){
 								check = true;
 							}
@@ -1027,6 +1112,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							lineProp.left = tempLineProp.left;
 							lineProp.right = tempLineProp.right;
 							lineProp.sameDir = tempLineProp.sameDir;
+							lineProp.slowlane = tempLineProp.slowlane;
 						}
 
 						//push point
@@ -1068,11 +1154,12 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						//stop section
 						check = false;
 						lineProp.width = 0;
+						lineProp.slowlane = false;
 						points = [];
 						markingModel = [];
 						if(stopIndex === roadRecord.record.stop.length - 1){
 							check = true;
-						}else if(roadRecord.record.stop[stopIndex + 1].type !== "road"){
+						}else if(roadRecord.record.stop[stopIndex + 1].type !== "road" && roadRecord.record.stop[stopIndex + 1].type !== "slowlane"){
 							check = true;
 						}
 						
@@ -1094,11 +1181,18 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							
 							//road side branch out
 							if(stopIndex < roadRecord.record.stop.length - 1){
-								if(roadRecord.record.stop[stopIndex + 1].type === "road"){
+								if(roadRecord.record.stop[stopIndex + 1].type === "road" || roadRecord.record.stop[stopIndex + 1].type === "slowlane" ){
 									for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
 										if(intermidiateConnectTable.road[i][k].stopIndex > stopIndex){
 											let temp = intermidiateConnectTable.road[i][k]
 											check = true;
+											
+											if(stopRecord.type === "slowlane"){
+												tempLineProp.width = 0;
+												console.log("aaaa");
+												break;
+											}
+											tempLineProp.slowlane = false;
 											if(overrideSerial > temp.overrideSerialNumber){
 												tempLineProp.width = 0.1;
 												tempLineProp.left = 1;
@@ -1109,6 +1203,12 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 												tempLineProp.left = 1;
 												tempLineProp.right = 1;
 												tempLineProp.sameDir = true;
+											}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+												tempLineProp.slowlane = false;
 											}else{
 												tempLineProp.width = 0;
 											}
@@ -1119,11 +1219,18 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							
 							//stop side branch out
 							if(i < roadRecord.record.road.length - 1){
-								if(!check && roadRecord.record.road[i + 1].type === "road"){
+								if(!check && (roadRecord.record.road[i + 1].type === "road" || roadRecord.record.road[i + 1].type === "slowlane")){
 									for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
 										if(intermidiateConnectTable.stop[stopIndex][k].roadIndex > i){
 											let temp = intermidiateConnectTable.stop[stopIndex][k]
 											check = true;
+											tempLineProp.slowlane = false;
+											if(stopRecord.type === "slowlane"){
+												tempLineProp.width = 0;
+												console.log("aasdd")
+												break;
+											}
+
 											if(overrideSerial > temp.overrideSerialNumber){
 												tempLineProp.width = 0.1;
 												tempLineProp.left = 1;
@@ -1134,6 +1241,12 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 												tempLineProp.left = 1;
 												tempLineProp.right = 1;
 												tempLineProp.sameDir = true;
+											}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+												tempLineProp.width = 0.1;
+												tempLineProp.left = 1;
+												tempLineProp.right = 1;
+												tempLineProp.sameDir = true;
+												tempLineProp.slowlane = false;
 											}else{
 												tempLineProp.width = 0;
 											}
@@ -1144,7 +1257,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 
 							if(check){
 								check = false;
-							}else if(roadRecord.record.road[i + 1].type !== "road" || roadRecord.record.stop[stopIndex + 1].type !== "road"){
+							}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
 								check = true;
 							}
 
@@ -1164,7 +1277,8 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							if(
 								lineProp.left !== tempLineProp.left||
 								lineProp.right !== tempLineProp.right||
-								lineProp.sameDir !== tempLineProp.sameDir
+								lineProp.sameDir !== tempLineProp.sameDir||
+								lineProp.slowlane !== tempLineProp.slowlane
 							){
 								check = true;
 							}
@@ -1197,6 +1311,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							lineProp.left = tempLineProp.left;
 							lineProp.right = tempLineProp.right;
 							lineProp.sameDir = tempLineProp.sameDir;
+							lineProp.slowlane = tempLineProp.slowlane;
 						}
 
 						//intermidiate section
@@ -1221,7 +1336,7 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						check = false;
 						if(i === roadRecord.record.road.length - 1){
 							check = true;
-						}else if(roadRecord.record.road[i + 1].type !== "road"){
+						}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
 							check = true;
 						}
 						
@@ -1437,7 +1552,9 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 				if(i === 0){
 					startX = componentX.stop[i] + marking15cm;
 				}else if(roadRecord.record.stop[i - 1].type === "road"){
-					if((record.crossability & 0b1) === 0 || (roadRecord.record.stop[i - 1].crossability & 0b10) === 0){
+					if(record.type === "slowlane"){
+						startX = componentX.stop[i] + marking10cm * 0.5;
+					}else if((record.crossability & 0b1) === 0 || (roadRecord.record.stop[i - 1].crossability & 0b10) === 0){
 						startX = componentX.stop[i] + marking10cm * 1.5;
 					}else{
 						startX = componentX.stop[i] + marking10cm * 0.5;

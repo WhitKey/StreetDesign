@@ -102,8 +102,8 @@ function AddRoadMarking(context, xOffset, points, lineProp){
 	
 	
 	
-	// 15 cm line
-	if(lineProp.width !== 0.1){
+	//single line
+	if(lineProp.width !== 0.1 || lineProp.slowlane){
 		if(lineProp.width === 0.15){
 			if(lineProp.right === 1){
 				yOffset = -lineProp.width / 2;
@@ -111,6 +111,7 @@ function AddRoadMarking(context, xOffset, points, lineProp){
 				yOffset = lineProp.width / 2;
 			}
 		}
+		
 		context.beginPath();
 		context.setLineDash([]);
 		context.strokeStyle = color;
@@ -236,7 +237,7 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 	model.model.forEach(element => {
 		//build component
 		if(element.type === "component"){
-			if(element.componentType === "road" || element.componentType === "shoulder" )return;
+			if(element.componentType === "road" || element.componentType === "shoulder" || element.componentType === "slowlane")return;
 
 			let moveFlag = true;
 			let shape = new THREE.Shape();
@@ -554,7 +555,7 @@ function init(modelParameter) {
 		//] );
 		//scene.background = textureCube;
 
-		scene.background = new THREE.Color(0xffffff);
+		scene.background = new THREE.Color(0xb0b0b0);
 	}
 
 
