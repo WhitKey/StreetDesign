@@ -145,6 +145,14 @@ const TempStorageTemplate = {
 	roadType: "primary"
 }
 
+const ComponentType2Name = {
+	shoulder:"路肩",
+	road:"道路",
+	sidewalk:"人行道",
+	bollard:"分隔島",
+	slowlane:"慢車道"
+}
+
 //left slide out variables
 let leftSlidoutOn = false;
 
@@ -1359,6 +1367,9 @@ function KeyEventHnadler(event){
 	}else if(key === "KeyZ" && event.ctrlKey){
 		RedoUndoKey(event);
 	
+	}else if(key === "Escape"){
+		PropertyEscape(event);
+
 	}
 }
 
@@ -1394,7 +1405,7 @@ function MoveSelect(direction, event){
 	let nextPos = direction;
 	let nextComponent;
 
-	if(targetId === null)return
+	if(targetId === null)return;
 
 	//get next component
 	recordIdx = GetComponentIdx(document.getElementById(targetId));
@@ -1421,6 +1432,12 @@ function RedoUndoKey(event){
 		//ctrl + z
 		OnUndo();
 	}
+}
+
+function PropertyEscape(event){
+	if(currentStage >= 2)return;
+	if(propertyEditorElement.getAttribute("target") === null)return;
+	PropertySettingExitTrigger();
 }
 
 //-------------------------------------
@@ -2038,7 +2055,6 @@ function IntermidiateValidation( updateWarningPopup = false){
 	}
 
 	//check all road, sidewalk, slowlane has connection
-	
 	for(let i = 0;i<roadSegmentRecord.length; ++i){
 		let record = roadSegmentRecord[i];
 		if(record.type==="cc"){
@@ -2062,20 +2078,14 @@ function IntermidiateValidation( updateWarningPopup = false){
 	//checking road section
 	for(let i = 0;i<tempStorage.road.length;++i){
 		let record = tempStorage.road[i];
-		if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
-			if(!hasConnect.road.includes(i)){
-				check = false;
-				if(updateWarningPopup){
-					if(record.type === "road"){
-						WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 需連結至儲車段`, 3);
-					}else if(record.type === "sidewalk"){
-						WarningPopupAddMessage(`道路段第${i+1}個物件(人行道) 需連結至儲車段`, 3);
-					}else if(record.type === "slowlane"){
-						WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 需連結至儲車段`, 3);
-					}
-				}
+		//if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
+		if(!hasConnect.road.includes(i)){
+			check = false;
+			if(updateWarningPopup){
+				WarningPopupAddMessage(`道路段第${i+1}個物件(${ComponentType2Name[record.type]}) 需連結至儲車段`, 3);
 			}
 		}
+		//}
 		
 		//slow lane can only has one connection
 		if(record.type === "slowlane"){
@@ -2091,20 +2101,16 @@ function IntermidiateValidation( updateWarningPopup = false){
 	//checking stop section
 	for(let i = 0;i<tempStorage.stop.length;++i){
 		let record = tempStorage.stop[i];
-		if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
-			if(!hasConnect.stop.includes(i)){
+		//if(record.type==="road" || record.type === "sidewalk" || record.type === "slowlane"){
+		if(!hasConnect.stop.includes(i)){
+			if(updateWarningPopup){
 				if(updateWarningPopup){
-					if(record.type === "road"){
-						WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 需連結至道路段`, 3);
-					}else if(record.type === "sidewalk"){
-						WarningPopupAddMessage(`儲車段第${i+1}個物件(人行道) 需連結至道路段`, 3);
-					}else if(record.type === "slowlane"){
-						WarningPopupAddMessage(`儲車段第${i+1}個物件(慢車道) 需連結至道路段`, 3);
-					}
+					WarningPopupAddMessage(`道路段第${i+1}個物件(${ComponentType2Name[record.type]}) 需連結至儲車段`, 3);
 				}
-				check = false;
 			}
+			check = false;
 		}
+		//}
 		
 		//slow lane can only has one connection
 		if(record.type === "slowlane"){
