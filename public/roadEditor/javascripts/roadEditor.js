@@ -119,6 +119,7 @@ const componentDefaultProperty = {
 	"slowlane":{
 		"type": "slowlane",
 		"width": componentDefaultWidth['slowlane'],
+		"direction": 3,
 	},
 };
 
@@ -127,7 +128,7 @@ const componentLayout = {
 	'bollard':[],
 	'sidewalk':[],
 	'shoulder':[],
-	'slowlane':[],
+	'slowlane':["direction"],
 }
 
 const DesignStage = [
@@ -1281,6 +1282,8 @@ window.PropertyToggleTrigger = function(event, callback = null){
 function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
 	let uiList = landElement.getElementsByClassName(componentId);
 	for(let i = 0;i<uiList.length && i < roadSegmentRecord.length;++i){
+
+		//road
 		if(roadSegmentRecord[i].type === "road"){
 			let iconContainer = uiList[i].getElementsByClassName("roadComponentIcon")[0];
 			let direction = roadSegmentRecord[i].direction;
@@ -1306,6 +1309,28 @@ function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
 				else if(exitDirection === 5) iconSrc = "./images/left_right_arrow.svg";
 				else if(exitDirection === 6) iconSrc = "./images/straight_right_arrow.svg";
 				else if(exitDirection === 7) iconSrc = "./images/three_way_arrow.svg";
+			}else{
+				iconSrc = "./images/double_arrow.svg";
+			}
+			iconContainer.innerHTML = `<img src="${iconSrc}"  draggable="false">`;
+		}//slow lane
+		else if(roadSegmentRecord[i].type === "slowlane"){
+			let iconContainer = uiList[i].getElementsByClassName("roadComponentIcon")[0];
+			let direction = roadSegmentRecord[i].direction;
+			let iconSrc = "";
+
+			iconContainer.innerHTML = "";
+			
+			//下行
+			if (direction !== 2){
+				if(!iconContainer.classList.contains("rot180"))iconContainer.classList.add("rot180");
+			}//上行
+			else{
+				if(iconContainer.classList.contains("rot180"))iconContainer.classList.remove("rot180");
+			}
+			
+			if(direction !== 3){
+				iconSrc = "./images/straight_arrow.svg";
 			}else{
 				iconSrc = "./images/double_arrow.svg";
 			}
@@ -2054,9 +2079,11 @@ function IntermidiateValidation( updateWarningPopup = false){
 		
 		//slow lane can only has one connection
 		if(record.type === "slowlane"){
-			if(connectivity.road[i].length > 1){
-				check = false;
-				WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
+			if(connectivity.road[i]){
+				if(connectivity.road[i].length > 1){
+					check = false;
+					WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
+				}
 			}
 		}
 	}
@@ -2081,9 +2108,11 @@ function IntermidiateValidation( updateWarningPopup = false){
 		
 		//slow lane can only has one connection
 		if(record.type === "slowlane"){
-			if(connectivity.road[i].length > 1){
-				check = false;
-				WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
+			if(connectivity.stop[i]){
+				if(connectivity.stop[i].length > 1){
+					check = false;
+					WarningPopupAddMessage(`道路段第${i+1}個物件(慢車道) 只能有最多一個連結`, 3);
+				}
 			}
 		}
 	}
@@ -2092,45 +2121,78 @@ function IntermidiateValidation( updateWarningPopup = false){
 	//check road section road exit direction connectivity
 	for(let i = 0;i< tempStorage.road.length;++i){
 		let record = tempStorage.road[i];
-		if(record.type === "road" && record.direction !== 3){
-			let temp = 0;
-			if(connectivity.road[i] !== undefined){
-				for(let j = 0;j< connectivity.road[i].length;++j){
-					if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
-						temp |= tempStorage.stop[connectivity.road[i][j]].exitDirection;
+		if(record.type === "road"){
+			if(record.direction !== 3){
+				let temp = 0;
+				if(connectivity.road[i] !== undefined){
+					for(let j = 0;j< connectivity.road[i].length;++j){
+						if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
+							temp |= tempStorage.stop[connectivity.road[i][j]].exitDirection;
+						}
 					}
 				}
-			}
-			
-
-			if(record.exitDirection - temp > 0){
-				if(updateWarningPopup){
-					WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 儲車段方向缺失`, 3);
+				
+	
+				if(record.exitDirection - temp > 0){
+					if(updateWarningPopup){
+						WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 儲車段方向缺失`, 3);
+					}
+					check = false;
 				}
-				check = false;
+			}else{
+				let roadLinkCounter = 0;
+				if(connectivity.road[i] !== undefined){
+					for(let j = 0;j< connectivity.road[i].length;++j){
+						if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
+							++roadLinkCounter;
+						}
+					}
+				}
+
+				if(roadLinkCounter === 0){
+					WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 儲車段需連接道路`, 3);
+					check = false;
+				}
 			}
+
 		}
 	}
 
 	//check stop section road exit direction connectivity
 	for(let i = 0;i< tempStorage.stop.length;++i){
 		let record = tempStorage.stop[i];
-		if(record.type === "road" && record.direction !== 3){
-			let temp = 0;
-			if(connectivity.stop[i] !== undefined){
-				for(let j = 0;j< connectivity.stop[i].length;++j){
-					if(tempStorage.road[connectivity.stop[i][j]].type === "road"){
-						temp |= tempStorage.road[connectivity.stop[i][j]].exitDirection;
+		if(record.type === "road"){
+			if(record.direction !== 3){
+				let temp = 0;
+				if(connectivity.stop[i] !== undefined){
+					for(let j = 0;j< connectivity.stop[i].length;++j){
+						if(tempStorage.road[connectivity.stop[i][j]].type === "road"){
+							temp |= tempStorage.road[connectivity.stop[i][j]].exitDirection;
+						}
 					}
 				}
-			}
-			
-
-			if(record.exitDirection - temp > 0){
-				if(updateWarningPopup){
-					WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 車道段方向缺失`, 3);
+				
+	
+				if(record.exitDirection - temp > 0){
+					if(updateWarningPopup){
+						WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 道路段方向缺失`, 3);
+					}
+					check = false;
 				}
-				check = false;
+			}else{
+				let roadLinkCounter = 0;
+				if(connectivity.road[i] !== undefined){
+					for(let j = 0;j< connectivity.road[i].length;++j){
+						if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
+							++roadLinkCounter;
+						}
+					}
+				}
+
+				if(roadLinkCounter === 0){
+					WarningPopupAddMessage(`儲車段第${i+1}個物件(道路) 道路段需連接道路`, 3);
+					check = false;
+				}
 			}
 		}
 	}
@@ -2498,11 +2560,47 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 	let centerRoadRecord = null;
 	let check = false;
 
-	if(roadRecord.type !== stopRecord.type) return false;
+	if(roadRecord.type !== stopRecord.type) {
+		if(!((roadRecord.type === "road" && stopRecord.type === "slowlane") || (roadRecord.type === "slowlane" && stopRecord.type === "road"))){
+			//type mismatch
+			return false;
+		}else{
+			if(!draging){
+				let roadLinkCounter = 0;
+				let stopLinkCounter = 0;
 	
-	if(roadRecord.type === "road"){
+				for(let i = 0;i< roadSegmentRecord.length;++i){
+					let record = roadSegmentRecord[i];
+	
+					if(record.roadIndex === roadIndex){
+						++roadLinkCounter;
+					}
+	
+					if(record.stopIndex === stopIndex){
+						++stopLinkCounter;
+					}
+				}
+	
+				if(roadRecord.type === "slowlane"){
+					if(roadLinkCounter !== 0)return false;
+				}
+	
+				if(stopRecord.type === "slowlane"){
+					if(stopLinkCounter !== 0)return false;
+				}
+			}
+		}
+	}
+
+	//road - road link property verification
+	if(roadRecord.type === "road" && stopRecord.type === "road"){
 		if(roadRecord.direction !== stopRecord.direction)return false;
 		if((roadRecord.exitDirection & stopRecord.exitDirection) === 0) return false; 
+	}
+
+	// slowlane - road/slowlane link verification
+	if((roadRecord.type === "slowlane" &&(stopRecord.type === "road" || stopRecord.type === "slowlane")) || (stopRecord.type === "slowlane" &&(roadRecord.type === "road" || roadRecord.type === "slowlane"))){
+		if(roadRecord.direction !== stopRecord.direction) return false; 
 	}
 
 	for(let i =0;i<roadSegmentRecord.length;++i){
@@ -2521,9 +2619,10 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 		//check link crossing
 		if((record.roadIndex < roadIndex && record.stopIndex > stopIndex) || (record.roadIndex > roadIndex && record.stopIndex < stopIndex) )return false;
 
+
 		if(!draging){
 			if(roadRecord.type === "road"){
-				if(record.roadIndex === roadIndex){
+				if(record.roadIndex === roadIndex && tempStorage.stop[record.stopIndex].type === "road"){
 					if(centerRoadRecord === null){
 						centerRoadRecord = record;
 					}else{
@@ -2534,8 +2633,10 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 						}
 					}
 				}
-				
-				if(record.stopIndex === stopIndex){
+			}
+
+			if(stopRecord.type === "road"){
+				if(record.stopIndex === stopIndex && tempStorage.road[record.roadIndex].type === "road"){
 					if(centerStopRecord === null){
 						centerStopRecord = record;
 					}else{
@@ -2551,7 +2652,7 @@ function VerifyLink(roadIndex, stopIndex, tempStorage){
 	}
 
 	if(!draging){
-		if(!isCenter && roadRecord.type === "road"){
+		if(!isCenter && (roadRecord.type === "road" || roadRecord.type === "slowlane" || stopRecord.type === "slowlane")){
 			for(let i = 0;i < roadSegmentRecord.length;++i){
 				let record = roadSegmentRecord[i];
 				if(centerStopRecord !== null){
@@ -2700,14 +2801,48 @@ function VerifyAndLink(roadIndex, stopIndex){
 	let centerStopRecord = null;
 	let centerRoadRecord = null;
 
+	//slowlane connection limit
+	if(roadRecord.type === "slowlane" || stopRecord.type === "slowlane"){
+		let roadConnectionCounter = 0;
+		let stopConnectionCounter = 0;
+		
+		for(let i = 0;i<roadSegmentRecord.length;++i){
+			let record = roadSegmentRecord[i];
+			if(record.roadIndex === roadIndex){
+				++roadConnectionCounter;
+			}
+
+			if(record.stopIndex === stopIndex){
+				++stopConnectionCounter;
+			}
+		}
+
+		if(roadRecord.type === "slowlane" && roadConnectionCounter !== 0){
+			CreateLinkErrorMsg("慢車道過多連結");
+			return false;
+		}
+		
+		if(stopRecord.type === "slowlane" && stopConnectionCounter !== 0){
+			CreateLinkErrorMsg("慢車道過多連結");
+			return false;
+		}
+
+	}
+
+	
+
 	// link component type check
 	if(roadRecord.type !== stopRecord.type){
+		if(!((roadRecord.type === "slowlane" && stopRecord.type === "road") || (roadRecord.type === "road" && stopRecord.type === "slowlane"))){
 		CreateLinkErrorMsg("不同種類物件連結");
 		return false;
+		}else{
+			isCenter = false;
+		}
 	}
 
 	//road component check
-	if(roadRecord.type === "road"){
+	if(roadRecord.type === "road" && stopRecord.type === "road"){
 		if(roadRecord.direction !== stopRecord.direction){
 			CreateLinkErrorMsg("上/下行 不匹配");
 			return false;
@@ -2716,6 +2851,15 @@ function VerifyAndLink(roadIndex, stopIndex){
 			CreateLinkErrorMsg("出口方向 不匹配");
 			return false; 
 		}	
+	}
+
+
+	// slowlane - road/slowlane link verification
+	if((roadRecord.type === "slowlane" &&(stopRecord.type === "road" || stopRecord.type === "slowlane")) || (stopRecord.type === "slowlane" &&(roadRecord.type === "road" || roadRecord.type === "slowlane"))){
+		if(roadRecord.direction !== stopRecord.direction){
+			CreateLinkErrorMsg("上/下行 不匹配");
+			return false;
+		}
 	}
 
 	// find center component
@@ -2737,8 +2881,9 @@ function VerifyAndLink(roadIndex, stopIndex){
 			return false;
 		}
 
+		//get center component
 		if(roadRecord.type === "road"){
-			if(record.roadIndex === roadIndex){
+			if(record.roadIndex === roadIndex && tempStorage.stop[record.stopIndex].type === "road"){
 				if(centerRoadRecord === null){
 					centerRoadRecord = record;
 				}else{
@@ -2749,8 +2894,10 @@ function VerifyAndLink(roadIndex, stopIndex){
 					}
 				}
 			}
-			
-			if(record.stopIndex === stopIndex){
+		}
+
+		if(stopRecord.type === "road"){
+			if(record.stopIndex === stopIndex && tempStorage.road[record.roadIndex].type === "road"){
 				if(centerStopRecord === null){
 					centerStopRecord = record;
 				}else{
@@ -2764,7 +2911,8 @@ function VerifyAndLink(roadIndex, stopIndex){
 		}
 	}
 
-	if(!isCenter && roadRecord.type === "road"){
+	//road branch limit
+	if(!isCenter && (roadRecord.type === "road" || stopRecord.type === "road")){
 		for(let i = 0;i < roadSegmentRecord.length;++i){
 			let record = roadSegmentRecord[i];
 			if(centerStopRecord !== null){
@@ -2837,9 +2985,9 @@ function VerifyAndLink(roadIndex, stopIndex){
 	
 	for(let i =0;i<roadSegmentRecord.length;++i){
 		let record = roadSegmentRecord[i];
-		if(roadRecord.type === "road"){
+		if(roadRecord.type === "road"|| stopRecord.type === "road"){
 			//check link position
-
+			console.log(centerRoadRecord, centerStopRecord);
 			if(centerRoadRecord !== null){
 				if(record.roadIndex === centerRoadRecord.roadIndex){
 					if(record.stopIndex < centerRoadRecord.stopIndex){
