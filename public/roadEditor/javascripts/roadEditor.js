@@ -1245,7 +1245,7 @@ window.RerenderPropertyToggle = function(event){
 	}
 	console.log("rerender property config");
 	toggleBlock.innerHTML = propertyCards;
-	UpdateRoadExitDirectionIcon();
+	UpdateRoadExitDirectionIcon("drag");
 	UpdateMarkingSpace();
 }
 
@@ -1292,14 +1292,13 @@ window.PropertyToggleTrigger = function(event, callback = null){
 function UpdateRoadExitDirectionIcon(componentId = "roadComponent"){
 	let uiList = landElement.getElementsByClassName(componentId);
 	for(let i = 0;i<uiList.length && i < roadSegmentRecord.length;++i){
-
+		
 		//road
 		if(roadSegmentRecord[i].type === "road"){
 			let iconContainer = uiList[i].getElementsByClassName("roadComponentIcon")[0];
 			let direction = roadSegmentRecord[i].direction;
 			let exitDirection = roadSegmentRecord[i].exitDirection;
 			let iconSrc = "";
-
 			iconContainer.innerHTML = "";
 			
 			//下行
