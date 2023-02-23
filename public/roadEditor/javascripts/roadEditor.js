@@ -837,7 +837,9 @@ window.ComponentDrag = function(event) {
 				dragDest = hitComponentIdx + 1;
 			}
 
-			if(dragDest < 0)dragDest = -2;
+			
+			if(hitComponentIdx < 0)dragDest = -2;
+
 		}else{
 			dragDest = -2;
 		}
@@ -908,7 +910,7 @@ window.ComponentDragEnd = function(event) {
 		// cleanup placeholder
 		if(placeholderPos !== null){
 			RemovePlaceholder(`placeholder_${placeholderId}`, true);
-			placeholderPos === null;
+			placeholderPos = null;
 		}
 		return;
 	}
@@ -936,7 +938,7 @@ window.ComponentDragEnd = function(event) {
 	// cleanup placeholder
 	if(placeholderPos !== null){
 		RemovePlaceholder(`placeholder_${placeholderId}`, true);
-		placeholderPos === null;
+		placeholderPos = null;
 	}
 }
 
