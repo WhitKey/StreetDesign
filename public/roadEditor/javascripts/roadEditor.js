@@ -1165,12 +1165,12 @@ function ConfigPropertySetting(compId, compType){
 	<div class="propertySettingFrame">
 		<h1 style="max-height:45px; overflow:hidden;flex-shrink:0;">屬性設定</h1>
 		<div id="propertySettings" component_idx=${compIdx}>
-			<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
+			<div class="componentTypeDisplay"> ${ComponentType2Name[compType]} </div>
+			<div class="input-group mb-1 mt-1" style="max-height:40px; overflow:hidden;">
 				<span class="input-group-text" id="basic-addon1" style="white-space: nowrap;">寬度</span>
 				<input onchange="PropertySettingChange(event, 'width');" type="number" class="form-control" value="${propertyRecord['width']}" min="${componentMinWidth[compType]}" step="0.1" aria-describedby="basic-addon1">
 				<span class="input-group-text" id="basic-addon1">m</span>
 			</div>
-			<!--<div class="window propertyCollection"></div>-->
 			<div id="propertyToggles">
 				${propertyCards}
 			</div>

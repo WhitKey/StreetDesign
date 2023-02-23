@@ -8,6 +8,13 @@
 	width:100%;
 }
 
+#propertySettings .componentTypeDisplay{
+	height: 25px;
+	padding-left: 5px;
+	line-height: 25px;
+	font-size: large;
+}
+
 .propertyName{
 	text-align: center;
 	margin-right: 5px;
