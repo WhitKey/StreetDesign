@@ -282,7 +282,7 @@ function InputValidation(storageJSON){
 							connectivity.stop[record.stopIndex] = [record.roadIndex];
 						}
 						
-						if(storageJSON.road[record.roadIndex].type === "road"){
+						if(storageJSON.road[record.roadIndex].type === "road" || storageJSON.road[record.roadIndex].type === "slowlane"){
 							let temp = Math.abs(
 								(tempVariable.componentX.road[record.roadIndex] + tempVariable.componentX.road[record.roadIndex + 1]) / 2 - 
 								(tempVariable.componentX.stop[record.stopIndex] + tempVariable.componentX.stop[record.stopIndex + 1]) / 2
@@ -1051,10 +1051,10 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 						}else if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane"){
 							tempLineProp.width = 0.15;
 						}else if((roadRecord.record.road[i].type === "road" && roadRecord.record.road[i - 1].type === "slowlane")|| (roadRecord.record.road[i].type === "slowlane" && roadRecord.record.road[i - 1].type === "road")){
-							let tempRecord = roadRecord.record.stop[stopIndex - 1];
+							let tempRecord = roadRecord.record.road[i - 1];
 							tempLineProp.width = 0.1;
 							tempLineProp.slowlane = true;
-							tempLineProp.sameDir = stopRecord.direction === tempRecord.direction;
+							tempLineProp.sameDir = record.direction === tempRecord.direction;
 							tempLineProp.left = 0;
 							tempLineProp.right = 0;
 						}else{
