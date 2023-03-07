@@ -2169,7 +2169,7 @@ function IntermidiateValidation( updateWarningPopup = false){
 						}
 					}
 				}
-
+				
 				if(roadLinkCounter === 0){
 					WarningPopupAddMessage(`道路段第${i+1}個物件(道路) 儲車段需連接道路`, 3);
 					check = false;
@@ -2202,9 +2202,9 @@ function IntermidiateValidation( updateWarningPopup = false){
 				}
 			}else{
 				let roadLinkCounter = 0;
-				if(connectivity.road[i] !== undefined){
-					for(let j = 0;j< connectivity.road[i].length;++j){
-						if(tempStorage.stop[connectivity.road[i][j]].type === "road"){
+				if(connectivity.stop[i] !== undefined){
+					for(let j = 0;j< connectivity.stop[i].length;++j){
+						if(tempStorage.road[connectivity.stop[i][j]].type === "road"){
 							++roadLinkCounter;
 						}
 					}
