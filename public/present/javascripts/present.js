@@ -15,8 +15,8 @@ const MinIntermidiateSectionLength = 1;
 const RoadLength3d = 50;
 
 const ComponentType2Name = {
-	shoulder:"路肩",
-	road:"道路",
+	shoulder:"停車帶",
+	road:"車道",
 	sidewalk:"人行道",
 	bollard:"分隔島",
 	slowlane:"慢車道"
