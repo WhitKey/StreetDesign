@@ -140,12 +140,15 @@ window.onload = function(){
 	crossViewElement = document.getElementById("crossView");
 
 	BuildCrossSectionView(tempStorage);
-	if(tempStorage.confirm !== 1){
-		document.getElementById("mainWindow").classList.add("confirm");
-		SwitchConfirmStage();
-		return;
-	}
+	//if(tempStorage.confirm !== 1){
+	//	document.getElementById("mainWindow").classList.add("confirm");
+	//	SwitchConfirmStage();
+	//	return;
+	//}
 	
+	tempStorage.confirm = 1;
+	localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
+
 	BuildIntersection();
 	Switch2DRoad();
 }
@@ -157,24 +160,14 @@ window.onload = function(){
 //------------------------------------------
 window.OnReturnToEditor = function(){
 	console.log("return to editor");
-	console.log(EditorPath);
-	location.replace(EditorPath);
-}
-
-window.OnConfirm = function (){
-	//change into present stage
-	document.getElementById("mainWindow").classList.remove("confirm");
-
-	//change tempStorage
+	
+	// unconfirm
 	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
-	tempStorage.confirm = 1;
+	tempStorage.confirm = 0;
 	localStorage.setItem("tempStorage", JSON.stringify(tempStorage));
 
-	// build intersection Record
-	BuildIntersection();
-
-	//switch stage
-	Switch2DRoad();
+	//jump to editor
+	location.replace(EditorPath);
 }
 
 window.OnTo3D = function (){
@@ -2134,18 +2127,6 @@ function SetToolbar(sectionTarget, stateName, dimensionTarget){
 	
 	stateNameElement.innerText = stateName;
 
-}
-
-function SwitchConfirmStage(){
-	console.log("switch confirm stage");
-	currentStage = 0;
-
-	//set working area
-	workingAreaElement.classList.add("road");
-	workingAreaElement.classList.remove("intersection");
-
-	tempVariable.resizeFunction = ()=>{BuildRoadStageSvg(intersectionRecord.primaryRoad, "roadRenderArea")};
-	BuildRoadStageSvg(intersectionRecord.primaryRoad,  "roadRenderArea");
 }
 
 function Switch2DRoad(){

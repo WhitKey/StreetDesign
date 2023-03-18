@@ -25,6 +25,9 @@
 		<div id="mainWindow" draggable="false">
 			<div id="toolbar">
 				<div id="sectionCntlGroup">
+					<button id="returnBtn" onclick="OnReturnToEditor();">
+						返回
+					</button>
 				</div>
 				<div id="stateName"></div>
 				<div id="dimensionCntlGroup">
@@ -66,8 +69,7 @@
 					</div>
 				</div>
 			</div>
-			<button id="prevButton" class="stageCntlButton" onclick="OnReturnToEditor();">上一步</button>
-			<button id="nextButton" class="stageCntlButton" onclick="OnConfirm();"> 確定</button>
+
 		</div>
 		
 		<script type="module" src="./javascripts/present.js?t=1"></script>

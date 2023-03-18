@@ -2562,7 +2562,8 @@ function EnterIntermidiateStage(){
 	document.getElementById("widthInfo").style.display = "none";
 	
 	//update stage control button text
-	nextButtonElement.innerText = "下";
+	nextButtonElement.innerText = "完成";
+	nextButtonElement.title = "進入檢視階段";
 	prevButtonElement.innerText = "上";
 	
 	console.log("enter imtermidiate stage");
@@ -2587,6 +2588,7 @@ function ExitIntremidiateStage(){
 
 	//update stage control button text
 	nextButtonElement.innerText = "下一步";
+	nextButtonElement.title = "下一步";
 	prevButtonElement.innerText = "上一步";
 
 	console.log("exit intermidate stage");
