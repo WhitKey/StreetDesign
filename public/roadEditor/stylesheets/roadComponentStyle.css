@@ -76,6 +76,11 @@
 	display: flex;
 }
 
+.typeMode * .road {
+	background-color: hsl(0, 0%, 11%);
+	fill: hsl(0, 0%, 11%);
+}
+
 svg .road{
 	fill: hsl(0, 0%, 11%);
 }
@@ -86,6 +91,11 @@ svg .road{
 	display: flex;
 }
 
+.typeMode * .slowlane{
+	background-color: hsl(66, 66%, 29%);
+	fill:hsl(66, 66%, 29%);
+}
+
 svg .slowlane{
 	fill: hsl(0, 0%, 11%);
 }
@@ -94,6 +104,11 @@ svg .slowlane{
 	background-color: hsl(0, 0%, 11%);
 	flex-shrink: 1;
 	display: flex;
+}
+
+.typeMode * .shoulder{
+	background-color: cadetblue;
+	fill: cadetblue;
 }
 
 svg .shoulder{

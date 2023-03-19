@@ -35,37 +35,17 @@
 							車道
 						</div>
 						<div class="componentListItemIcon">
-							<div style="background-color: hsl(0, 0%, 11%);"></div>
+							<div class="road"></div>
 						</div>
 					</div>
-
-					<!-- sidewalk -->
-					<div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="sidewalk">
-						<div class="componentListItemLabel">
-							人行道
-						</div>
-						<div class="componentListItemIcon">
-							<div style="background-color: rgb(145, 39, 39);"></div>
-						</div>
-					</div>
-
-					<!-- bollard -->
-					<div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="bollard">
-						<div class="componentListItemLabel">
-							分隔島
-						</div>
-						<div class="componentListItemIcon">
-							<div style="background-color: rgb(143, 143, 143);"></div>
-						</div>
-					</div>
-
+					
 					<!-- shoulder -->
 					<div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="shoulder">
 						<div class="componentListItemLabel">
 							停車帶
 						</div>
 						<div class="componentListItemIcon">
-							<div style="background-color: hsl(0, 0%, 11%);"></div>
+							<div class="shoulder"></div>
 						</div>
 					</div>
 
@@ -75,7 +55,27 @@
 							慢車道
 						</div>
 						<div class="componentListItemIcon">
-							<div style="background-color: hsl(0, 0%, 11%);"></div>
+							<div class="slowlane"></div>
+						</div>
+					</div>
+
+					<!-- sidewalk -->
+					<div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="sidewalk">
+						<div class="componentListItemLabel">
+							人行道
+						</div>
+						<div class="componentListItemIcon">
+							<div class="sidewalk"></div>
+						</div>
+					</div>
+
+					<!-- bollard -->
+					<div class="window componentListItem drag" draggable="false" ontouchstart="ComponentDragStart(event)" onmousedown="ComponentDragStart(event)" component="bollard">
+						<div class="componentListItemLabel">
+							分隔島
+						</div>
+						<div class="componentListItemIcon">
+							<div class="bollard"></div>
 						</div>
 					</div>
 				</div>
@@ -90,7 +90,10 @@
 				<div style="position: absolute; height:100%;width:90%;background-color:rgb(161, 114, 43);left:5%;z-index:-1;"></div>
 				<div id="trashcan" class="roadScope"><i style="border: solid 3px;border-radius: 50%;padding: 1rem; font-size:xx-large;color: rgb(206, 206, 206);border-color: rgb(206, 206, 206);" class="fa-solid fa-trash"></i></div>
 				<div id="designInfo" class="unusedSection roadScope" style="background-color: white;">
-					<div id="rightInfo">
+					<div id="leftInfo">
+						<div style="width:50%;height:100%;display: flex; justify-content: center;align-items: center;">
+							<div id="typeColoringModeBtn" class="window stageCntlButton active" style="line-height:40px; min-width:fit-content ;text-align:center;height:90%; width:90%;" title="切換至類型模式" onclick="OnToggleTypeColoringMode();">預覽模式</div>
+						</div>
 						<div style="width:50%;height:80%;display:flex;justify-content:center;flex-direction:column;">
 							<div style="width:100%;height:30%;">
 								<div class="progressCase">
@@ -107,7 +110,7 @@
 					<div id="stageNameInfo" >
 						<span id="stageName"></span>
 					</div>
-					<div id="leftInfo">
+					<div id="rightInfo">
 						<div id="widthInfo">
 							<span id="designedWidthIndicator"></span>
 							<span>m/</span>
@@ -158,7 +161,7 @@
 
 			
 			<!-- slowlane -->
-			<div id="slowlaneTemplate" class="road component">
+			<div id="slowlaneTemplate" class="slowlane component">
 				<div class = "roadComponentIcon" draggable="false"></div>
 			</div>
 			

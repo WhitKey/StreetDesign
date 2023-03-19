@@ -18,6 +18,7 @@ let nextButtonElement = document.getElementById("nextButton");
 let prevButtonElement = document.getElementById("prevButton");
 let warningPopupElement = document.getElementById("warningPopup");
 let midErrorWindowElement = document.getElementById("midErrorWindow");
+let typeColoringModeButtonElement = document.getElementById("typeColoringModeBtn");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -52,6 +53,7 @@ let maxStackStep = 50;
 let tempVariables = {};
 
 //stage indecator
+let typeColoringMode = false;
 let currentStage = 0;
 const StageName = {
 	0:"道路段",
@@ -249,6 +251,7 @@ function InitElementVariables(){
 	undoButtonElement = document.getElementById("undoButton");
 	nextButtonElement = document.getElementById("nextButton");
 	prevButtonElement = document.getElementById("prevButton");
+	typeColoringModeButtonElement = document.getElementById("typeColoringModeBtn");
 
 	//window element
 	warningPopupElement = document.getElementById("warningPopup");
@@ -1807,6 +1810,20 @@ window.OnClearLand = function(){
 	ClearRoadSegmentRecord();
 	PushUndoStack(tempVariables.state);
 	UpdateMarkingSpace();
+}
+
+window.OnToggleTypeColoringMode = function(){
+	typeColoringMode = !typeColoringMode;
+	if(typeColoringMode){
+		typeColoringModeButtonElement.title = "切換至預覽模式";
+		typeColoringModeButtonElement.innerText = "類型模式";
+		document.body.classList.add("typeMode");
+	}else{
+		typeColoringModeButtonElement.title = "切換至類型模式";
+		typeColoringModeButtonElement.innerText = "預覽模式";
+		document.body.classList.remove("typeMode");
+	}
+	console.log(typeColoringModeButtonElement);
 }
 
 //------------------------------
