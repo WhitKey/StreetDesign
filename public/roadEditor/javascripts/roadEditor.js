@@ -19,6 +19,7 @@ let prevButtonElement = document.getElementById("prevButton");
 let warningPopupElement = document.getElementById("warningPopup");
 let midErrorWindowElement = document.getElementById("midErrorWindow");
 let typeColoringModeButtonElement = document.getElementById("typeColoringModeBtn");
+let importFromSectionButtonElement = document.getElementById("sectionImportButton");
 
 //road element template
 let roadTemplate = document.getElementById("land");
@@ -252,6 +253,7 @@ function InitElementVariables(){
 	nextButtonElement = document.getElementById("nextButton");
 	prevButtonElement = document.getElementById("prevButton");
 	typeColoringModeButtonElement = document.getElementById("typeColoringModeBtn");
+	importFromSectionButtonElement = document.getElementById("sectionImportButton");
 
 	//window element
 	warningPopupElement = document.getElementById("warningPopup");
@@ -1826,6 +1828,27 @@ window.OnToggleTypeColoringMode = function(){
 	console.log(typeColoringModeButtonElement);
 }
 
+window.OnImportFromSection = function(){
+	if(!importFromSectionButtonElement.classList.contains("active"))return;
+	
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	tempVariables.state = JSON.parse(JSON.stringify(roadSegmentRecord));
+
+	console.log(tempStorage);
+	if(currentStage === 1){
+		console.log("import road -> stop");
+		PushUndoStack(tempVariables.state);
+		ImportRoadSegmentRecordJSON(tempStorage.road);
+		UpdateWidthInfo();
+	}else if(currentStage === 0){
+		console.log("import stop -> road");
+		PushUndoStack(tempVariables.state);
+		ImportRoadSegmentRecordJSON(tempStorage.stop);
+		UpdateWidthInfo();
+	}
+	UpdateMarkingSpace();
+}
+
 //------------------------------
 //
 // Validation functions
@@ -2374,6 +2397,32 @@ function UpdatePrevButtonVis(){
 		prevButtonElement.classList.remove("active");
 	}else{
 		prevButtonElement.classList.add("active");
+	}
+
+	// update import from section button
+	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
+	if(currentStage == 1){
+		
+		importFromSectionButtonElement.title = "載入道路段配置";
+		
+		if(tempStorage.road.length !== 0){
+			importFromSectionButtonElement.classList.add("active");
+		}else{
+			importFromSectionButtonElement.classList.remove("active");
+		}
+		
+	}else if(currentStage == 0){
+		
+		importFromSectionButtonElement.title = "載入儲車段配置";
+
+		if(tempStorage.stop.length !== 0){
+			importFromSectionButtonElement.classList.add("active");
+		}else{
+			importFromSectionButtonElement.classList.remove("active");
+		}
+
+	}else{
+		importFromSectionButtonElement.classList.remove("active");
 	}
 }
 
