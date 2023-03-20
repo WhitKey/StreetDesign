@@ -145,7 +145,7 @@ const TempStorageTemplate = {
 	stage: 0,
 	tempVersion: "1",
 	hasArcade: false,
-	roadType: "primary"
+	roadType: "primary",
 }
 
 const ComponentType2Name = {
@@ -1838,12 +1838,14 @@ window.OnImportFromSection = function(){
 	if(currentStage === 1){
 		console.log("import road -> stop");
 		PushUndoStack(tempVariables.state);
-		ImportRoadSegmentRecordJSON(tempStorage.road);
+		ImportRoadSegmentRecordJSON(JSON.parse(JSON.stringify(tempStorage.road)));
+		SaveTempStorage();
 		UpdateWidthInfo();
 	}else if(currentStage === 0){
 		console.log("import stop -> road");
 		PushUndoStack(tempVariables.state);
-		ImportRoadSegmentRecordJSON(tempStorage.stop);
+		ImportRoadSegmentRecordJSON(JSON.parse(JSON.stringify(tempStorage.stop)));
+		SaveTempStorage();
 		UpdateWidthInfo();
 	}
 	UpdateMarkingSpace();
@@ -2401,11 +2403,13 @@ function UpdatePrevButtonVis(){
 
 	// update import from section button
 	let tempStorage = JSON.parse(localStorage.getItem("tempStorage"));
-	if(currentStage == 1){
+	if(currentStage == 1 ){
 		
 		importFromSectionButtonElement.title = "載入道路段配置";
-		
-		if(tempStorage.road.length !== 0){
+
+		if(tempStorage.road === undefined){
+			importFromSectionButtonElement.classList.remove("active");
+		}else if(tempStorage.road.length !== 0){
 			importFromSectionButtonElement.classList.add("active");
 		}else{
 			importFromSectionButtonElement.classList.remove("active");
@@ -2415,13 +2419,16 @@ function UpdatePrevButtonVis(){
 		
 		importFromSectionButtonElement.title = "載入儲車段配置";
 
-		if(tempStorage.stop.length !== 0){
+		if(tempStorage.stop === undefined){
+			importFromSectionButtonElement.classList.remove("active");
+		}else if(tempStorage.stop.length !== 0){
 			importFromSectionButtonElement.classList.add("active");
 		}else{
 			importFromSectionButtonElement.classList.remove("active");
 		}
-
+		
 	}else{
+		importFromSectionButtonElement.title = "";
 		importFromSectionButtonElement.classList.remove("active");
 	}
 }
