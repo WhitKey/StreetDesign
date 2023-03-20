@@ -516,7 +516,7 @@ function CreateLineMarking(lineProp, points, yOffsetDir = 1, coloroverride = und
 	return rtn;
 }
 
-function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX, build3dFlag = false, buildIntersection = false, roadSection = -1){
+function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiateStartX, intermidiateMidX, intermidiateEndX, build3dFlag = false, buildIntersection = false, roadSection = -1, markingEnable = true){
 	function MarkingPriorty(markingProp){
 		if((markingProp.width === 0.15) || (markingProp.left === 1 && markingProp.right === 1))return -1;
 		
@@ -655,245 +655,211 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 			}
 
 			//marking space
-			if(record.type === "road" || record.type === "slowlane"){
-				let padding = 1 * M2PxFactor;
-				let imgSrc = "";
-				let transform;
-				let deg = 0;
-
-				let serial, overrideSerial;
-				for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
-					if(intermidiateConnectTable.road[i][k].stopIndex === stopIndex){
-						let temp = intermidiateConnectTable.road[i][k];
-						serial = temp.serialNumber;
-						overrideSerial = temp.overrideSerialNumber;
-						break;
-					}
-				}
-
-				//add direction marking
-				//road
-				if(connectedLog.road[i] !== 1){
-					if(record.direction === 3){
-						deg = 90;
-						imgSrc = "../roadEditor/images/double_arrow.svg";
-					}else{
-						if(record.direction === 2){
-							deg = 90;
-						}else{
-							deg = -90;
-						}
-						
-						if(record.type === "road"){
-							switch(record.exitDirection){
-								case 1:
-									imgSrc = "../roadEditor/images/left_arrow.svg";
-									break;
-								case 2:
-									imgSrc = "../roadEditor/images/straight_arrow.svg";
-									break;
-								case 3:
-									imgSrc = "../roadEditor/images/straight_left_arrow.svg";
-									break;
-								case 4:
-									imgSrc = "../roadEditor/images/right_arrow.svg";
-									break;
-								case 5:
-									imgSrc = "../roadEditor/images/left_right_arrow.svg";
-									break;
-								case 6:
-									imgSrc = "../roadEditor/images/straight_right_arrow.svg";
-									break;
-								case 7:
-									imgSrc = "../roadEditor/images/three_way_arrow.svg";
-									break;
-							}
-						}else{
-							imgSrc = "../roadEditor/images/straight_arrow.svg";
-						}
-					}
-					
-					let roadWidth = componentX.road[i + 1] - componentX.road[i];
-					transform = `rotate(${deg}, ${padding + roadWidth / 2}, ${componentX.road[i] + roadWidth / 2})`;
-					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${padding}" y="${componentX.road[i]}"/>`;
-					model.push(
-						{
-							"type": "dirMarking",
-							"section": "road",
-							"src": imgSrc,
-							"rot": deg,
-							"yOffset": componentX.road[i] / M2PxFactor,
-							"roadWidth": roadWidth / M2PxFactor,
-						}
-					);
-				}
-				
-				//stop
-				if(connectedLog.stop[stopIndex] !== 1){
-					let stopRecord = roadRecord.record.stop[stopIndex];
-					if(stopRecord.direction === 3){
-						deg = 90;
-						imgSrc = "../roadEditor/images/double_arrow.svg";
-					}else{
-						if(stopRecord.direction === 2){
-							deg = 90;
-						}else{
-							deg = -90;
-						}
-						
-						if(stopRecord.type === "road"){
-							switch(stopRecord.exitDirection){
-								case 1:
-									imgSrc = "../roadEditor/images/left_arrow.svg";
-									break;
-								case 2:
-									imgSrc = "../roadEditor/images/straight_arrow.svg";
-									break;
-								case 3:
-									imgSrc = "../roadEditor/images/straight_left_arrow.svg";
-									break;
-								case 4:
-									imgSrc = "../roadEditor/images/right_arrow.svg";
-									break;
-								case 5:
-									imgSrc = "../roadEditor/images/left_right_arrow.svg";
-									break;
-								case 6:
-									imgSrc = "../roadEditor/images/straight_right_arrow.svg";
-									break;
-								case 7:
-									imgSrc = "../roadEditor/images/three_way_arrow.svg";
-									break;
-							}
-						}else{
-							imgSrc = "../roadEditor/images/straight_arrow.svg";
-						}
-					}
-					
-					let roadWidth = componentX.stop[stopIndex + 1] - componentX.stop[stopIndex];
-					transform = `rotate(${deg}, ${markingRoadEnd - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
+			if(markingEnable){
+				if(record.type === "road" || record.type === "slowlane"){
+					let padding = 1 * M2PxFactor;
+					let imgSrc = "";
+					let transform;
+					let deg = 0;
 	
-					markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${markingRoadEnd - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
-					model.push(
-						{
-							"type": "dirMarking",
-							"section": "stop",
-							"src": imgSrc,
-							"rot": deg,
-							"yOffset": componentX.stop[stopIndex] / M2PxFactor,
-							"roadWidth": roadWidth / M2PxFactor,
-						}
-					);
-				}
-
-				//add marking
-				{
-					let points = [];
-					let markingModel = [];
-					let lineProp = {
-						left: 0,
-						right: 0,
-						sameDir: false,
-						width: 0,
-						slowlane: false
-					};
-
-					let tempLineProp = {
-						left: 0,
-						right: 0,
-						sameDir: false,
-						width: 0,
-						slowlane: false,
-					};
-					let check;
-					//left
-					
-					//stopSection
-					if(connectedLog.stop[stopIndex] !== 0){
-						if(stopIndex === 0){
-							lineProp.width = 0.15;
-						}else if(roadRecord.record.stop[stopIndex - 1].type !== "road" && roadRecord.record.stop[stopIndex - 1].type !== "slowlane"){
-							lineProp.width = 0.15;
-						}else if((roadRecord.record.stop[stopIndex].type === "road" && roadRecord.record.stop[stopIndex - 1].type === "slowlane")|| (roadRecord.record.stop[stopIndex].type === "slowlane" && roadRecord.record.stop[stopIndex - 1].type === "road")){
-							let tempRecord = roadRecord.record.stop[stopIndex - 1];
-							lineProp.width = 0.1;
-							lineProp.slowlane = true;
-							lineProp.sameDir = stopRecord.direction === tempRecord.direction;
-							lineProp.left = 0;
-							lineProp.right = 0;
-						}else{
-							let tempRecord = roadRecord.record.stop[stopIndex - 1];
-							
-							lineProp.width = 0.1;
-							lineProp.sameDir = stopRecord.direction === tempRecord.direction;
-
-							if(stopRecord.type === "slowlane"){
-								lineProp.left = 1;
-								lineProp.right = 1;
-							}else{
-								lineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
-								lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
-							}
-							lineProp.slowlane = false;
-						}
-
-						points.push([markingRoadEnd, componentX.stop[stopIndex]]);
-						points.push([intermidiateEndX, componentX.stop[stopIndex]]);
-						if(build3dFlag){
-							markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
-							markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
-						}
-
-					}
-
-					//check cover
-					check = false;
-					//check for spliting
+					let serial, overrideSerial;
 					for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
-						if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
-							let temp = intermidiateConnectTable.road[i][k]
-							check = true;
-
-							if(stopRecord.type === "slowlane"){
-								tempLineProp.width = 0;
-								break;
-							}
-							
-							if(overrideSerial > temp.overrideSerialNumber){
-								tempLineProp.width = 0.1;
-								tempLineProp.left = 1;
-								tempLineProp.right = 1;
-								tempLineProp.sameDir = true;
-								tempLineProp.slowlane = false;
-							}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
-								tempLineProp.width = 0.1;
-								tempLineProp.left = 1;
-								tempLineProp.right = 1;
-								tempLineProp.sameDir = true;
-								tempLineProp.slowlane = false;
-							}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
-								tempLineProp.width = 0.1;
-								tempLineProp.left = 1;
-								tempLineProp.right = 1;
-								tempLineProp.sameDir = true;
-								tempLineProp.slowlane = false;
-							}else{
-								tempLineProp.width = 0;
-								tempLineProp.slowlane = false;
-							}
+						if(intermidiateConnectTable.road[i][k].stopIndex === stopIndex){
+							let temp = intermidiateConnectTable.road[i][k];
+							serial = temp.serialNumber;
+							overrideSerial = temp.overrideSerialNumber;
+							break;
 						}
 					}
-					if(!check){
-						for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
-							if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
-								let temp = intermidiateConnectTable.stop[stopIndex][k]
+	
+					//add direction marking
+					//road
+					if(connectedLog.road[i] !== 1){
+						if(record.direction === 3){
+							deg = 90;
+							imgSrc = "../roadEditor/images/double_arrow.svg";
+						}else{
+							if(record.direction === 2){
+								deg = 90;
+							}else{
+								deg = -90;
+							}
+							
+							if(record.type === "road"){
+								switch(record.exitDirection){
+									case 1:
+										imgSrc = "../roadEditor/images/left_arrow.svg";
+										break;
+									case 2:
+										imgSrc = "../roadEditor/images/straight_arrow.svg";
+										break;
+									case 3:
+										imgSrc = "../roadEditor/images/straight_left_arrow.svg";
+										break;
+									case 4:
+										imgSrc = "../roadEditor/images/right_arrow.svg";
+										break;
+									case 5:
+										imgSrc = "../roadEditor/images/left_right_arrow.svg";
+										break;
+									case 6:
+										imgSrc = "../roadEditor/images/straight_right_arrow.svg";
+										break;
+									case 7:
+										imgSrc = "../roadEditor/images/three_way_arrow.svg";
+										break;
+								}
+							}else{
+								imgSrc = "../roadEditor/images/straight_arrow.svg";
+							}
+						}
+						
+						let roadWidth = componentX.road[i + 1] - componentX.road[i];
+						transform = `rotate(${deg}, ${padding + roadWidth / 2}, ${componentX.road[i] + roadWidth / 2})`;
+						markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${padding}" y="${componentX.road[i]}"/>`;
+						model.push(
+							{
+								"type": "dirMarking",
+								"section": "road",
+								"src": imgSrc,
+								"rot": deg,
+								"yOffset": componentX.road[i] / M2PxFactor,
+								"roadWidth": roadWidth / M2PxFactor,
+							}
+						);
+					}
+					
+					//stop
+					if(connectedLog.stop[stopIndex] !== 1){
+						let stopRecord = roadRecord.record.stop[stopIndex];
+						if(stopRecord.direction === 3){
+							deg = 90;
+							imgSrc = "../roadEditor/images/double_arrow.svg";
+						}else{
+							if(stopRecord.direction === 2){
+								deg = 90;
+							}else{
+								deg = -90;
+							}
+							
+							if(stopRecord.type === "road"){
+								switch(stopRecord.exitDirection){
+									case 1:
+										imgSrc = "../roadEditor/images/left_arrow.svg";
+										break;
+									case 2:
+										imgSrc = "../roadEditor/images/straight_arrow.svg";
+										break;
+									case 3:
+										imgSrc = "../roadEditor/images/straight_left_arrow.svg";
+										break;
+									case 4:
+										imgSrc = "../roadEditor/images/right_arrow.svg";
+										break;
+									case 5:
+										imgSrc = "../roadEditor/images/left_right_arrow.svg";
+										break;
+									case 6:
+										imgSrc = "../roadEditor/images/straight_right_arrow.svg";
+										break;
+									case 7:
+										imgSrc = "../roadEditor/images/three_way_arrow.svg";
+										break;
+								}
+							}else{
+								imgSrc = "../roadEditor/images/straight_arrow.svg";
+							}
+						}
+						
+						let roadWidth = componentX.stop[stopIndex + 1] - componentX.stop[stopIndex];
+						transform = `rotate(${deg}, ${markingRoadEnd - padding - roadWidth / 2}, ${componentX.stop[stopIndex] + roadWidth / 2})`;
+		
+						markingSpace += `<image href="${imgSrc}" transform="${transform}" height="${roadWidth}" width="${roadWidth}" x="${markingRoadEnd - padding - roadWidth}" y="${componentX.stop[stopIndex]}"/>`;
+						model.push(
+							{
+								"type": "dirMarking",
+								"section": "stop",
+								"src": imgSrc,
+								"rot": deg,
+								"yOffset": componentX.stop[stopIndex] / M2PxFactor,
+								"roadWidth": roadWidth / M2PxFactor,
+							}
+						);
+					}
+	
+					//add marking
+					{
+						let points = [];
+						let markingModel = [];
+						let lineProp = {
+							left: 0,
+							right: 0,
+							sameDir: false,
+							width: 0,
+							slowlane: false
+						};
+	
+						let tempLineProp = {
+							left: 0,
+							right: 0,
+							sameDir: false,
+							width: 0,
+							slowlane: false,
+						};
+						let check;
+						//left
+						
+						//stopSection
+						if(connectedLog.stop[stopIndex] !== 0){
+							if(stopIndex === 0){
+								lineProp.width = 0.15;
+							}else if(roadRecord.record.stop[stopIndex - 1].type !== "road" && roadRecord.record.stop[stopIndex - 1].type !== "slowlane"){
+								lineProp.width = 0.15;
+							}else if((roadRecord.record.stop[stopIndex].type === "road" && roadRecord.record.stop[stopIndex - 1].type === "slowlane")|| (roadRecord.record.stop[stopIndex].type === "slowlane" && roadRecord.record.stop[stopIndex - 1].type === "road")){
+								let tempRecord = roadRecord.record.stop[stopIndex - 1];
+								lineProp.width = 0.1;
+								lineProp.slowlane = true;
+								lineProp.sameDir = stopRecord.direction === tempRecord.direction;
+								lineProp.left = 0;
+								lineProp.right = 0;
+							}else{
+								let tempRecord = roadRecord.record.stop[stopIndex - 1];
+								
+								lineProp.width = 0.1;
+								lineProp.sameDir = stopRecord.direction === tempRecord.direction;
+	
+								if(stopRecord.type === "slowlane"){
+									lineProp.left = 1;
+									lineProp.right = 1;
+								}else{
+									lineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+									lineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+								}
+								lineProp.slowlane = false;
+							}
+	
+							points.push([markingRoadEnd, componentX.stop[stopIndex]]);
+							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
+							if(build3dFlag){
+								markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
+							}
+	
+						}
+	
+						//check cover
+						check = false;
+						//check for spliting
+						for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+							if(intermidiateConnectTable.road[i][k].stopIndex < stopIndex){
+								let temp = intermidiateConnectTable.road[i][k]
 								check = true;
-
+	
 								if(stopRecord.type === "slowlane"){
 									tempLineProp.width = 0;
 									break;
 								}
-
+								
 								if(overrideSerial > temp.overrideSerialNumber){
 									tempLineProp.width = 0.1;
 									tempLineProp.left = 1;
@@ -914,157 +880,102 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 									tempLineProp.slowlane = false;
 								}else{
 									tempLineProp.width = 0;
+									tempLineProp.slowlane = false;
 								}
 							}
 						}
-					}
-
-					if(!check){
-						if(i === 0 || stopIndex === 0){
-							check = true;
-							tempLineProp.width = 0.15;
-						}else if(stopIndex !== 0){
-							if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane" && roadRecord.record.stop[stopIndex -1].type !== "slowlane"){
-								tempLineProp.width = 0.15;
-								check = true;
-							}else{
-								
-								//check for parallel
-								if(! check && (roadRecord.record.road[i -1].type === "road" || roadRecord.record.road[i -1].type === "slowlane")){
-									for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
-										if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
-											let connection = intermidiateConnectTable.road[i-1][k];
-											let tempRoadRecord = roadRecord.record.road[connection.roadIndex];
-											let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
+						if(!check){
+							for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
+								if(intermidiateConnectTable.stop[stopIndex][k].roadIndex < i){
+									let temp = intermidiateConnectTable.stop[stopIndex][k]
+									check = true;
 	
-											check = true;
-											
-											tempLineProp.width = 0.1;
-											tempLineProp.sameDir = record.direction === tempStopRecord.direction;
-											
-											if(tempStopRecord.type === stopRecord.type){
-												if(stopRecord.type === "road"){
-													tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
-													tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
-												}else{
-													tempLineProp.left = 1;
-													tempLineProp.right = 1;
-												}
-												tempLineProp.slowlane = false;
-											}else{
-												tempLineProp.left = 0;
-												tempLineProp.right = 0;
-												tempLineProp.slowlane = true;
-											}
-
-											break;
-										}
+									if(stopRecord.type === "slowlane"){
+										tempLineProp.width = 0;
+										break;
+									}
+	
+									if(overrideSerial > temp.overrideSerialNumber){
+										tempLineProp.width = 0.1;
+										tempLineProp.left = 1;
+										tempLineProp.right = 1;
+										tempLineProp.sameDir = true;
+										tempLineProp.slowlane = false;
+									}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+										tempLineProp.width = 0.1;
+										tempLineProp.left = 1;
+										tempLineProp.right = 1;
+										tempLineProp.sameDir = true;
+										tempLineProp.slowlane = false;
+									}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+										tempLineProp.width = 0.1;
+										tempLineProp.left = 1;
+										tempLineProp.right = 1;
+										tempLineProp.sameDir = true;
+										tempLineProp.slowlane = false;
+									}else{
+										tempLineProp.width = 0;
 									}
 								}
-								
-								//else
-								if(!check){
+							}
+						}
+	
+						if(!check){
+							if(i === 0 || stopIndex === 0){
+								check = true;
+								tempLineProp.width = 0.15;
+							}else if(stopIndex !== 0){
+								if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.stop[stopIndex -1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane" && roadRecord.record.stop[stopIndex -1].type !== "slowlane"){
 									tempLineProp.width = 0.15;
 									check = true;
+								}else{
+									
+									//check for parallel
+									if(! check && (roadRecord.record.road[i -1].type === "road" || roadRecord.record.road[i -1].type === "slowlane")){
+										for(let k = 0;k<intermidiateConnectTable.road[i - 1].length;++k){
+											if(intermidiateConnectTable.road[i - 1][k].stopIndex === stopIndex - 1){
+												let connection = intermidiateConnectTable.road[i-1][k];
+												let tempRoadRecord = roadRecord.record.road[connection.roadIndex];
+												let tempStopRecord = roadRecord.record.stop[connection.stopIndex];
+		
+												check = true;
+												
+												tempLineProp.width = 0.1;
+												tempLineProp.sameDir = record.direction === tempStopRecord.direction;
+												
+												if(tempStopRecord.type === stopRecord.type){
+													if(stopRecord.type === "road"){
+														tempLineProp.left = (((tempRoadRecord.crossability & 0b10) === 0? 1:0) + ((tempStopRecord.crossability & 0b10) === 0? 1:0)) === 0? 1: 0;
+														tempLineProp.right = (((record.crossability & 0b1) === 0? 1:0) + ((stopRecord.crossability & 0b1) === 0? 1:0)) === 0? 1: 0;
+													}else{
+														tempLineProp.left = 1;
+														tempLineProp.right = 1;
+													}
+													tempLineProp.slowlane = false;
+												}else{
+													tempLineProp.left = 0;
+													tempLineProp.right = 0;
+													tempLineProp.slowlane = true;
+												}
+	
+												break;
+											}
+										}
+									}
+									
+									//else
+									if(!check){
+										tempLineProp.width = 0.15;
+										check = true;
+									}
 								}
-							}
-						}else{
-							tempLineProp.width = 0.15;
-							check = true;
-						}
-					}
-
-					//check for diff line property
-					check = false;
-					if(lineProp.width !== tempLineProp.width){
-						check = true;
-					}else if(lineProp.width === 0.1){
-						if(
-							lineProp.left !==tempLineProp.left||
-							lineProp.right !==tempLineProp.right||
-							lineProp.sameDir !==tempLineProp.sameDir||
-							lineProp.slowlane !== lineProp.slowlane
-						){
-							check = true;
-						}
-					}
-
-					if(check || tempLineProp.width === 0){
-						if(points.length !== 0){
-							if(lineProp.width === 0.15)lineProp.right = 0;
-
-							let markingPriorty = MarkingPriorty(lineProp);
-							let marking =  CreateLineMarking(lineProp, points);
-							if(markingPriorty === -1){
-								markingSpace += marking;
-							}
-							else{
-								highPriortyMarking[markingPriorty].push(marking);
-							}
-
-							if(build3dFlag){
-								model.push({
-									"type": "marking",
-									"markingPriority": markingPriorty,
-									"lineProp":JSON.parse(JSON.stringify(lineProp)),
-									"path": markingModel,
-								});
-								markingModel = [];
-							}
-						}
-						points = [];
-						lineProp.width = tempLineProp.width;
-						lineProp.left = tempLineProp.left;
-						lineProp.right = tempLineProp.right;
-						lineProp.sameDir = tempLineProp.sameDir;
-						lineProp.slowlane = tempLineProp.slowlane;
-					}
-
-					//intermidiate stage
-					if(lineProp.width !== 0){
-						if(points.length === 0){
-							points.push([intermidiateEndX, componentX.stop[stopIndex]]);
-						}
-						points.push([[intermidiateMidX, componentX.stop[stopIndex]], [intermidiateMidX, componentX.road[i]], [intermidiateStartX, componentX.road[i]]]);
-
-						if(build3dFlag){
-							if(markingModel.length === 0){
-								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
-							}
-							markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex] / M2PxFactor], [intermidiateMid3d, componentX.road[i] / M2PxFactor], [intermidiateStart3d, componentX.road[i] / M2PxFactor]]);
-						}
-					}
-					
-					
-					if(connectedLog.road[i] !== 1){
-						//road stage line prop
-						tempLineProp.slowlane = false;
-						if(i === 0){
-							tempLineProp.width = 0.15;
-						}else if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane"){
-							tempLineProp.width = 0.15;
-						}else if((roadRecord.record.road[i].type === "road" && roadRecord.record.road[i - 1].type === "slowlane")|| (roadRecord.record.road[i].type === "slowlane" && roadRecord.record.road[i - 1].type === "road")){
-							let tempRecord = roadRecord.record.road[i - 1];
-							tempLineProp.width = 0.1;
-							tempLineProp.slowlane = true;
-							tempLineProp.sameDir = record.direction === tempRecord.direction;
-							tempLineProp.left = 0;
-							tempLineProp.right = 0;
-						}else{
-							let tempRecord = roadRecord.record.road[i -1];
-							tempLineProp.width = 0.1;
-							tempLineProp.sameDir = record.direction === tempRecord.direction;
-
-							if(stopRecord.type === "slowlane"){
-								tempLineProp.left = 1;
-								tempLineProp.right = 1;
 							}else{
-								tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
-								tempLineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+								tempLineProp.width = 0.15;
+								check = true;
 							}
 						}
-
-						//line prop diff check
+	
+						//check for diff line property
 						check = false;
 						if(lineProp.width !== tempLineProp.width){
 							check = true;
@@ -1073,23 +984,25 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								lineProp.left !==tempLineProp.left||
 								lineProp.right !==tempLineProp.right||
 								lineProp.sameDir !==tempLineProp.sameDir||
-								lineProp.slowlane !==tempLineProp.slowlane
+								lineProp.slowlane !== lineProp.slowlane
 							){
 								check = true;
 							}
 						}
-
-						//road section marking
+	
 						if(check || tempLineProp.width === 0){
 							if(points.length !== 0){
 								if(lineProp.width === 0.15)lineProp.right = 0;
-
+	
 								let markingPriorty = MarkingPriorty(lineProp);
 								let marking =  CreateLineMarking(lineProp, points);
-								if(markingPriorty === -1) markingSpace += marking;
-								else highPriortyMarking[markingPriorty].push(marking);
-
-								//build model
+								if(markingPriorty === -1){
+									markingSpace += marking;
+								}
+								else{
+									highPriortyMarking[markingPriorty].push(marking);
+								}
+	
 								if(build3dFlag){
 									model.push({
 										"type": "marking",
@@ -1107,273 +1020,117 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 							lineProp.sameDir = tempLineProp.sameDir;
 							lineProp.slowlane = tempLineProp.slowlane;
 						}
-
-						//push point
-						if(points.length === 0){
-							points.push([intermidiateStartX, componentX.road[i]]);
-						}
-						points.push([0, componentX.road[i]]);
-
-						if(build3dFlag){
-							if(markingModel.length === 0){
-								markingModel.push([intermidiateStart3d, componentX.road[i] / M2PxFactor]);
-							}
-							markingModel.push([-roadExtend, componentX.road[i] / M2PxFactor]);
-						}
-					}
-					
-					if(points.length !== 0){
-						if(lineProp.width === 0.15)lineProp.right = 0;
-
-						let markingPriorty = MarkingPriorty(lineProp);
-						let marking =  CreateLineMarking(lineProp, points);
-						if(markingPriorty === -1) markingSpace += marking;
-						else highPriortyMarking[markingPriorty].push(marking);
-
-						//build model
-						if(build3dFlag){
-							model.push({
-								"type": "marking",
-								"markingPriority": markingPriorty,
-								"lineProp":JSON.parse(JSON.stringify(lineProp)),
-								"path": markingModel,
-							});
-							markingModel = [];
-						}
-					}
-					
-					//right
-					{
-						//stop section
-						check = false;
-						lineProp.width = 0;
-						lineProp.slowlane = false;
-						points = [];
-						markingModel = [];
-						if(stopIndex === roadRecord.record.stop.length - 1){
-							check = true;
-						}else if(roadRecord.record.stop[stopIndex + 1].type !== "road" && roadRecord.record.stop[stopIndex + 1].type !== "slowlane"){
-							check = true;
-						}
-						
-						if(check){
-							lineProp.width = 0.15;
-							points.push([markingRoadEnd, componentX.stop[stopIndex + 1]]);
-							points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
-
-							if(build3dFlag){
-								markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
-								markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
-							}
-						}
-						
-						//build intermidiate section line property
-						check = false;
-						if(i < roadRecord.record.road.length - 1 || stopIndex < roadRecord.record.stop.length - 1){
-							tempLineProp.width = 0;
-							
-							//road side branch out
-							if(stopIndex < roadRecord.record.stop.length - 1){
-								if(roadRecord.record.stop[stopIndex + 1].type === "road" || roadRecord.record.stop[stopIndex + 1].type === "slowlane" ){
-									for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
-										if(intermidiateConnectTable.road[i][k].stopIndex > stopIndex){
-											let temp = intermidiateConnectTable.road[i][k]
-											check = true;
-											
-											if(stopRecord.type === "slowlane"){
-												tempLineProp.width = 0;
-												break;
-											}
-											tempLineProp.slowlane = false;
-											if(overrideSerial > temp.overrideSerialNumber){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-											}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-											}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-												tempLineProp.slowlane = false;
-											}else{
-												tempLineProp.width = 0;
-											}
-										}
-									}
-								}
-							}
-							
-							//stop side branch out
-							if(i < roadRecord.record.road.length - 1){
-								if(!check && (roadRecord.record.road[i + 1].type === "road" || roadRecord.record.road[i + 1].type === "slowlane")){
-									for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
-										if(intermidiateConnectTable.stop[stopIndex][k].roadIndex > i){
-											let temp = intermidiateConnectTable.stop[stopIndex][k]
-											check = true;
-											tempLineProp.slowlane = false;
-											if(stopRecord.type === "slowlane"){
-												tempLineProp.width = 0;
-												break;
-											}
-
-											if(overrideSerial > temp.overrideSerialNumber){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-											}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-											}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
-												tempLineProp.width = 0.1;
-												tempLineProp.left = 1;
-												tempLineProp.right = 1;
-												tempLineProp.sameDir = true;
-												tempLineProp.slowlane = false;
-											}else{
-												tempLineProp.width = 0;
-											}
-										}
-									}
-								}
-							}
-
-							if(check){
-								check = false;
-							}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
-								check = true;
-							}
-
-						}else{
-							check = true;
-						}
-
-						if(check){
-							tempLineProp.width = 0.15;
-						}
-
-						//check line prop diff
-						check = false;
-						if(lineProp.width !== tempLineProp.width || tempLineProp.width === 0){
-							check = true;
-						}else if(lineProp.width === 0.1){
-							if(
-								lineProp.left !== tempLineProp.left||
-								lineProp.right !== tempLineProp.right||
-								lineProp.sameDir !== tempLineProp.sameDir||
-								lineProp.slowlane !== tempLineProp.slowlane
-							){
-								check = true;
-							}
-						}
-
-						if(check){
-							if(points.length !== 0){
-								if(lineProp.width === 0.15)lineProp.right = 1;
-
-								let markingPriorty = MarkingPriorty(lineProp);
-								let marking =  CreateLineMarking(lineProp, points, -1);
-								if(markingPriorty === -1) markingSpace += marking;
-								else highPriortyMarking[markingPriorty].push(marking);
-
-								//build model
-								if(build3dFlag){
-									model.push({
-										"type": "marking",
-										"markingPriority": markingPriorty,
-										"lineProp":JSON.parse(JSON.stringify(lineProp)),
-										"path": markingModel,
-									});
-									markingModel = [];
-								}
-							}
-
-							points = [];
-							
-							lineProp.width = tempLineProp.width;
-							lineProp.left = tempLineProp.left;
-							lineProp.right = tempLineProp.right;
-							lineProp.sameDir = tempLineProp.sameDir;
-							lineProp.slowlane = tempLineProp.slowlane;
-						}
-
-						//intermidiate section
+	
+						//intermidiate stage
 						if(lineProp.width !== 0){
 							if(points.length === 0){
-								points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+								points.push([intermidiateEndX, componentX.stop[stopIndex]]);
 							}
-							
-							points.push([[intermidiateMidX, componentX.stop[stopIndex + 1]], [intermidiateMidX, componentX.road[i + 1]], [intermidiateStartX, componentX.road[i + 1]]]);
-
-
+							points.push([[intermidiateMidX, componentX.stop[stopIndex]], [intermidiateMidX, componentX.road[i]], [intermidiateStartX, componentX.road[i]]]);
+	
 							if(build3dFlag){
 								if(markingModel.length === 0){
-									markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+									markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex] / M2PxFactor]);
 								}
-								markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex + 1] / M2PxFactor], [intermidiateMid3d, componentX.road[i + 1] / M2PxFactor], [intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]]);
+								markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex] / M2PxFactor], [intermidiateMid3d, componentX.road[i] / M2PxFactor], [intermidiateStart3d, componentX.road[i] / M2PxFactor]]);
 							}
 						}
-
-
-						// create road lineProp
-						check = false;
-						if(i === roadRecord.record.road.length - 1){
-							check = true;
-						}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
-							check = true;
-						}
 						
-						if(lineProp.width !== 0.15){
-							if(points.length !== 0){
-								if(lineProp.width === 0.15)lineProp.right = 1;
-
-								let markingPriorty = MarkingPriorty(lineProp);
-								let marking =  CreateLineMarking(lineProp, points);
-								if(markingPriorty === -1) markingSpace += marking;
-								else highPriortyMarking[markingPriorty].push(marking);
+						
+						if(connectedLog.road[i] !== 1){
+							//road stage line prop
+							tempLineProp.slowlane = false;
+							if(i === 0){
+								tempLineProp.width = 0.15;
+							}else if(roadRecord.record.road[i - 1].type !== "road" && roadRecord.record.road[i - 1].type !== "slowlane"){
+								tempLineProp.width = 0.15;
+							}else if((roadRecord.record.road[i].type === "road" && roadRecord.record.road[i - 1].type === "slowlane")|| (roadRecord.record.road[i].type === "slowlane" && roadRecord.record.road[i - 1].type === "road")){
+								let tempRecord = roadRecord.record.road[i - 1];
+								tempLineProp.width = 0.1;
+								tempLineProp.slowlane = true;
+								tempLineProp.sameDir = record.direction === tempRecord.direction;
+								tempLineProp.left = 0;
+								tempLineProp.right = 0;
+							}else{
+								let tempRecord = roadRecord.record.road[i -1];
+								tempLineProp.width = 0.1;
+								tempLineProp.sameDir = record.direction === tempRecord.direction;
+	
+								if(stopRecord.type === "slowlane"){
+									tempLineProp.left = 1;
+									tempLineProp.right = 1;
+								}else{
+									tempLineProp.left = (tempRecord.crossability & 0b10) === 0? 0:1;
+									tempLineProp.right = (stopRecord.crossability & 0b1) === 0? 0:1;
+								}
+							}
+	
+							//line prop diff check
+							check = false;
+							if(lineProp.width !== tempLineProp.width){
+								check = true;
+							}else if(lineProp.width === 0.1){
+								if(
+									lineProp.left !==tempLineProp.left||
+									lineProp.right !==tempLineProp.right||
+									lineProp.sameDir !==tempLineProp.sameDir||
+									lineProp.slowlane !==tempLineProp.slowlane
+								){
+									check = true;
+								}
+							}
+	
+							//road section marking
+							if(check || tempLineProp.width === 0){
+								if(points.length !== 0){
+									if(lineProp.width === 0.15)lineProp.right = 0;
+	
+									let markingPriorty = MarkingPriorty(lineProp);
+									let marking =  CreateLineMarking(lineProp, points);
+									if(markingPriorty === -1) markingSpace += marking;
+									else highPriortyMarking[markingPriorty].push(marking);
+	
+									//build model
+									if(build3dFlag){
+										model.push({
+											"type": "marking",
+											"markingPriority": markingPriorty,
+											"lineProp":JSON.parse(JSON.stringify(lineProp)),
+											"path": markingModel,
+										});
+										markingModel = [];
+									}
+								}
 								points = [];
-
-								//build model
-								if(build3dFlag){
-									model.push({
-										"type": "marking",
-										"markingPriority": markingPriorty,
-										"lineProp":JSON.parse(JSON.stringify(lineProp)),
-										"path": markingModel,
-									});
-									markingModel = [];
-								}
+								lineProp.width = tempLineProp.width;
+								lineProp.left = tempLineProp.left;
+								lineProp.right = tempLineProp.right;
+								lineProp.sameDir = tempLineProp.sameDir;
+								lineProp.slowlane = tempLineProp.slowlane;
 							}
-						}
-						lineProp.width = 0.15;
-						
-						if(check){
-							points.push([intermidiateStartX, componentX.road[i + 1]]);
-							points.push([0, componentX.road[i + 1]]);
-							
+	
+							//push point
+							if(points.length === 0){
+								points.push([intermidiateStartX, componentX.road[i]]);
+							}
+							points.push([0, componentX.road[i]]);
+	
 							if(build3dFlag){
-								markingModel.push([intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]);
-								markingModel.push([-roadExtend, componentX.road[i + 1] / M2PxFactor]);
+								if(markingModel.length === 0){
+									markingModel.push([intermidiateStart3d, componentX.road[i] / M2PxFactor]);
+								}
+								markingModel.push([-roadExtend, componentX.road[i] / M2PxFactor]);
 							}
 						}
-
-
+						
 						if(points.length !== 0){
-							if(lineProp.width === 0.15)lineProp.right = 1;
-
+							if(lineProp.width === 0.15)lineProp.right = 0;
+	
 							let markingPriorty = MarkingPriorty(lineProp);
-							let marking =  CreateLineMarking(lineProp, points, -1);
+							let marking =  CreateLineMarking(lineProp, points);
 							if(markingPriorty === -1) markingSpace += marking;
 							else highPriortyMarking[markingPriorty].push(marking);
-
+	
 							//build model
 							if(build3dFlag){
 								model.push({
@@ -1385,11 +1142,256 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 								markingModel = [];
 							}
 						}
-
+						
+						//right
+						{
+							//stop section
+							check = false;
+							lineProp.width = 0;
+							lineProp.slowlane = false;
+							points = [];
+							markingModel = [];
+							if(stopIndex === roadRecord.record.stop.length - 1){
+								check = true;
+							}else if(roadRecord.record.stop[stopIndex + 1].type !== "road" && roadRecord.record.stop[stopIndex + 1].type !== "slowlane"){
+								check = true;
+							}
+							
+							if(check){
+								lineProp.width = 0.15;
+								points.push([markingRoadEnd, componentX.stop[stopIndex + 1]]);
+								points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+	
+								if(build3dFlag){
+									markingModel.push([markingRoadEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+									markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+								}
+							}
+							
+							//build intermidiate section line property
+							check = false;
+							if(i < roadRecord.record.road.length - 1 || stopIndex < roadRecord.record.stop.length - 1){
+								tempLineProp.width = 0;
+								
+								//road side branch out
+								if(stopIndex < roadRecord.record.stop.length - 1){
+									if(roadRecord.record.stop[stopIndex + 1].type === "road" || roadRecord.record.stop[stopIndex + 1].type === "slowlane" ){
+										for(let k = 0;k < intermidiateConnectTable.road[i].length; ++k){
+											if(intermidiateConnectTable.road[i][k].stopIndex > stopIndex){
+												let temp = intermidiateConnectTable.road[i][k]
+												check = true;
+												
+												if(stopRecord.type === "slowlane"){
+													tempLineProp.width = 0;
+													break;
+												}
+												tempLineProp.slowlane = false;
+												if(overrideSerial > temp.overrideSerialNumber){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+												}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+												}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+													tempLineProp.slowlane = false;
+												}else{
+													tempLineProp.width = 0;
+												}
+											}
+										}
+									}
+								}
+								
+								//stop side branch out
+								if(i < roadRecord.record.road.length - 1){
+									if(!check && (roadRecord.record.road[i + 1].type === "road" || roadRecord.record.road[i + 1].type === "slowlane")){
+										for(let k = 0;k < intermidiateConnectTable.stop[stopIndex].length; ++k){
+											if(intermidiateConnectTable.stop[stopIndex][k].roadIndex > i){
+												let temp = intermidiateConnectTable.stop[stopIndex][k]
+												check = true;
+												tempLineProp.slowlane = false;
+												if(stopRecord.type === "slowlane"){
+													tempLineProp.width = 0;
+													break;
+												}
+	
+												if(overrideSerial > temp.overrideSerialNumber){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+												}else if(overrideSerial === temp.overrideSerialNumber && serial < temp.serialNumber){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+												}else if(roadRecord.record.road[temp.roadIndex].type === "slowlane" || roadRecord.record.stop[temp.stopIndex].type === "slowlane"){
+													tempLineProp.width = 0.1;
+													tempLineProp.left = 1;
+													tempLineProp.right = 1;
+													tempLineProp.sameDir = true;
+													tempLineProp.slowlane = false;
+												}else{
+													tempLineProp.width = 0;
+												}
+											}
+										}
+									}
+								}
+	
+								if(check){
+									check = false;
+								}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
+									check = true;
+								}
+	
+							}else{
+								check = true;
+							}
+	
+							if(check){
+								tempLineProp.width = 0.15;
+							}
+	
+							//check line prop diff
+							check = false;
+							if(lineProp.width !== tempLineProp.width || tempLineProp.width === 0){
+								check = true;
+							}else if(lineProp.width === 0.1){
+								if(
+									lineProp.left !== tempLineProp.left||
+									lineProp.right !== tempLineProp.right||
+									lineProp.sameDir !== tempLineProp.sameDir||
+									lineProp.slowlane !== tempLineProp.slowlane
+								){
+									check = true;
+								}
+							}
+	
+							if(check){
+								if(points.length !== 0){
+									if(lineProp.width === 0.15)lineProp.right = 1;
+	
+									let markingPriorty = MarkingPriorty(lineProp);
+									let marking =  CreateLineMarking(lineProp, points, -1);
+									if(markingPriorty === -1) markingSpace += marking;
+									else highPriortyMarking[markingPriorty].push(marking);
+	
+									//build model
+									if(build3dFlag){
+										model.push({
+											"type": "marking",
+											"markingPriority": markingPriorty,
+											"lineProp":JSON.parse(JSON.stringify(lineProp)),
+											"path": markingModel,
+										});
+										markingModel = [];
+									}
+								}
+	
+								points = [];
+								
+								lineProp.width = tempLineProp.width;
+								lineProp.left = tempLineProp.left;
+								lineProp.right = tempLineProp.right;
+								lineProp.sameDir = tempLineProp.sameDir;
+								lineProp.slowlane = tempLineProp.slowlane;
+							}
+	
+							//intermidiate section
+							if(lineProp.width !== 0){
+								if(points.length === 0){
+									points.push([intermidiateEndX, componentX.stop[stopIndex + 1]]);
+								}
+								
+								points.push([[intermidiateMidX, componentX.stop[stopIndex + 1]], [intermidiateMidX, componentX.road[i + 1]], [intermidiateStartX, componentX.road[i + 1]]]);
+	
+	
+								if(build3dFlag){
+									if(markingModel.length === 0){
+										markingModel.push([intermidiateEnd3d, componentX.stop[stopIndex + 1] / M2PxFactor]);
+									}
+									markingModel.push([[intermidiateMid3d, componentX.stop[stopIndex + 1] / M2PxFactor], [intermidiateMid3d, componentX.road[i + 1] / M2PxFactor], [intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]]);
+								}
+							}
+	
+	
+							// create road lineProp
+							check = false;
+							if(i === roadRecord.record.road.length - 1){
+								check = true;
+							}else if(roadRecord.record.road[i + 1].type !== "road" && roadRecord.record.road[i + 1].type !== "slowlane"){
+								check = true;
+							}
+							
+							if(lineProp.width !== 0.15){
+								if(points.length !== 0){
+									if(lineProp.width === 0.15)lineProp.right = 1;
+	
+									let markingPriorty = MarkingPriorty(lineProp);
+									let marking =  CreateLineMarking(lineProp, points);
+									if(markingPriorty === -1) markingSpace += marking;
+									else highPriortyMarking[markingPriorty].push(marking);
+									points = [];
+	
+									//build model
+									if(build3dFlag){
+										model.push({
+											"type": "marking",
+											"markingPriority": markingPriorty,
+											"lineProp":JSON.parse(JSON.stringify(lineProp)),
+											"path": markingModel,
+										});
+										markingModel = [];
+									}
+								}
+							}
+							lineProp.width = 0.15;
+							
+							if(check){
+								points.push([intermidiateStartX, componentX.road[i + 1]]);
+								points.push([0, componentX.road[i + 1]]);
+								
+								if(build3dFlag){
+									markingModel.push([intermidiateStart3d, componentX.road[i + 1] / M2PxFactor]);
+									markingModel.push([-roadExtend, componentX.road[i + 1] / M2PxFactor]);
+								}
+							}
+	
+	
+							if(points.length !== 0){
+								if(lineProp.width === 0.15)lineProp.right = 1;
+	
+								let markingPriorty = MarkingPriorty(lineProp);
+								let marking =  CreateLineMarking(lineProp, points, -1);
+								if(markingPriorty === -1) markingSpace += marking;
+								else highPriortyMarking[markingPriorty].push(marking);
+	
+								//build model
+								if(build3dFlag){
+									model.push({
+										"type": "marking",
+										"markingPriority": markingPriorty,
+										"lineProp":JSON.parse(JSON.stringify(lineProp)),
+										"path": markingModel,
+									});
+									markingModel = [];
+								}
+							}
+	
+						}
 					}
+	
+	
 				}
-
-
 			}
 			connectedLog.road[i] = 1;
 			connectedLog.stop[stopIndex] = 1;
@@ -1397,12 +1399,14 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 	}
 
 	//build high priority marking
-	highPriortyMarking[1].forEach(marking => {
-		markingSpace+= marking;
-	});
-	highPriortyMarking[0].forEach(marking => {
-		markingSpace+= marking;
-	});
+	if(markingEnable){
+		highPriortyMarking[1].forEach(marking => {
+			markingSpace+= marking;
+		});
+		highPriortyMarking[0].forEach(marking => {
+			markingSpace+= marking;
+		});
+	}
 	//console.log(highPriortyMarking);
 	
 
@@ -1538,68 +1542,70 @@ function BuildRoadSvg(roadRecord, svgElementId, M2PxFactor, yOffset, intermidiat
 		}
 
 		//build stop marking
-		if((record.type === "road" || record.type === "slowlane") && (record.direction & 0b10) !== 0){
-			if(i === 0 || startX === -1){
-				if(i === 0){
-					startX = componentX.stop[i] + marking15cm;
-				}else if(roadRecord.record.stop[i - 1].type === "road"){
-					if(record.type === "slowlane"){
+		if(markingEnable){
+			if((record.type === "road" || record.type === "slowlane") && (record.direction & 0b10) !== 0){
+				if(i === 0 || startX === -1){
+					if(i === 0){
+						startX = componentX.stop[i] + marking15cm;
+					}else if(roadRecord.record.stop[i - 1].type === "road"){
+						if(record.type === "slowlane"){
+							startX = componentX.stop[i] + marking10cm * 0.5;
+						}else if((record.crossability & 0b1) === 0 || (roadRecord.record.stop[i - 1].crossability & 0b10) === 0){
+							startX = componentX.stop[i] + marking10cm * 1.5;
+						}else{
+							startX = componentX.stop[i] + marking10cm * 0.5;
+						}
+					}else if (roadRecord.record.stop[i - 1].type === "slowlane"){
 						startX = componentX.stop[i] + marking10cm * 0.5;
-					}else if((record.crossability & 0b1) === 0 || (roadRecord.record.stop[i - 1].crossability & 0b10) === 0){
-						startX = componentX.stop[i] + marking10cm * 1.5;
 					}else{
-						startX = componentX.stop[i] + marking10cm * 0.5;
+						startX = componentX.stop[i] + marking15cm;
 					}
-				}else if (roadRecord.record.stop[i - 1].type === "slowlane"){
-					startX = componentX.stop[i] + marking10cm * 0.5;
-				}else{
-					startX = componentX.stop[i] + marking15cm;
 				}
-			}
-
-			
-			check = false;
-			if(i === roadRecord.record.stop.length - 1){
-				check = true;
-				endX = componentX.stop[i + 1] - marking15cm;
-			}else{
-				let nextComponent = roadRecord.record.stop[i + 1];
-				check = true;
-				if(nextComponent.type !== "road" && nextComponent.type !== "slowlane"){
+	
+				
+				check = false;
+				if(i === roadRecord.record.stop.length - 1){
+					check = true;
 					endX = componentX.stop[i + 1] - marking15cm;
-				}else if((nextComponent.direction & 0b10) === 0){
-					if(record.type === "road"){
-						if((record.crossability & 0b10) === 0 || (nextComponent.crossability & 0b1) === 0){
-							endX = componentX.stop[i + 1] - marking10cm * 1.5;
-						}else {
+				}else{
+					let nextComponent = roadRecord.record.stop[i + 1];
+					check = true;
+					if(nextComponent.type !== "road" && nextComponent.type !== "slowlane"){
+						endX = componentX.stop[i + 1] - marking15cm;
+					}else if((nextComponent.direction & 0b10) === 0){
+						if(record.type === "road"){
+							if((record.crossability & 0b10) === 0 || (nextComponent.crossability & 0b1) === 0){
+								endX = componentX.stop[i + 1] - marking10cm * 1.5;
+							}else {
+								endX = componentX.stop[i + 1] - marking10cm * 0.5;
+							}
+						}else{
 							endX = componentX.stop[i + 1] - marking10cm * 0.5;
 						}
 					}else{
-						endX = componentX.stop[i + 1] - marking10cm * 0.5;
+						check = false;
 					}
-				}else{
-					check = false;
 				}
-			}
-
-			if(check){
-				if(build3dFlag){
-					model.push({
-						"type": "marking",
-						"markingPriority": 0,
-						"lineProp":{
-							width: 0.4,
-							left: 0,
-							right: 0,
-							sameDir: true,
-						},
-						"path": [[lineX / M2PxFactor,  startX / M2PxFactor], [lineX / M2PxFactor, endX / M2PxFactor]],
-					});
+	
+				if(check){
+					if(build3dFlag){
+						model.push({
+							"type": "marking",
+							"markingPriority": 0,
+							"lineProp":{
+								width: 0.4,
+								left: 0,
+								right: 0,
+								sameDir: true,
+							},
+							"path": [[lineX / M2PxFactor,  startX / M2PxFactor], [lineX / M2PxFactor, endX / M2PxFactor]],
+						});
+					}
+	
+					markingSpace += `<path d="M ${lineX} ${startX} L ${lineX} ${endX}" stroke-width="${stopMarkingWidth}" stroke="white"/>`
+					startX = -1;
+					endX = -1;
 				}
-
-				markingSpace += `<path d="M ${lineX} ${startX} L ${lineX} ${endX}" stroke-width="${stopMarkingWidth}" stroke="white"/>`
-				startX = -1;
-				endX = -1;
 			}
 		}
 	}
@@ -1978,7 +1984,8 @@ function BuildIntersectionSvg(){
 
 	for(let i = 0;i< 4;++i){
 		let roadSetting= intersectionSetting.roads[i];
-		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX, build3dFlag, true, i);
+		let markingEnable = i == 0 || i == 2;
+		BuildRoadSvg(intersectionRecord.intersection[i], `intersectionRoad_${i}`, intersectionSetting.M2PxFactor, 0, roadSetting.intermidiateStartX, roadSetting.intermidiateMidX, roadSetting.intermidiateEndX, build3dFlag, true, i, markingEnable);
 		
 		if(build3dFlag){
 			modelParameter[i].roadWidth = intersectionRecord.intersection[i].record.landWidth;
