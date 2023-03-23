@@ -6,6 +6,7 @@
 	display: flex;
 	justify-content: space-around;
 	align-items: center;
+	z-index: 3;
 }
 
 
@@ -43,10 +44,62 @@
 #widthInfo{
 	display: flex;
 	justify-content: end;
+	position: relative;
 	align-items: center;
-	width: 100%;
+	width: fit-content;
 	height: 100%;
 	
+}
+
+#widthInfo #landWidthChanger{
+	position: absolute;
+	background-color: darkgray;
+	width: 300px;
+	height: fit-content;
+	top: calc(100% + 5px);
+	padding: 5px;
+	right: 0px;
+	display: none;
+	border-radius: 5px;
+}
+
+#widthInfo #landWidthChanger::after{
+	content: "";
+	position: absolute;
+	top: -19px;
+	left: calc(100% - 20px);
+	margin-left: -10px;
+	border-width: 10px;
+	border-style: solid;
+	border-color: transparent transparent darkgray transparent;
+}
+
+#widthInfo #landWidthChanger.active{
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+#widthInfo #landWidthChanger * button{
+	border-width: 0px;
+	width: 50%;
+	transition-duration: 100ms;
+}
+
+#widthInfo #landWidthChanger .apply{
+	background-color: greenyellow;
+}
+
+#widthInfo #landWidthChanger .cancel{
+	background-color: peachpuff;
+}
+
+#widthInfo #landWidthChanger .apply:hover{
+	background-color: green;
+}
+
+#widthInfo #landWidthChanger .cancel:hover{
+	background-color: coral;
 }
 
 .progressCase{

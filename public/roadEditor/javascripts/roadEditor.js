@@ -3958,6 +3958,101 @@ window.OnIntermidiateDragStart  = function(event){
 
 //-------------------------------------------
 //
+// testing
+//
+//-------------------------------------------
+function ChangeLandWidth(newWidth){
+	let storage = JSON.parse(localStorage.getItem("tempStorage"));
+	let oriStage = currentStage;
+	
+	//switch stage
+	currentStage = 0;
+	SwitchEditorRoadSegment(oriStage, 0);
+	
+	// update land width variables
+	landWidth = newWidth;
+	storage.landWidth = newWidth;
+	storage.stage = currentStage;
+	LandInit();
+	
+	//initialize landwidth indicator
+	document.getElementById("landWidthIndicator").innerText = landWidth.toString();
+	
+	// rebuild unused section
+	RebuildUnusedSection();
+	UnusedMarkingSpaceInit(true, currentStage===2);
+
+
+	// rebuild road section
+	if(currentStage !== 2){
+		ImportRoadSegmentRecordJSON(storage.road);
+	}
+
+	//update current stage marking space
+	markingSpaceElement.style.opacity = "0";
+	markingSpaceElement.style.transitionDuration = "500ms";
+	setTimeout(()=>{
+		UpdateMarkingSpace();
+		markingSpaceElement.style.opacity = "1";
+		setTimeout(()=>{
+			markingSpaceElement.style.removeProperty("opacity");
+			markingSpaceElement.style.removeProperty("transition-duration");
+		}, 550);
+	}, 400);
+	
+	//restore redo/undo stack
+	RestoreSectionStack();
+
+	// update info bar
+	InfoBarSectionSwitch();
+
+	//save change
+	localStorage.setItem("tempStorage", JSON.stringify(storage));
+}
+
+window.OnClickActivateLandWidthChanger = function (event){
+	let target = document.getElementById("landWidthChanger");
+	if(target.classList.contains("active"))return;
+	console.log(event);
+	target.classList.add("active");
+	
+	let targetInput = document.getElementById("newLandWidth");
+	targetInput.value = landWidth;
+	
+	setTimeout(() => {
+		document.addEventListener("mousedown", ExitChangeLandWidth);
+	}, 100);
+}
+
+window.CancelLandWidthChange = function(){
+	let target = document.getElementById("landWidthChanger");
+	target.classList.remove("active");
+	document.removeEventListener("click", ExitChangeLandWidth);
+}
+
+window.ApplyLandWidthChange = function(){
+	let input = document.getElementById("newLandWidth");
+	let newWidth = parseFloat(input.value);
+	if(newWidth !== landWidth){
+		console.log("change landwidth to", newWidth);
+		ChangeLandWidth(newWidth);
+	}
+
+	let target = document.getElementById("landWidthChanger");
+	target.classList.remove("active");
+	document.removeEventListener("click", ExitChangeLandWidth);
+}
+
+function ExitChangeLandWidth(event){
+	if(event.target.closest("#landWidthChanger") === null){
+		let target = document.getElementById("landWidthChanger");
+		target.classList.remove("active");
+		document.removeEventListener("mousedown", ExitChangeLandWidth);
+	}
+}
+
+//-------------------------------------------
+//
 // discard
 //
 //-------------------------------------------
