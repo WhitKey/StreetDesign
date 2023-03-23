@@ -4019,6 +4019,8 @@ window.OnClickActivateLandWidthChanger = function (event){
 	let targetInput = document.getElementById("newLandWidth");
 	targetInput.value = landWidth;
 	
+	targetInput.focus();
+
 	setTimeout(() => {
 		document.addEventListener("mousedown", ExitChangeLandWidth);
 	}, 100);
@@ -4033,7 +4035,7 @@ window.CancelLandWidthChange = function(){
 window.ApplyLandWidthChange = function(){
 	let input = document.getElementById("newLandWidth");
 	let newWidth = parseFloat(input.value);
-	if(newWidth !== landWidth){
+	if(newWidth !== landWidth && newWidth >= 2 && newWidth <= 100){
 		console.log("change landwidth to", newWidth);
 		ChangeLandWidth(newWidth);
 	}
