@@ -102,6 +102,18 @@
 	background-color: coral;
 }
 
+.noInputStepButton::-webkit-outer-spin-button{
+
+	-webkit-appearance: none;
+	margin: 0;
+}
+
+.noInputStepButton::-webkit-inner-spin-button{
+
+	-webkit-appearance: none;
+	margin: 0;
+}
+
 .progressCase{
 	border-radius: 20px;
 	height: 90%;
