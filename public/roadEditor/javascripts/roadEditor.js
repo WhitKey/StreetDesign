@@ -3958,7 +3958,7 @@ window.OnIntermidiateDragStart  = function(event){
 
 //-------------------------------------------
 //
-// testing
+// Land Width Changer
 //
 //-------------------------------------------
 function ChangeLandWidth(newWidth){
