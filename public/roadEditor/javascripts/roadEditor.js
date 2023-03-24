@@ -4012,6 +4012,8 @@ function ChangeLandWidth(newWidth){
 
 window.OnClickActivateLandWidthChanger = function (event){
 	let target = document.getElementById("landWidthChanger");
+	let originWidthLable = document.getElementById("originWidthLable");
+
 	if(target.classList.contains("active"))return;
 	console.log(event);
 	target.classList.add("active");
@@ -4019,6 +4021,8 @@ window.OnClickActivateLandWidthChanger = function (event){
 	let targetInput = document.getElementById("newLandWidth");
 	targetInput.value = landWidth;
 	
+	originWidthLable.innerText = `腹地寬度 ${landWidth}m -> `;
+
 	targetInput.focus();
 
 	setTimeout(() => {

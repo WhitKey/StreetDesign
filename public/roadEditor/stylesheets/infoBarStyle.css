@@ -63,6 +63,19 @@
 	border-radius: 5px;
 }
 
+.landwidthEditTrigger{
+	font-size:xx-small;
+	margin-left: 2px;
+	color: lightgray;
+	transition-duration: 150ms;
+}
+
+.landwidthEditTrigger:hover{
+	color: gray;
+}
+
+
+
 #widthInfo #landWidthChanger::after{
 	content: "";
 	position: absolute;
@@ -82,8 +95,9 @@
 
 #widthInfo #landWidthChanger * button{
 	border-width: 0px;
-	width: 50%;
+	width: 40%;
 	transition-duration: 100ms;
+	border-radius: 5px;
 }
 
 #widthInfo #landWidthChanger .apply{
