@@ -4024,6 +4024,7 @@ window.OnClickActivateLandWidthChanger = function (event){
 	originWidthLable.innerText = `腹地寬度 ${landWidth}m -> `;
 
 	targetInput.focus();
+	targetInput.select();
 
 	setTimeout(() => {
 		document.addEventListener("mousedown", ExitChangeLandWidth);
