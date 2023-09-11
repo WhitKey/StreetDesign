@@ -229,7 +229,7 @@ function BuildRoad(model, rotDeg, centerOffsetX, centerOffsetY){
 	canvas.height = model.roadWidth * MarkingTextureMagLevel;
 
 	context = canvas.getContext("2d");
-	context.fillStyle = "hsl(0, 0%, 11%)";
+	context.fillStyle = "hsl(0, 0%, 1%)";
 	//context.fillStyle = "red";
 	context.fillRect(0, 0, model.roadLength * MarkingTextureMagLevel, model.roadWidth * MarkingTextureMagLevel);
 
@@ -370,7 +370,7 @@ function BuildCenter(model, xLength, zLength){
 
 	canvas.width = zLength * 2* MarkingTextureMagLevel;
 	canvas.height = xLength * 2 * MarkingTextureMagLevel;
-	context.fillStyle = "hsl(0, 0%, 11%)";
+	context.fillStyle = "hsl(0, 0%, 1%)";
 	context.fillRect(0, 0, canvas.width, canvas.height);
 
 	model.forEach(element => {
@@ -564,11 +564,11 @@ function init(modelParameter) {
 		// ambient light
 		scene.add( new THREE.AmbientLight( 0x505050 ) );
 		
-		// point light
-		let light = new THREE.PointLight( 0xffffff, 1 );
+		// directional light
+		let light = new THREE.DirectionalLight( 0xffffff, 1);
 
-		light.position.set(0, 20, 20);
-		camera.add( light );
+		light.position.set(0, 20, 10);
+		scene.add( light );
 	}
 
 	// helper

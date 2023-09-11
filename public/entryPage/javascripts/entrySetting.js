@@ -10,6 +10,7 @@ const LandMinWidth = 1;
 const SessionStorageName = "entryConfig";
 const editorLocation = "../roadEditor";
 const editorLoadingTime = 1000;
+const TemplateListLocation = "../data/data/templateList.json";
 
 const Pages = {
 	title:{
@@ -111,10 +112,10 @@ const Pages = {
 	getTemplate:{
 		content:`
 <div class = "pageinner" >
-	<div class="questionContainer">
+	<div class="questionContainer" >
 		<span class="question">輸入模板 (optional)</span>
 		<div class="input-group mb-3 mt-4" style="max-height:40px; overflow:hidden;">
-			<input id="roadTemplateInput" type="text" class="form-control" aria-describedby="basic-addon1" onchange="SaveOnChange(event);" config ="template">
+			<select id = "roadTemplateInput" style="height:100%;width:100%;font-size:25px;" onchange="SaveOnChange(event);"  config ="template"></select>
 		</div>
 		<div class="flowArea">
 			<button class="prev" onclick="OnSwitchPage(-1, 'inputRoadWidth')">上一步</button>
@@ -123,7 +124,7 @@ const Pages = {
 	</div>
 </div>
 		`,
-		onload:()=>{RestoreValue("roadTemplateInput")},
+		onload:()=>{OnLoadRoadTemplatePage();},
 	}
 }
 
@@ -140,7 +141,7 @@ let entryConfig = {
 	template: ""
 };
 
-
+let templateList = null;
 
 //--------------------------
 //
@@ -153,6 +154,12 @@ window.OnLoad = function(){
 	console.log("load");
 	PageElement = document.getElementById("page");
 
+	// request template list
+	let oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", LoadTemplateList);
+	oReq.open("GET", "../data/template/templateList.json");
+	oReq.send();
+
 	//setup default page
 	PageElement.innerHTML = `<div id="currPage" class="pageFrame currPage">${Pages.title.content}</div>`;
 
@@ -161,8 +168,11 @@ window.OnLoad = function(){
 		hasTempStorage = true;
 	}else{
 		setTimeout(()=>{LoadPage(1, "inputRoadWidth");}, 500);
-
 	}
+}
+
+function LoadTemplateList(){
+	templateList = JSON.parse(this.responseText);
 }
 
 //--------------------------
@@ -322,14 +332,34 @@ function OnLoadLandWidth(page){
 //--------------------------
 window.OnSwitchoutRoadTemplate = function(){
 	entryConfig.template = document.getElementById("roadTemplateInput").value;
-
+	
 	if(entryConfig.template === ""){
 		entryConfig.loadExtern = false;
 	}else{
 		entryConfig.loadExtern = true;
+		entryConfig.template = templateList[entryConfig.template].data;
 	}
 
 	ToEditorWithSetting();
 }
 
+window.OnLoadRoadTemplatePage = function(){
+	console.log("load road road tmeplate");
+	TemplateSelectorInjector();
+}
 
+function TemplateSelectorInjector() {
+	let selectElement = document.getElementById("roadTemplateInput");
+	let inner = "";
+	let prop = selectElement.getAttribute("config");
+	let value = entryConfig[prop];
+
+
+	selectElement.innerHTML = `<option value='' ${value==="" ? "selected" : ""}>不使用模板</option>`;
+	Object.keys(templateList).forEach(key=>{
+		let item =  templateList[key];
+		inner += `<option value="${key}" ${value===key ? "selected" : ""}>${item.width}m - ${item.name}</option>`;
+	});
+
+	selectElement.innerHTML += inner;
+}
